@@ -1,0 +1,35 @@
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+
+/**
+ * Entidad de persistencia (TypeORM). Vive únicamente en infrastructure/;
+ * se mapea hacia/desde la entidad de dominio en el repositorio.
+ */
+@Entity({ name: 'users' })
+export class UserOrmEntity {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
+
+  @Column({ unique: true })
+  email: string;
+
+  @Column({ name: 'password_hash' })
+  passwordHash: string;
+
+  @Column({ name: 'first_name' })
+  firstName: string;
+
+  @Column({ name: 'last_name' })
+  lastName: string;
+
+  @Column({ type: 'text', array: true, default: '{}' })
+  roles: string[];
+
+  @Column({ default: 'invited' })
+  status: 'active' | 'invited' | 'suspended';
+
+  @Column({ name: 'created_at', type: 'timestamptz', default: () => 'now()' })
+  createdAt: Date;
+
+  @Column({ name: 'updated_at', type: 'timestamptz', default: () => 'now()' })
+  updatedAt: Date;
+}

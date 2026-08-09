@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  Paleta minimalista por defecto. Cada tenant puede sobreescribir estas
+  variables (logo, color primario) sin tocar componentes.
+*/
+:root {
+  --background: 0 0% 100%;
+  --foreground: 222 20% 12%;
+  --primary: 222 47% 20%;
+  --muted: 210 20% 96%;
+  --muted-foreground: 215 15% 45%;
+  --border: 214 15% 90%;
+  --destructive: 0 72% 51%;
+  --font-sans: 'Inter', system-ui, sans-serif;
+}
+
+.dark {
+  --background: 222 20% 8%;
+  --foreground: 210 20% 96%;
+  --primary: 210 90% 70%;
+  --muted: 222 15% 14%;
+  --muted-foreground: 215 15% 65%;
+  --border: 222 15% 20%;
+  --destructive: 0 63% 60%;
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
