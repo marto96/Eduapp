@@ -43,3 +43,16 @@ export function canManageFinance(roles: string[]): boolean {
     roles.includes('admin_institucion') || roles.includes('directivo') || roles.includes('secretaria')
   );
 }
+
+/**
+ * A diferencia de todos los demás módulos: acá no hay un "puede leer pero
+ * no gestionar" intermedio — `Hr` no está en el bloque de lectura
+ * compartido del backend (ver `AbilityFactory`), así que quien no cumple
+ * esto no tiene ningún acceso, ni de lectura. Mismos roles que
+ * `canManageFinance`.
+ */
+export function canManageHr(roles: string[]): boolean {
+  return (
+    roles.includes('admin_institucion') || roles.includes('directivo') || roles.includes('secretaria')
+  );
+}

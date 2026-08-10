@@ -120,3 +120,25 @@ export interface Payment {
   paidAt: string;
   reference?: string;
 }
+
+export type ContractType = 'planta' | 'contrato' | 'suplente';
+export type EmployeeStatus = 'activo' | 'inactivo';
+export type LeaveType = 'vacaciones' | 'enfermedad' | 'personal' | 'otro';
+
+export interface Employee {
+  id: string;
+  userId: string;
+  position: string;
+  contractType: ContractType;
+  hireDate: string;
+  status: EmployeeStatus;
+}
+
+export interface Leave {
+  id: string;
+  employeeId: string;
+  type: LeaveType;
+  startDate: string;
+  endDate: string;
+  reason?: string;
+}

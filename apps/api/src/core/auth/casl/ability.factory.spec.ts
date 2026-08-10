@@ -41,6 +41,13 @@ describe('AbilityFactory', () => {
     expect(ability.can('read', 'AcademicYear')).toBe(true);
   });
 
+  it('secretaria puede manage Hr, pero docente/estudiante no tienen ninguna ability sobre Hr', () => {
+    expect(factory.createForUser(payload(['secretaria'])).can('create', 'Hr')).toBe(true);
+    expect(factory.createForUser(payload(['secretaria'])).can('read', 'Hr')).toBe(true);
+    expect(factory.createForUser(payload(['docente'])).can('read', 'Hr')).toBe(false);
+    expect(factory.createForUser(payload(['estudiante'])).can('read', 'Hr')).toBe(false);
+  });
+
   it('docente y estudiante solo pueden read Finance', () => {
     expect(factory.createForUser(payload(['docente'])).can('create', 'Finance')).toBe(false);
     expect(factory.createForUser(payload(['docente'])).can('read', 'Finance')).toBe(true);

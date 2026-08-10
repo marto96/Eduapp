@@ -15,6 +15,7 @@ const LINKS = [
   { href: '/attendance', label: 'Asistencia' },
   { href: '/grading', label: 'Calificaciones' },
   { href: '/finance', label: 'Finanzas' },
+  { href: '/hr', label: 'RRHH' },
   { href: '/users', label: 'Usuarios' },
 ];
 

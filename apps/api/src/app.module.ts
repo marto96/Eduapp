@@ -16,9 +16,10 @@ import { AttendanceModule } from './modules/attendance/attendance.module';
 import { GradingModule } from './modules/grading/grading.module';
 import { ScheduleModule } from './modules/schedule/schedule.module';
 import { FinanceModule } from './modules/finance/finance.module';
+import { HrModule } from './modules/hr/hr.module';
 
-// A medida que se implementen los demás módulos (hr, etc.) se importan
-// acá siguiendo el mismo patrón que AcademicModule.
+// A medida que se implementen los demás módulos (library, communication,
+// etc.) se importan acá siguiendo el mismo patrón que AcademicModule.
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { FinanceModule } from './modules/finance/finance.module';
     GradingModule,
     ScheduleModule,
     FinanceModule,
+    HrModule,
   ],
 })
 export class AppModule implements NestModule {

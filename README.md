@@ -42,8 +42,7 @@ pnpm dev                    # corre api y web en paralelo (Turborepo)
 ## Estado actual
 
 **Fase 0 (fundación) y Fase 1 (núcleo académico) completas y funcionando de
-punta a punta. Fase 2 (administrativo) iniciada con el módulo de
-Finanzas.**
+punta a punta. Fase 2 (administrativo) en curso: Finanzas y RRHH.**
 
 - `platform`: alta de instituciones (`POST /platform/tenants`), protegido
   por login real de superadmin (`POST /platform/auth/login`, tabla
@@ -60,10 +59,11 @@ Finanzas.**
 - Migraciones (`public.tenants`, `public.platform_admins`, `users`,
   `academic_years`/`grades`/`sections`/`subjects`, `enrollments`,
   `attendance_records`, `evaluations`/`grade_scores`, `schedules`,
-  `charges`/`payments`) y seed de desarrollo
+  `charges`/`payments`, `employees`/`leaves`) y seed de desarrollo
   (`pnpm --filter @eduapp/api seed:dev`).
 - Frontend: login, panel, y las pantallas de académico + usuarios +
-  matrícula + asistencia + calificaciones + horarios + finanzas, con auth vía cookies
+  matrícula + asistencia + calificaciones + horarios + finanzas + RRHH, con
+  auth vía cookies
   httpOnly (Next.js Route Handlers como BFF — el navegador nunca ve el JWT)
   y navegación compartida (`app/(dashboard)/layout.tsx`).
 - CI: ESLint + Jest wireados en `apps/api`/`apps/web`, workflow de GitHub
@@ -103,8 +103,18 @@ plantilla para el resto:
   cualquier pago que supere el saldo pendiente del cargo. Igual que
   `attendance`/`grading`, acá `secretaria` también gestiona (no solo
   admin/directivo) — es tarea administrativa diaria de secretaría.
+- `hr` (segundo módulo de Fase 2): legajo de personal (`POST`/`GET
+  /hr/employees` — vincula un usuario con rol de staff a un cargo/tipo de
+  contrato/fecha de ingreso) y licencias (`POST`/`GET /hr/leaves`), con
+  detección de solapamiento por empleado (mismo patrón que `schedule`, sin
+  constraint de base). **Visibilidad distinta al resto de los módulos**:
+  `Hr` no está en el bloque de lectura compartido — `docente`/
+  `estudiante`/`padre_tutor` no tienen ningún acceso, ni de lectura (a
+  diferencia de `finance`/`schedule`/`grading`/`attendance`, donde al
+  menos leen). Solo `admin_institucion`/`directivo`/`secretaria` (mismo
+  criterio de `secretaria` que en `finance`) ven y gestionan legajos.
 
-El resto de los módulos (`hr`, `library`, `communication`, `documents`,
+El resto de los módulos (`library`, `communication`, `documents`,
 `reports`) tienen su carpeta creada con un `README.md` que explica cómo
 implementarlos siguiendo el mismo patrón.
 
@@ -124,5 +134,9 @@ Pendientes conocidos:
 5. Finanzas: sin becas/descuentos ni conciliación bancaria todavía (primera
    pasada cubre solo cargos + pagos con saldo). Sin editar/anular un cargo o
    pago ya creado.
-6. Fase 2 (administrativo): RRHH, gestión documental — siguiente paso del
-   roadmap (pagos/facturación ya arrancó con `finance`).
+6. RRHH: sin salario en el modelo, sin baja de legajo ni cancelación de
+   licencia todavía (primera pasada cubre solo legajo + licencias con
+   detección de solapamiento). Constraint de solapamiento de licencias a
+   nivel de base pendiente, mismo caso que `schedules` (punto 4).
+7. Fase 2 (administrativo): gestión documental — siguiente paso del
+   roadmap (pagos/facturación y RRHH ya arrancaron con `finance`/`hr`).

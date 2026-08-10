@@ -20,6 +20,7 @@ export type AppSubjects =
   | 'Grading'
   | 'Schedule'
   | 'Finance'
+  | 'Hr'
   | 'all';
 
 export type AppAbility = Ability<[AppAction, AppSubjects]>;
