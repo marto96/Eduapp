@@ -20,5 +20,6 @@ export const config = {
     '/attendance/:path*',
     '/grading/:path*',
     '/schedule/:path*',
+    '/finance/:path*',
   ],
 };

@@ -8,6 +8,7 @@ export interface EnrollmentFilter {
 
 export abstract class EnrollmentRepositoryPort {
   abstract findAll(filter?: EnrollmentFilter): Promise<Enrollment[]>;
+  abstract findById(id: string): Promise<Enrollment | null>;
   abstract findActiveByStudentAndYear(
     studentId: string,
     academicYearId: string,

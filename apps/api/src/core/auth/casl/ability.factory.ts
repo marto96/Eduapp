@@ -30,6 +30,7 @@ export class AbilityFactory {
         'Attendance',
         'Grading',
         'Schedule',
+        'Finance',
       ]);
       can('read', 'all');
     }
@@ -41,6 +42,13 @@ export class AbilityFactory {
       // todavía — ve y marca cualquier sección, no solo las suyas, porque no
       // existe el concepto de "secciones asignadas a un docente" sin horarios).
       can('manage', ['Attendance', 'Grading']);
+    }
+
+    if (roles.includes('secretaria')) {
+      // Igual que el docente con Attendance/Grading: cargar cargos y
+      // registrar pagos es tarea administrativa diaria de secretaría, no
+      // exclusiva de dirección.
+      can('manage', ['Finance']);
     }
 
     if (roles.some((role) => ['docente', 'secretaria', 'estudiante', 'padre_tutor'].includes(role))) {
@@ -57,6 +65,7 @@ export class AbilityFactory {
         'Attendance',
         'Grading',
         'Schedule',
+        'Finance',
       ]);
     }
 

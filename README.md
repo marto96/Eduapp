@@ -42,7 +42,8 @@ pnpm dev                    # corre api y web en paralelo (Turborepo)
 ## Estado actual
 
 **Fase 0 (fundación) y Fase 1 (núcleo académico) completas y funcionando de
-punta a punta.**
+punta a punta. Fase 2 (administrativo) iniciada con el módulo de
+Finanzas.**
 
 - `platform`: alta de instituciones (`POST /platform/tenants`), protegido
   por login real de superadmin (`POST /platform/auth/login`, tabla
@@ -58,10 +59,11 @@ punta a punta.**
   no un chequeo de rol plano — ver `AbilityFactory` para las reglas por rol.
 - Migraciones (`public.tenants`, `public.platform_admins`, `users`,
   `academic_years`/`grades`/`sections`/`subjects`, `enrollments`,
-  `attendance_records`, `evaluations`/`grade_scores`, `schedules`) y seed de
-  desarrollo (`pnpm --filter @eduapp/api seed:dev`).
+  `attendance_records`, `evaluations`/`grade_scores`, `schedules`,
+  `charges`/`payments`) y seed de desarrollo
+  (`pnpm --filter @eduapp/api seed:dev`).
 - Frontend: login, panel, y las pantallas de académico + usuarios +
-  matrícula + asistencia + calificaciones + horarios, con auth vía cookies
+  matrícula + asistencia + calificaciones + horarios + finanzas, con auth vía cookies
   httpOnly (Next.js Route Handlers como BFF — el navegador nunca ve el JWT)
   y navegación compartida (`app/(dashboard)/layout.tsx`).
 - CI: ESLint + Jest wireados en `apps/api`/`apps/web`, workflow de GitHub
@@ -93,10 +95,18 @@ plantilla para el resto:
   ver nota en `CreateScheduleUseCase`). A diferencia de `attendance`/
   `grading`, acá es tarea administrativa: solo `admin_institucion`/
   `directivo` gestionan, `docente` solo lee su horario.
+- `finance` (primer módulo de Fase 2): cargos (`POST`/`GET
+  /finance/charges` — matrícula/pensión/otro sobre una matrícula) y pagos
+  (`POST`/`GET /finance/payments`), con saldo y estado (`pendiente`/
+  `parcial`/`pagado`) calculados al leer, no guardados. Ledger append-only
+  (no upsert): permite pagos parciales, y `RecordPaymentUseCase` rechaza
+  cualquier pago que supere el saldo pendiente del cargo. Igual que
+  `attendance`/`grading`, acá `secretaria` también gestiona (no solo
+  admin/directivo) — es tarea administrativa diaria de secretaría.
 
-El resto de los módulos (`finance`, `hr`, `library`, `communication`,
-`documents`, `reports`) tienen su carpeta creada con un `README.md` que
-explica cómo implementarlos siguiendo el mismo patrón.
+El resto de los módulos (`hr`, `library`, `communication`, `documents`,
+`reports`) tienen su carpeta creada con un `README.md` que explica cómo
+implementarlos siguiendo el mismo patrón.
 
 Pendientes conocidos:
 
@@ -111,5 +121,8 @@ Pendientes conocidos:
    — hoy el chequeo es por tipo de recurso, no por instancia.
 4. Constraint de superposición de horarios a nivel de base (`EXCLUDE` con
    `btree_gist`) — hoy solo se valida en la aplicación.
-5. Fase 2 (administrativo): pagos/facturación, RRHH, gestión documental —
-   siguiente fase del roadmap.
+5. Finanzas: sin becas/descuentos ni conciliación bancaria todavía (primera
+   pasada cubre solo cargos + pagos con saldo). Sin editar/anular un cargo o
+   pago ya creado.
+6. Fase 2 (administrativo): RRHH, gestión documental — siguiente paso del
+   roadmap (pagos/facturación ya arrancó con `finance`).

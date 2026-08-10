@@ -95,3 +95,28 @@ export interface Schedule {
   startTime: string;
   endTime: string;
 }
+
+export type ChargeConcept = 'matricula' | 'pension' | 'otro';
+export type ChargeStatus = 'pendiente' | 'parcial' | 'pagado';
+export type PaymentMethod = 'efectivo' | 'transferencia' | 'tarjeta' | 'otro';
+
+export interface Charge {
+  id: string;
+  enrollmentId: string;
+  concept: ChargeConcept;
+  description: string;
+  amount: number;
+  dueDate: string;
+  paidAmount: number;
+  balance: number;
+  status: ChargeStatus;
+}
+
+export interface Payment {
+  id: string;
+  chargeId: string;
+  amount: number;
+  method: PaymentMethod;
+  paidAt: string;
+  reference?: string;
+}

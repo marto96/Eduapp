@@ -29,6 +29,11 @@ export class TypeOrmEnrollmentRepository extends EnrollmentRepositoryPort {
     return rows.map((row) => this.toDomain(row));
   }
 
+  async findById(id: string): Promise<Enrollment | null> {
+    const row = await this.repo.findOne({ where: { id } });
+    return row ? this.toDomain(row) : null;
+  }
+
   async findActiveByStudentAndYear(
     studentId: string,
     academicYearId: string,

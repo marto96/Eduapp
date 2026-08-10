@@ -32,3 +32,14 @@ export function canManageGrading(roles: string[]): boolean {
     roles.includes('admin_institucion') || roles.includes('directivo') || roles.includes('docente')
   );
 }
+
+/**
+ * A diferencia de `canManageAcademic`: acá `secretaria` también puede (cargar
+ * cargos y registrar pagos es su tarea administrativa diaria, no exclusiva
+ * de dirección). Ver `AbilityFactory` en el backend — misma regla.
+ */
+export function canManageFinance(roles: string[]): boolean {
+  return (
+    roles.includes('admin_institucion') || roles.includes('directivo') || roles.includes('secretaria')
+  );
+}

@@ -14,6 +14,7 @@ const LINKS = [
   { href: '/enrollment', label: 'Matrícula' },
   { href: '/attendance', label: 'Asistencia' },
   { href: '/grading', label: 'Calificaciones' },
+  { href: '/finance', label: 'Finanzas' },
   { href: '/users', label: 'Usuarios' },
 ];
 
