@@ -20,12 +20,15 @@ export class AbilityFactory {
     }
 
     if (roles.includes('directivo')) {
-      can('manage', ['AcademicYear', 'Grade', 'Section']);
+      can('manage', ['AcademicYear', 'Grade', 'Section', 'User', 'Enrollment']);
       can('read', 'all');
     }
 
     if (roles.some((role) => ['docente', 'secretaria', 'estudiante', 'padre_tutor'].includes(role))) {
-      can('read', ['AcademicYear', 'Grade', 'Section']);
+      // 'read' en User (no 'manage': no pueden crear/editar) para poder
+      // resolver nombres en listados que referencian usuarios (ej. la
+      // matrícula muestra "Juan Pérez", no un UUID).
+      can('read', ['AcademicYear', 'Grade', 'Section', 'Enrollment', 'User']);
     }
 
     return build();

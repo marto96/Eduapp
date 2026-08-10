@@ -32,3 +32,19 @@ export interface Section {
   gradeId: string;
   name: string;
 }
+
+export interface TenantUser {
+  id: string;
+  email: string;
+  fullName: string;
+  roles: string[];
+  status: 'active' | 'invited' | 'suspended';
+}
+
+export interface Enrollment {
+  id: string;
+  studentId: string;
+  sectionId: string;
+  academicYearId: string;
+  status: 'active' | 'withdrawn' | 'completed';
+}

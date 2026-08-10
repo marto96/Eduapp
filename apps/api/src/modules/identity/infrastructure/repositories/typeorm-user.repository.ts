@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
-import { UserRepositoryPort } from '../../application/ports/user.repository.port';
+import { UserFilter, UserRepositoryPort } from '../../application/ports/user.repository.port';
 import { User, UserRole } from '../../domain/entities/user.entity';
 import { UserOrmEntity } from '../entities/user.orm-entity';
 import { TENANT_DATA_SOURCE } from '../../../../core/database/tenant-datasource.provider';
@@ -28,6 +28,15 @@ export class TypeOrmUserRepository extends UserRepositoryPort {
   async findById(id: string): Promise<User | null> {
     const row = await this.repo.findOne({ where: { id } });
     return row ? this.toDomain(row) : null;
+  }
+
+  async findAll(filter?: UserFilter): Promise<User[]> {
+    const query = this.repo.createQueryBuilder('user').orderBy('user.created_at', 'DESC');
+    if (filter?.role) {
+      query.andWhere(':role = ANY(user.roles)', { role: filter.role });
+    }
+    const rows = await query.getMany();
+    return rows.map((row) => this.toDomain(row));
   }
 
   async save(user: User): Promise<void> {

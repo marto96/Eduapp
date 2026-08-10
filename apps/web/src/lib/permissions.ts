@@ -6,3 +6,11 @@
 export function canManageAcademic(roles: string[]): boolean {
   return roles.includes('admin_institucion') || roles.includes('directivo');
 }
+
+export function canManageUsers(roles: string[]): boolean {
+  return roles.includes('admin_institucion') || roles.includes('directivo');
+}
+
+export function canManageEnrollment(roles: string[]): boolean {
+  return roles.includes('admin_institucion') || roles.includes('directivo');
+}

@@ -27,6 +27,12 @@ describe('AbilityFactory', () => {
     expect(ability.can('create', 'AcademicYear')).toBe(false);
   });
 
+  it('docente puede read User (resolver nombres) pero no manage', () => {
+    const ability = factory.createForUser(payload(['docente']));
+    expect(ability.can('read', 'User')).toBe(true);
+    expect(ability.can('create', 'User')).toBe(false);
+  });
+
   it('un rol desconocido no obtiene ninguna ability', () => {
     const ability = factory.createForUser(payload(['padre_tutor']));
     expect(ability.can('read', 'AcademicYear')).toBe(true);

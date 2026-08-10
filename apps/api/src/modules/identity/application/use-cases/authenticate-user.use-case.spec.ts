@@ -9,6 +9,7 @@ describe('AuthenticateUserUseCase', () => {
   const users: jest.Mocked<UserRepositoryPort> = {
     findByEmail: jest.fn(),
     findById: jest.fn(),
+    findAll: jest.fn(),
     save: jest.fn(),
   };
   const hasher: jest.Mocked<PasswordHasherPort> = {

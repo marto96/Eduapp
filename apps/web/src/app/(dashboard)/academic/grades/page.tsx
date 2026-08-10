@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { GradesList } from '@/features/academic/components/grades-list';
 import { CreateGradeForm } from '@/features/academic/components/create-grade-form';
 import { getCurrentUser } from '@/lib/server-api';
@@ -15,17 +14,6 @@ export default async function GradesPage() {
         <p className="mt-1 text-sm text-muted-foreground">
           Gestión académica: grados de la institución.
         </p>
-        <nav className="mt-2 flex gap-4 text-sm">
-          <Link href="/academic/years" className="text-muted-foreground hover:underline">
-            Años lectivos
-          </Link>
-          <Link href="/academic/grades" className="text-primary underline">
-            Grados
-          </Link>
-          <Link href="/academic/sections" className="text-muted-foreground hover:underline">
-            Secciones
-          </Link>
-        </nav>
       </div>
 
       {canManage && <CreateGradeForm />}

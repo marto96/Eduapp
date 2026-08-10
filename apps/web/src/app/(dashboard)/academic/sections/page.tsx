@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { SectionsList } from '@/features/academic/components/sections-list';
 import { CreateSectionForm } from '@/features/academic/components/create-section-form';
 import { getCurrentUser } from '@/lib/server-api';
@@ -15,17 +14,6 @@ export default async function SectionsPage() {
         <p className="mt-1 text-sm text-muted-foreground">
           Gestión académica: secciones por grado.
         </p>
-        <nav className="mt-2 flex gap-4 text-sm">
-          <Link href="/academic/years" className="text-muted-foreground hover:underline">
-            Años lectivos
-          </Link>
-          <Link href="/academic/grades" className="text-muted-foreground hover:underline">
-            Grados
-          </Link>
-          <Link href="/academic/sections" className="text-primary underline">
-            Secciones
-          </Link>
-        </nav>
       </div>
 
       {canManage && <CreateSectionForm />}

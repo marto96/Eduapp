@@ -37,34 +37,49 @@ pnpm dev                    # corre api y web en paralelo (Turborepo)
 
 **Fase 0 (fundación) completa y funcionando de punta a punta:**
 
-- `platform`: alta de instituciones (`POST /platform/tenants`, protegido con
-  header `x-platform-admin-key`), aprovisiona el schema del tenant y corre
-  sus migraciones automáticamente.
-- `identity`: login (`/auth/login`), refresh (`/auth/refresh`) y usuario
-  actual (`/auth/me`), con bcrypt + JWT (access/refresh) reales.
+- `platform`: alta de instituciones (`POST /platform/tenants`), protegido
+  por login real de superadmin (`POST /platform/auth/login`, tabla
+  `platform_admins`, JWT propio sin `tenantId`). Aprovisiona el schema del
+  tenant y corre sus migraciones automáticamente.
+- `identity`: login (`/auth/login`), refresh (`/auth/refresh`), usuario
+  actual (`/auth/me`), y alta/listado de usuarios (`POST`/`GET /users`) —
+  bcrypt + JWT (access/refresh) reales.
 - Resolución de tenant real (`TenantRegistryService`, cache en Redis) con
   aislamiento por schema vía `search_path` (`TENANT_DATA_SOURCE`,
   request-scoped) y protección contra cross-tenant token replay.
-- Migraciones (`public.tenants`, `users`, `academic_years`/`grades`/
-  `sections`) y seed de desarrollo (`pnpm --filter @eduapp/api seed:dev`).
-- Frontend: login, panel y gestión de años lectivos, con auth vía cookies
-  httpOnly (Next.js Route Handlers como BFF — el navegador nunca ve el JWT).
+- RBAC granular con CASL (`core/auth/casl/`): abilities por acción+recurso,
+  no un chequeo de rol plano — ver `AbilityFactory` para las reglas por rol.
+- Migraciones (`public.tenants`, `public.platform_admins`, `users`,
+  `academic_years`/`grades`/`sections`, `enrollments`) y seed de desarrollo
+  (`pnpm --filter @eduapp/api seed:dev`).
+- Frontend: login, panel, y las pantallas de académico + usuarios +
+  matrícula, con auth vía cookies httpOnly (Next.js Route Handlers como
+  BFF — el navegador nunca ve el JWT) y navegación compartida
+  (`app/(dashboard)/layout.tsx`).
+- CI: ESLint + Jest wireados en `apps/api`/`apps/web`, workflow de GitHub
+  Actions (`.github/workflows/ci.yml`).
 
-**`academic`** es el primer módulo de negocio implementado end-to-end
-(backend + frontend + DB) como plantilla: años lectivos, grados y secciones
-en el backend; años lectivos con UI completa (grados/secciones solo API por
-ahora). El resto de los módulos (`enrollment`, `attendance`, `grading`,
-`finance`, `hr`, `library`, `communication`, `documents`, `reports`) tienen
-su carpeta creada con un `README.md` que explica cómo implementarlos
-siguiendo el mismo patrón que `academic`/`identity`.
+**Módulos de negocio implementados** (backend + frontend + DB), como
+plantilla para el resto:
+
+- `academic`: años lectivos, grados y secciones.
+- `enrollment`: matrícula de estudiantes en una sección de un año lectivo
+  (`POST`/`GET /enrollments`), con una matrícula activa por estudiante y
+  año reforzada a nivel de base (índice único parcial).
+
+El resto de los módulos (`attendance`, `grading`, `finance`, `hr`,
+`library`, `communication`, `documents`, `reports`) tienen su carpeta
+creada con un `README.md` que explica cómo implementarlos siguiendo el
+mismo patrón.
 
 Pendientes conocidos:
 
-1. CI: lint + test + build en cada PR; deploy automatizado a un entorno de
-   staging.
-2. RBAC granular con CASL (hoy los roles se chequean con un guard simple
-   por rol, ver `core/auth/roles.guard.ts`).
-3. Flujo real de superadmin de plataforma (hoy `/platform/*` usa una clave
-   compartida, ver `modules/platform/interface/guards/platform-admin.guard.ts`).
-4. UI de grados y secciones (el backend ya expone `/academic/grades` y
-   `/academic/sections`, siguiendo el mismo patrón que años lectivos).
+1. Dar de baja / completar una matrícula (`Enrollment.withdraw()`/`.complete()`
+   ya existen en el dominio, sin endpoint todavía — mismo criterio que
+   `AcademicYear.close()`).
+2. UI de grados y secciones para elegir estudiante existente vs. crear uno
+   nuevo desde la propia pantalla de matrícula (hoy hay que ir primero a
+   `/users`).
+3. Reglas CASL a nivel de instancia (ej. "un docente solo ve sus propias
+   secciones/matrículas") — hoy el chequeo es por tipo de recurso, no por
+   instancia.

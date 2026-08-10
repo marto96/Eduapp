@@ -11,9 +11,10 @@ import { TenantResolutionMiddleware } from './core/tenant/tenant-resolution.midd
 import { PlatformModule } from './modules/platform/platform.module';
 import { IdentityModule } from './modules/identity/identity.module';
 import { AcademicModule } from './modules/academic/academic.module';
+import { EnrollmentModule } from './modules/enrollment/enrollment.module';
 
-// A medida que se implementen los demás módulos (enrollment, attendance,
-// finance, etc.) se importan aquí siguiendo el mismo patrón que AcademicModule.
+// A medida que se implementen los demás módulos (attendance, finance, etc.)
+// se importan aquí siguiendo el mismo patrón que AcademicModule.
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { AcademicModule } from './modules/academic/academic.module';
     PlatformModule,
     IdentityModule,
     AcademicModule,
+    EnrollmentModule,
   ],
 })
 export class AppModule implements NestModule {
