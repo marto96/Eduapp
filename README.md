@@ -50,11 +50,11 @@ pnpm dev                    # corre api y web en paralelo (Turborepo)
 - RBAC granular con CASL (`core/auth/casl/`): abilities por acción+recurso,
   no un chequeo de rol plano — ver `AbilityFactory` para las reglas por rol.
 - Migraciones (`public.tenants`, `public.platform_admins`, `users`,
-  `academic_years`/`grades`/`sections`, `enrollments`) y seed de desarrollo
-  (`pnpm --filter @eduapp/api seed:dev`).
+  `academic_years`/`grades`/`sections`, `enrollments`, `attendance_records`)
+  y seed de desarrollo (`pnpm --filter @eduapp/api seed:dev`).
 - Frontend: login, panel, y las pantallas de académico + usuarios +
-  matrícula, con auth vía cookies httpOnly (Next.js Route Handlers como
-  BFF — el navegador nunca ve el JWT) y navegación compartida
+  matrícula + asistencia, con auth vía cookies httpOnly (Next.js Route
+  Handlers como BFF — el navegador nunca ve el JWT) y navegación compartida
   (`app/(dashboard)/layout.tsx`).
 - CI: ESLint + Jest wireados en `apps/api`/`apps/web`, workflow de GitHub
   Actions (`.github/workflows/ci.yml`).
@@ -66,11 +66,16 @@ plantilla para el resto:
 - `enrollment`: matrícula de estudiantes en una sección de un año lectivo
   (`POST`/`GET /enrollments`), con una matrícula activa por estudiante y
   año reforzada a nivel de base (índice único parcial).
+- `attendance`: asistencia diaria por sección (`POST`/`GET /attendance`),
+  con carga masiva por curso+fecha (upsert por `enrollment_id`+`date`, no
+  un CRUD de un registro por vez) y validación de que cada matrícula
+  pertenezca a la sección/año indicados. A diferencia de `academic`/
+  `enrollment` (donde `docente` solo lee), acá `docente` sí puede
+  crear/editar — es su tarea diaria (ver `AbilityFactory`).
 
-El resto de los módulos (`attendance`, `grading`, `finance`, `hr`,
-`library`, `communication`, `documents`, `reports`) tienen su carpeta
-creada con un `README.md` que explica cómo implementarlos siguiendo el
-mismo patrón.
+El resto de los módulos (`grading`, `finance`, `hr`, `library`,
+`communication`, `documents`, `reports`) tienen su carpeta creada con un
+`README.md` que explica cómo implementarlos siguiendo el mismo patrón.
 
 Pendientes conocidos:
 
@@ -80,6 +85,6 @@ Pendientes conocidos:
 2. UI de grados y secciones para elegir estudiante existente vs. crear uno
    nuevo desde la propia pantalla de matrícula (hoy hay que ir primero a
    `/users`).
-3. Reglas CASL a nivel de instancia (ej. "un docente solo ve sus propias
-   secciones/matrículas") — hoy el chequeo es por tipo de recurso, no por
-   instancia.
+3. Reglas CASL a nivel de instancia (ej. "un docente solo ve/marca sus
+   propias secciones", "un padre solo ve la asistencia de su hijo") — hoy
+   el chequeo es por tipo de recurso, no por instancia.

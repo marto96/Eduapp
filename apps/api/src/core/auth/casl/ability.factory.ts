@@ -20,15 +20,24 @@ export class AbilityFactory {
     }
 
     if (roles.includes('directivo')) {
-      can('manage', ['AcademicYear', 'Grade', 'Section', 'User', 'Enrollment']);
+      can('manage', ['AcademicYear', 'Grade', 'Section', 'User', 'Enrollment', 'Attendance']);
       can('read', 'all');
+    }
+
+    if (roles.includes('docente')) {
+      // A diferencia del resto de docente/secretaria/estudiante/padre_tutor
+      // (solo lectura): tomar asistencia es la tarea diaria del docente, así
+      // que acá sí puede crear/editar (sin nivel de instancia todavía — ve
+      // y marca cualquier sección, no solo las suyas, porque no existe el
+      // concepto de "secciones asignadas a un docente" sin horarios).
+      can('manage', 'Attendance');
     }
 
     if (roles.some((role) => ['docente', 'secretaria', 'estudiante', 'padre_tutor'].includes(role))) {
       // 'read' en User (no 'manage': no pueden crear/editar) para poder
       // resolver nombres en listados que referencian usuarios (ej. la
       // matrícula muestra "Juan Pérez", no un UUID).
-      can('read', ['AcademicYear', 'Grade', 'Section', 'Enrollment', 'User']);
+      can('read', ['AcademicYear', 'Grade', 'Section', 'Enrollment', 'User', 'Attendance']);
     }
 
     return build();

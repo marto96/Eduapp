@@ -14,3 +14,14 @@ export function canManageUsers(roles: string[]): boolean {
 export function canManageEnrollment(roles: string[]): boolean {
   return roles.includes('admin_institucion') || roles.includes('directivo');
 }
+
+/**
+ * A diferencia del resto: acá `docente` también puede (tomar asistencia es
+ * su tarea diaria), no solo admin/directivo. Ver `AbilityFactory` en el
+ * backend — misma regla, reflejada acá.
+ */
+export function canRecordAttendance(roles: string[]): boolean {
+  return (
+    roles.includes('admin_institucion') || roles.includes('directivo') || roles.includes('docente')
+  );
+}

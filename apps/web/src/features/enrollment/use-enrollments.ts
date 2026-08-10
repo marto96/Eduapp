@@ -3,8 +3,15 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Enrollment } from '@eduapp/shared-types';
 
-async function fetchEnrollments(): Promise<Enrollment[]> {
-  const res = await fetch('/api/enrollments');
+export interface EnrollmentFilter {
+  sectionId?: string;
+  academicYearId?: string;
+  studentId?: string;
+}
+
+async function fetchEnrollments(filter?: EnrollmentFilter): Promise<Enrollment[]> {
+  const qs = filter ? new URLSearchParams(filter as Record<string, string>).toString() : '';
+  const res = await fetch(qs ? `/api/enrollments?${qs}` : '/api/enrollments');
   if (!res.ok) throw new Error('No se pudieron cargar las matrículas');
   return res.json();
 }
@@ -25,8 +32,11 @@ async function enrollStudent(input: EnrollStudentInput): Promise<Enrollment> {
   return res.json();
 }
 
-export function useEnrollments() {
-  return useQuery({ queryKey: ['enrollments'], queryFn: fetchEnrollments });
+export function useEnrollments(filter?: EnrollmentFilter) {
+  return useQuery({
+    queryKey: ['enrollments', filter ?? 'all'],
+    queryFn: () => fetchEnrollments(filter),
+  });
 }
 
 export function useEnrollStudent() {

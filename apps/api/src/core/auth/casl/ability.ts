@@ -9,6 +9,13 @@ import { Ability } from '@casl/ability';
  * adelante si hace falta.
  */
 export type AppAction = 'manage' | 'create' | 'read' | 'update' | 'delete';
-export type AppSubjects = 'AcademicYear' | 'Grade' | 'Section' | 'User' | 'Enrollment' | 'all';
+export type AppSubjects =
+  | 'AcademicYear'
+  | 'Grade'
+  | 'Section'
+  | 'User'
+  | 'Enrollment'
+  | 'Attendance'
+  | 'all';
 
 export type AppAbility = Ability<[AppAction, AppSubjects]>;

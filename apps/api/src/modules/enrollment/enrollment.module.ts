@@ -14,5 +14,6 @@ import { IdentityModule } from '../identity/identity.module';
     ListEnrollmentsUseCase,
     { provide: EnrollmentRepositoryPort, useClass: TypeOrmEnrollmentRepository },
   ],
+  exports: [EnrollmentRepositoryPort],
 })
 export class EnrollmentModule {}

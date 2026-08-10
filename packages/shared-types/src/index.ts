@@ -48,3 +48,12 @@ export interface Enrollment {
   academicYearId: string;
   status: 'active' | 'withdrawn' | 'completed';
 }
+
+export type AttendanceStatus = 'presente' | 'ausente' | 'tarde' | 'justificado';
+
+export interface AttendanceRecord {
+  id: string;
+  enrollmentId: string;
+  date: string;
+  status: AttendanceStatus;
+}

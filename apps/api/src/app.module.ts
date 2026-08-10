@@ -12,8 +12,9 @@ import { PlatformModule } from './modules/platform/platform.module';
 import { IdentityModule } from './modules/identity/identity.module';
 import { AcademicModule } from './modules/academic/academic.module';
 import { EnrollmentModule } from './modules/enrollment/enrollment.module';
+import { AttendanceModule } from './modules/attendance/attendance.module';
 
-// A medida que se implementen los demás módulos (attendance, finance, etc.)
+// A medida que se implementen los demás módulos (grading, finance, etc.)
 // se importan aquí siguiendo el mismo patrón que AcademicModule.
 
 @Module({
@@ -30,6 +31,7 @@ import { EnrollmentModule } from './modules/enrollment/enrollment.module';
     IdentityModule,
     AcademicModule,
     EnrollmentModule,
+    AttendanceModule,
   ],
 })
 export class AppModule implements NestModule {
