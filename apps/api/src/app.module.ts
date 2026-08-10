@@ -13,9 +13,10 @@ import { IdentityModule } from './modules/identity/identity.module';
 import { AcademicModule } from './modules/academic/academic.module';
 import { EnrollmentModule } from './modules/enrollment/enrollment.module';
 import { AttendanceModule } from './modules/attendance/attendance.module';
+import { GradingModule } from './modules/grading/grading.module';
 
-// A medida que se implementen los demás módulos (grading, finance, etc.)
-// se importan aquí siguiendo el mismo patrón que AcademicModule.
+// A medida que se implementen los demás módulos (finance, hr, etc.) se
+// importan aquí siguiendo el mismo patrón que AcademicModule.
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { AttendanceModule } from './modules/attendance/attendance.module';
     AcademicModule,
     EnrollmentModule,
     AttendanceModule,
+    GradingModule,
   ],
 })
 export class AppModule implements NestModule {

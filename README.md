@@ -50,19 +50,20 @@ pnpm dev                    # corre api y web en paralelo (Turborepo)
 - RBAC granular con CASL (`core/auth/casl/`): abilities por acción+recurso,
   no un chequeo de rol plano — ver `AbilityFactory` para las reglas por rol.
 - Migraciones (`public.tenants`, `public.platform_admins`, `users`,
-  `academic_years`/`grades`/`sections`, `enrollments`, `attendance_records`)
-  y seed de desarrollo (`pnpm --filter @eduapp/api seed:dev`).
+  `academic_years`/`grades`/`sections`/`subjects`, `enrollments`,
+  `attendance_records`, `evaluations`/`grade_scores`) y seed de desarrollo
+  (`pnpm --filter @eduapp/api seed:dev`).
 - Frontend: login, panel, y las pantallas de académico + usuarios +
-  matrícula + asistencia, con auth vía cookies httpOnly (Next.js Route
-  Handlers como BFF — el navegador nunca ve el JWT) y navegación compartida
-  (`app/(dashboard)/layout.tsx`).
+  matrícula + asistencia + calificaciones, con auth vía cookies httpOnly
+  (Next.js Route Handlers como BFF — el navegador nunca ve el JWT) y
+  navegación compartida (`app/(dashboard)/layout.tsx`).
 - CI: ESLint + Jest wireados en `apps/api`/`apps/web`, workflow de GitHub
   Actions (`.github/workflows/ci.yml`).
 
 **Módulos de negocio implementados** (backend + frontend + DB), como
 plantilla para el resto:
 
-- `academic`: años lectivos, grados y secciones.
+- `academic`: años lectivos, grados, secciones y asignaturas.
 - `enrollment`: matrícula de estudiantes en una sección de un año lectivo
   (`POST`/`GET /enrollments`), con una matrícula activa por estudiante y
   año reforzada a nivel de base (índice único parcial).
@@ -72,10 +73,16 @@ plantilla para el resto:
   pertenezca a la sección/año indicados. A diferencia de `academic`/
   `enrollment` (donde `docente` solo lee), acá `docente` sí puede
   crear/editar — es su tarea diaria (ver `AbilityFactory`).
+- `grading`: evaluaciones (examen/tarea/proyecto por sección+asignatura+
+  período) y notas por estudiante matriculado (`POST`/`GET
+  /grading/evaluations` y `/grading/scores`), mismo criterio de carga
+  masiva + upsert que `attendance`, con validación de rango (`0` a
+  `maxScore` de la evaluación) y de que la matrícula pertenezca a la
+  sección/año de la evaluación. `docente` también puede crear/editar.
 
-El resto de los módulos (`grading`, `finance`, `hr`, `library`,
-`communication`, `documents`, `reports`) tienen su carpeta creada con un
-`README.md` que explica cómo implementarlos siguiendo el mismo patrón.
+El resto de los módulos (`finance`, `hr`, `library`, `communication`,
+`documents`, `reports`) tienen su carpeta creada con un `README.md` que
+explica cómo implementarlos siguiendo el mismo patrón.
 
 Pendientes conocidos:
 
@@ -86,5 +93,8 @@ Pendientes conocidos:
    nuevo desde la propia pantalla de matrícula (hoy hay que ir primero a
    `/users`).
 3. Reglas CASL a nivel de instancia (ej. "un docente solo ve/marca sus
-   propias secciones", "un padre solo ve la asistencia de su hijo") — hoy
-   el chequeo es por tipo de recurso, no por instancia.
+   propias secciones", "un padre solo ve las notas/asistencia de su hijo")
+   — hoy el chequeo es por tipo de recurso, no por instancia.
+4. Horarios (`schedules`): asignación de docente+aula+bloque horario a una
+   sección+asignatura — el otro pendiente de Fase 1, ahora que `subjects`
+   ya existe.

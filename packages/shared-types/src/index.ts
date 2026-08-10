@@ -33,6 +33,12 @@ export interface Section {
   name: string;
 }
 
+export interface Subject {
+  id: string;
+  name: string;
+  area: string;
+}
+
 export interface TenantUser {
   id: string;
   email: string;
@@ -56,4 +62,23 @@ export interface AttendanceRecord {
   enrollmentId: string;
   date: string;
   status: AttendanceStatus;
+}
+
+export type EvaluationType = 'examen' | 'tarea' | 'proyecto' | 'otro';
+
+export interface Evaluation {
+  id: string;
+  subjectId: string;
+  sectionId: string;
+  academicYearId: string;
+  period: string;
+  type: EvaluationType;
+  maxScore: number;
+}
+
+export interface GradeScore {
+  id: string;
+  evaluationId: string;
+  enrollmentId: string;
+  score: number;
 }

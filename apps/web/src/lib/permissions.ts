@@ -25,3 +25,10 @@ export function canRecordAttendance(roles: string[]): boolean {
     roles.includes('admin_institucion') || roles.includes('directivo') || roles.includes('docente')
   );
 }
+
+/** Mismo criterio que `canRecordAttendance`: calificar es tarea del docente. */
+export function canManageGrading(roles: string[]): boolean {
+  return (
+    roles.includes('admin_institucion') || roles.includes('directivo') || roles.includes('docente')
+  );
+}

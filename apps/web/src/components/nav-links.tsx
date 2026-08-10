@@ -9,8 +9,10 @@ const LINKS = [
   { href: '/academic/years', label: 'Años lectivos' },
   { href: '/academic/grades', label: 'Grados' },
   { href: '/academic/sections', label: 'Secciones' },
+  { href: '/academic/subjects', label: 'Asignaturas' },
   { href: '/enrollment', label: 'Matrícula' },
   { href: '/attendance', label: 'Asistencia' },
+  { href: '/grading', label: 'Calificaciones' },
   { href: '/users', label: 'Usuarios' },
 ];
 

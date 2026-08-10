@@ -13,9 +13,11 @@ export type AppSubjects =
   | 'AcademicYear'
   | 'Grade'
   | 'Section'
+  | 'Subject'
   | 'User'
   | 'Enrollment'
   | 'Attendance'
+  | 'Grading'
   | 'all';
 
 export type AppAbility = Ability<[AppAction, AppSubjects]>;

@@ -18,5 +18,6 @@ export const config = {
     '/users/:path*',
     '/enrollment/:path*',
     '/attendance/:path*',
+    '/grading/:path*',
   ],
 };
