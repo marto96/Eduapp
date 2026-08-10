@@ -29,6 +29,7 @@ export class AbilityFactory {
         'Enrollment',
         'Attendance',
         'Grading',
+        'Schedule',
       ]);
       can('read', 'all');
     }
@@ -55,6 +56,7 @@ export class AbilityFactory {
         'User',
         'Attendance',
         'Grading',
+        'Schedule',
       ]);
     }
 

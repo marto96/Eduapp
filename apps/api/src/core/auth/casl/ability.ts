@@ -18,6 +18,7 @@ export type AppSubjects =
   | 'Enrollment'
   | 'Attendance'
   | 'Grading'
+  | 'Schedule'
   | 'all';
 
 export type AppAbility = Ability<[AppAction, AppSubjects]>;

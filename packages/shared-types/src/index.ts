@@ -82,3 +82,16 @@ export interface GradeScore {
   enrollmentId: string;
   score: number;
 }
+
+export type DayOfWeek = 'lunes' | 'martes' | 'miercoles' | 'jueves' | 'viernes' | 'sabado';
+
+export interface Schedule {
+  id: string;
+  sectionId: string;
+  subjectId: string;
+  teacherId: string;
+  academicYearId: string;
+  dayOfWeek: DayOfWeek;
+  startTime: string;
+  endTime: string;
+}

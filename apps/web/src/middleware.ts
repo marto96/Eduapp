@@ -19,5 +19,6 @@ export const config = {
     '/enrollment/:path*',
     '/attendance/:path*',
     '/grading/:path*',
+    '/schedule/:path*',
   ],
 };

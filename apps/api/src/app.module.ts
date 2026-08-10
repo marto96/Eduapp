@@ -14,6 +14,7 @@ import { AcademicModule } from './modules/academic/academic.module';
 import { EnrollmentModule } from './modules/enrollment/enrollment.module';
 import { AttendanceModule } from './modules/attendance/attendance.module';
 import { GradingModule } from './modules/grading/grading.module';
+import { ScheduleModule } from './modules/schedule/schedule.module';
 
 // A medida que se implementen los demás módulos (finance, hr, etc.) se
 // importan aquí siguiendo el mismo patrón que AcademicModule.
@@ -34,6 +35,7 @@ import { GradingModule } from './modules/grading/grading.module';
     EnrollmentModule,
     AttendanceModule,
     GradingModule,
+    ScheduleModule,
   ],
 })
 export class AppModule implements NestModule {

@@ -10,6 +10,7 @@ const LINKS = [
   { href: '/academic/grades', label: 'Grados' },
   { href: '/academic/sections', label: 'Secciones' },
   { href: '/academic/subjects', label: 'Asignaturas' },
+  { href: '/schedule', label: 'Horarios' },
   { href: '/enrollment', label: 'Matrícula' },
   { href: '/attendance', label: 'Asistencia' },
   { href: '/grading', label: 'Calificaciones' },

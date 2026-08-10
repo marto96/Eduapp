@@ -26,16 +26,23 @@ packages/     Código compartido (tipos, cliente API, config)
 ```bash
 pnpm install
 cp .env.example .env        # y en apps/api/.env, apps/web/.env.local según corresponda
-pnpm db:up                  # levanta Postgres + Redis
+pnpm db:up                  # levanta Postgres + Redis (Docker)
 pnpm dev                    # corre api y web en paralelo (Turborepo)
 ```
 
 - API: http://localhost:3001
 - Web: http://localhost:3000
 
+> El Postgres del `docker-compose.yml` se expone en el **5433** del host (no
+> el 5432 default) para no chocar con otro Postgres que pueda estar corriendo
+> en la máquina — dentro de la red de Docker sigue siendo el 5432 de siempre.
+> Ajustá `DATABASE_URL` en tu `.env` acorde si tu máquina no tiene ese
+> conflicto y preferís el 5432.
+
 ## Estado actual
 
-**Fase 0 (fundación) completa y funcionando de punta a punta:**
+**Fase 0 (fundación) y Fase 1 (núcleo académico) completas y funcionando de
+punta a punta.**
 
 - `platform`: alta de instituciones (`POST /platform/tenants`), protegido
   por login real de superadmin (`POST /platform/auth/login`, tabla
@@ -51,12 +58,12 @@ pnpm dev                    # corre api y web en paralelo (Turborepo)
   no un chequeo de rol plano — ver `AbilityFactory` para las reglas por rol.
 - Migraciones (`public.tenants`, `public.platform_admins`, `users`,
   `academic_years`/`grades`/`sections`/`subjects`, `enrollments`,
-  `attendance_records`, `evaluations`/`grade_scores`) y seed de desarrollo
-  (`pnpm --filter @eduapp/api seed:dev`).
+  `attendance_records`, `evaluations`/`grade_scores`, `schedules`) y seed de
+  desarrollo (`pnpm --filter @eduapp/api seed:dev`).
 - Frontend: login, panel, y las pantallas de académico + usuarios +
-  matrícula + asistencia + calificaciones, con auth vía cookies httpOnly
-  (Next.js Route Handlers como BFF — el navegador nunca ve el JWT) y
-  navegación compartida (`app/(dashboard)/layout.tsx`).
+  matrícula + asistencia + calificaciones + horarios, con auth vía cookies
+  httpOnly (Next.js Route Handlers como BFF — el navegador nunca ve el JWT)
+  y navegación compartida (`app/(dashboard)/layout.tsx`).
 - CI: ESLint + Jest wireados en `apps/api`/`apps/web`, workflow de GitHub
   Actions (`.github/workflows/ci.yml`).
 
@@ -79,6 +86,13 @@ plantilla para el resto:
   masiva + upsert que `attendance`, con validación de rango (`0` a
   `maxScore` de la evaluación) y de que la matrícula pertenezca a la
   sección/año de la evaluación. `docente` también puede crear/editar.
+- `schedule`: asignación de docente+sección+asignatura a un bloque horario
+  (`POST`/`GET /schedule`), con detección de conflictos — ni el mismo
+  docente ni la misma sección pueden tener dos horarios superpuestos el
+  mismo día (validado en el caso de uso, no con un constraint de Postgres:
+  ver nota en `CreateScheduleUseCase`). A diferencia de `attendance`/
+  `grading`, acá es tarea administrativa: solo `admin_institucion`/
+  `directivo` gestionan, `docente` solo lee su horario.
 
 El resto de los módulos (`finance`, `hr`, `library`, `communication`,
 `documents`, `reports`) tienen su carpeta creada con un `README.md` que
@@ -95,6 +109,7 @@ Pendientes conocidos:
 3. Reglas CASL a nivel de instancia (ej. "un docente solo ve/marca sus
    propias secciones", "un padre solo ve las notas/asistencia de su hijo")
    — hoy el chequeo es por tipo de recurso, no por instancia.
-4. Horarios (`schedules`): asignación de docente+aula+bloque horario a una
-   sección+asignatura — el otro pendiente de Fase 1, ahora que `subjects`
-   ya existe.
+4. Constraint de superposición de horarios a nivel de base (`EXCLUDE` con
+   `btree_gist`) — hoy solo se valida en la aplicación.
+5. Fase 2 (administrativo): pagos/facturación, RRHH, gestión documental —
+   siguiente fase del roadmap.
