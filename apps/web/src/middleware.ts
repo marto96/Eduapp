@@ -23,5 +23,6 @@ export const config = {
     '/finance/:path*',
     '/hr/:path*',
     '/documents/:path*',
+    '/portal/:path*',
   ],
 };

@@ -21,7 +21,7 @@ export class DocumentsController {
   }
 
   @Get()
-  async list(@Query() query: ListDocumentsQueryDto) {
-    return this.listDocuments.execute(query);
+  async list(@Query() query: ListDocumentsQueryDto, @CurrentUser() user: JwtPayload) {
+    return this.listDocuments.execute(query, user);
   }
 }

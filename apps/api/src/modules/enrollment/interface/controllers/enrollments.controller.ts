@@ -1,5 +1,7 @@
 import { Controller, Get, Param, Patch, Post, Body, Query } from '@nestjs/common';
 import { CheckPolicies } from '../../../../core/auth/casl/policies.decorator';
+import { CurrentUser } from '../../../../core/auth/current-user.decorator';
+import { JwtPayload } from '../../../../core/auth/jwt-payload.interface';
 import { EnrollStudentUseCase } from '../../application/use-cases/enroll-student.use-case';
 import { ListEnrollmentsUseCase } from '../../application/use-cases/list-enrollments.use-case';
 import { WithdrawEnrollmentUseCase } from '../../application/use-cases/withdraw-enrollment.use-case';
@@ -23,8 +25,8 @@ export class EnrollmentsController {
   }
 
   @Get()
-  async list(@Query() query: ListEnrollmentsQueryDto) {
-    return this.listEnrollments.execute(query);
+  async list(@Query() query: ListEnrollmentsQueryDto, @CurrentUser() user: JwtPayload) {
+    return this.listEnrollments.execute(query, user);
   }
 
   @Patch(':id/withdraw')

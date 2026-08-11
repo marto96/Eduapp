@@ -18,6 +18,7 @@ const LINKS = [
   { href: '/hr', label: 'RRHH' },
   { href: '/documents', label: 'Documentos' },
   { href: '/users', label: 'Usuarios' },
+  { href: '/portal', label: 'Mi familia' },
 ];
 
 export function NavLinks() {

@@ -42,7 +42,8 @@ pnpm dev                    # corre api y web en paralelo (Turborepo)
 ## Estado actual
 
 **Fase 0 (fundación), Fase 1 (núcleo académico) y Fase 2 (administrativo:
-Finanzas + RRHH + Documentos) completas y funcionando de punta a punta.**
+Finanzas + RRHH + Documentos) completas y funcionando de punta a punta.
+Fase 3 (comunidad) iniciada con el Portal de padres.**
 
 - `platform`: alta de instituciones (`POST /platform/tenants`), protegido
   por login real de superadmin (`POST /platform/auth/login`, tabla
@@ -59,11 +60,11 @@ Finanzas + RRHH + Documentos) completas y funcionando de punta a punta.**
 - Migraciones (`public.tenants`, `public.platform_admins`, `users`,
   `academic_years`/`grades`/`sections`/`subjects`, `enrollments`,
   `attendance_records`, `evaluations`/`grade_scores`, `schedules`,
-  `charges`/`payments`, `employees`/`leaves`, `documents`) y seed de
-  desarrollo (`pnpm --filter @eduapp/api seed:dev`).
+  `charges`/`payments`, `employees`/`leaves`, `documents`, `guardians`) y
+  seed de desarrollo (`pnpm --filter @eduapp/api seed:dev`).
 - Frontend: login, panel, y las pantallas de académico + usuarios +
   matrícula + asistencia + calificaciones + horarios + finanzas + RRHH +
-  documentos, con auth vía cookies
+  documentos + portal de padres ("Mi familia"), con auth vía cookies
   httpOnly (Next.js Route Handlers como BFF — el navegador nunca ve el JWT)
   y navegación compartida (`app/(dashboard)/layout.tsx`).
 - CI: ESLint + Jest wireados en `apps/api`/`apps/web`, workflow de GitHub
@@ -129,7 +130,16 @@ El resto de los módulos (`library`, `communication`, `reports`) tienen su
 carpeta creada con un `README.md` que explica cómo implementarlos
 siguiendo el mismo patrón.
 
-Resueltos recientemente (los 4 pendientes técnicos que quedaban de Fase 1/2):
+**Fase 3 (comunidad) — primer módulo, Portal de padres**: pantalla `/portal`
+("Mi familia" para `padre_tutor`, "Mis datos" para `estudiante`; redirige a
+`/dashboard` para el resto de los roles) con una vista consolidada por
+matrícula: resumen de asistencia, notas, finanzas y documentos. No agrega
+endpoints nuevos — es composición en el frontend de los mismos listados que
+ya existían (`GET /enrollments`, `/attendance`, `/grading/scores`,
+`/finance/charges`, `/documents`), que ahora **sí** filtran por instancia
+para los cinco (antes solo `attendance`/`grading` lo hacían, ver abajo).
+
+Resueltos recientemente:
 
 - **Baja/completar matrícula**: `PATCH /enrollments/:id/withdraw` y
   `/complete`, con botones en la lista de matrícula (solo
@@ -146,30 +156,30 @@ Resueltos recientemente (los 4 pendientes técnicos que quedaban de Fase 1/2):
   `int4range` en minutos desde medianoche a mano en su lugar — ver
   `1700000000015-AddScheduleOverlapConstraint.ts`.
 - **CASL a nivel de instancia** (`EnrollmentAccessService`, módulo
-  `enrollment`): implementado para `attendance` y `grading/scores` — un
-  `docente` solo ve/marca asistencia y notas de las secciones donde tiene
-  un horario asignado (`schedules`); un `estudiante` o `padre_tutor` solo
-  ve sus propios registros o los de sus hijos vinculados (tabla nueva
-  `guardians`, alta vía `POST /guardians`, solo
-  `admin_institucion`/`directivo` — sin autogestión en este pase, ni
-  pantalla de "mis hijos" para el padre, eso es Fase 3). **No** se extendió
-  a `finance`/`documents`/`schedule` (un padre sigue viendo cargos/
-  documentos de todos los estudiantes) — queda como pendiente nuevo.
+  `enrollment`): un `docente` solo ve/marca asistencia y notas de las
+  secciones donde tiene un horario asignado (`schedules`); un `estudiante`
+  o `padre_tutor` solo ve sus propios registros o los de sus hijos
+  vinculados (tabla `guardians`, alta vía `POST /guardians`, solo
+  `admin_institucion`/`directivo` — sin autogestión, eso queda para más
+  adelante). Cubre `attendance`, `grading/scores`, `enrollments`,
+  `finance/charges` y `documents`. **No** cubre `schedule` (un horario es
+  del docente/sección, no encaja en "datos personales del estudiante" —
+  exclusión deliberada, no pendiente).
 
 Pendientes conocidos:
 
-1. CASL a nivel de instancia en `finance`/`documents`/`schedule` (hoy solo
-   `attendance`/`grading` filtran por matrícula accesible) — mecánico de
-   extender con `EnrollmentAccessService`, no se hizo para acotar el pase.
-2. Finanzas: sin becas/descuentos ni conciliación bancaria todavía (primera
+1. Finanzas: sin becas/descuentos ni conciliación bancaria todavía (primera
    pasada cubre solo cargos + pagos con saldo). Sin editar/anular un cargo o
    pago ya creado.
-3. RRHH: sin salario en el modelo, sin baja de legajo ni cancelación de
+2. RRHH: sin salario en el modelo, sin baja de legajo ni cancelación de
    licencia todavía (primera pasada cubre solo legajo + licencias con
    detección de solapamiento).
-4. Documentos: sin generación real de archivo/PDF (solo el registro de
+3. Documentos: sin generación real de archivo/PDF (solo el registro de
    emisión), sin firmas digitales, y sin "actas" institucionales (no
    ligadas a una matrícula) — fuera de alcance de la primera pasada.
-5. Fase 3 (comunidad): portal de padres (incluyendo autogestión del
-   vínculo padre↔hijo y una vista de "mis hijos"), mensajería, comunicados,
-   encuestas — siguiente fase del roadmap.
+4. Portal de padres: sin autogestión del vínculo padre↔hijo (hoy solo
+   admin/directivo lo cargan desde `/users`) y sin listado detallado
+   (asistencia/notas se muestran resumidas, no registro por registro).
+5. Fase 3: quedan mensajería interna, comunicados/circulares, encuestas y
+   calendario de eventos — siguiente paso del roadmap (portal de padres ya
+   arrancó).
