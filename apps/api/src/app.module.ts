@@ -19,6 +19,7 @@ import { FinanceModule } from './modules/finance/finance.module';
 import { HrModule } from './modules/hr/hr.module';
 import { DocumentsModule } from './modules/documents/documents.module';
 import { CommunicationModule } from './modules/communication/communication.module';
+import { SurveyModule } from './modules/survey/survey.module';
 
 // A medida que se implementen los demás módulos (library, etc.) se
 // importan acá siguiendo el mismo patrón que AcademicModule.
@@ -44,6 +45,7 @@ import { CommunicationModule } from './modules/communication/communication.modul
     HrModule,
     DocumentsModule,
     CommunicationModule,
+    SurveyModule,
   ],
 })
 export class AppModule implements NestModule {

@@ -25,6 +25,8 @@ export type AppSubjects =
   | 'Announcement'
   | 'Event'
   | 'Message'
+  | 'Survey'
+  | 'SurveyResponse'
   | 'all';
 
 export type AppAbility = Ability<[AppAction, AppSubjects]>;

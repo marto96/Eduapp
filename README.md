@@ -41,10 +41,11 @@ pnpm dev                    # corre api y web en paralelo (Turborepo)
 
 ## Estado actual
 
-**Fase 0 (fundación), Fase 1 (núcleo académico) y Fase 2 (administrativo:
-Finanzas + RRHH + Documentos) completas y funcionando de punta a punta.
-Fase 3 (comunidad) iniciada con el Portal de padres, Comunicados/circulares,
-Calendario de eventos y Mensajería interna.**
+**Fase 0 (fundación), Fase 1 (núcleo académico), Fase 2 (administrativo:
+Finanzas + RRHH + Documentos) y Fase 3 (comunidad: Portal de padres +
+Comunicados/circulares + Calendario de eventos + Mensajería interna +
+Encuestas) completas y funcionando de punta a punta — cierra todo el
+roadmap de `docs/ARCHITECTURE.md` §4.1-4.4.**
 
 - `platform`: alta de instituciones (`POST /platform/tenants`), protegido
   por login real de superadmin (`POST /platform/auth/login`, tabla
@@ -62,14 +63,14 @@ Calendario de eventos y Mensajería interna.**
   `academic_years`/`grades`/`sections`/`subjects`, `enrollments`,
   `attendance_records`, `evaluations`/`grade_scores`, `schedules`,
   `charges`/`payments`, `employees`/`leaves`, `documents`, `guardians`,
-  `announcements`, `events`, `messages`) y seed de desarrollo (`pnpm
-  --filter @eduapp/api seed:dev`).
+  `announcements`, `events`, `messages`, `surveys`/`survey_responses`) y
+  seed de desarrollo (`pnpm --filter @eduapp/api seed:dev`).
 - Frontend: login, panel, y las pantallas de académico + usuarios +
   matrícula + asistencia + calificaciones + horarios + finanzas + RRHH +
   documentos + portal de padres ("Mi familia") + comunicados + calendario +
-  mensajes, con auth vía cookies httpOnly (Next.js Route Handlers como BFF
-  — el navegador nunca ve el JWT) y navegación compartida
-  (`app/(dashboard)/layout.tsx`).
+  mensajes + encuestas, con auth vía cookies httpOnly (Next.js Route
+  Handlers como BFF — el navegador nunca ve el JWT) y navegación
+  compartida (`app/(dashboard)/layout.tsx`).
 - CI: ESLint + Jest wireados en `apps/api`/`apps/web`, workflow de GitHub
   Actions (`.github/workflows/ci.yml`).
 
@@ -177,6 +178,27 @@ frontend (`/messages`, con panel de conversaciones + hilo, agrupando en el
 cliente una lista plana por interlocutor) lo dispara automáticamente al
 abrir una conversación. Sin recordatorios/notificaciones en tiempo real
 (confirmado explícitamente que queda para una iteración futura).
+Adicionalmente: **confirmación de lectura visible** (✓/✓✓ bajo cada mensaje
+propio, ya no solo el dato en `readAt` sin mostrar) y **edición de
+mensajes ya enviados** (`PATCH /messages/:id`, solo el remitente, sin
+límite de tiempo ni bloqueo si ya fue leído — mismo criterio que WhatsApp;
+guarda `editedAt` y el frontend marca "(editado)").
+
+**Fase 3 — quinto y último módulo, Encuestas** (`survey`, módulo nuevo —
+a diferencia de `Announcement`/`Event`/`Message`, no vive dentro de
+`communication`; el modelo de datos de alto nivel ya las trataba como un
+grupo aparte): encuestas de una pregunta + varias opciones (poll de
+opción única, no formularios multi-pregunta). `POST`/`GET /surveys`,
+`POST /surveys/:id/responses`, `GET /surveys/:id/results`. Mismo quiebre
+de patrón que `Message`: **dos subjects de CASL** — crear una encuesta es
+administrativo (`'Survey'`, admin/directivo/secretaria), pero responderla
+es para todos (`'SurveyResponse'`, cualquier rol). Una respuesta por
+persona (`ConflictException` si repite, más `UNIQUE INDEX (survey_id,
+respondent_id)` en la migración como defensa en profundidad — mismo
+patrón que `guardians`). Resultados agregados por opción, sin exponer
+quién votó qué; el frontend (`/surveys`) muestra el formulario de voto
+solo si el usuario todavía no respondió, y pasa a mostrar barras de
+resultado (con la propia respuesta resaltada) una vez que sí.
 
 Resueltos recientemente:
 
@@ -229,7 +251,16 @@ Pendientes conocidos:
    (cualquier usuario del tenant le puede escribir a cualquier otro, no
    solo docente↔padre/estudiante); sin badge de no leídos en la nav (hoy
    solo se ve al entrar a `/messages`); sin notificaciones en tiempo real
-   ni recordatorios (confirmado que queda para después); sin adjuntos ni
-   borrado de mensajes.
-8. Fase 3: queda encuestas/formularios — último frente del roadmap (portal
-   de padres, comunicados, calendario y mensajería ya arrancaron).
+   ni recordatorios (confirmado que queda para después); sin adjuntos de
+   archivos/imágenes (solo texto plano — necesitaría subida a un storage
+   externo, no hay nada de eso en el proyecto); sin borrado de mensajes.
+8. Encuestas: sin formularios multi-pregunta (solo poll de una pregunta +
+   opciones), sin fecha de cierre/vencimiento, sin edición/anulación de
+   una encuesta ya publicada, y sin anonimato real (la respuesta queda
+   asociada al usuario para poder impedir votar dos veces, aunque no se
+   exponga en los resultados).
+9. **Fase 3 completa** (los 5 frentes del roadmap de "Comunicación y
+   comunidad" están implementados). Quedan sin implementar `library`
+   (biblioteca) y `reports` (analítica/dashboards) — ambos ya tienen su
+   carpeta con un `README.md` de plantilla en `apps/api/src/modules/`,
+   pero ningún código todavía.

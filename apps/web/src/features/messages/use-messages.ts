@@ -30,6 +30,21 @@ async function markMessageRead(id: string): Promise<Message> {
   return res.json();
 }
 
+export interface EditMessageInput {
+  id: string;
+  body: string;
+}
+
+async function editMessage({ id, body }: EditMessageInput): Promise<Message> {
+  const res = await fetch(`/api/messages/${id}`, {
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ body }),
+  });
+  if (!res.ok) throw new Error('No se pudo editar el mensaje');
+  return res.json();
+}
+
 export function useMessages() {
   return useQuery({
     queryKey: ['messages'],
@@ -49,6 +64,14 @@ export function useMarkMessageRead() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: markMessageRead,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['messages'] }),
+  });
+}
+
+export function useEditMessage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: editMessage,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['messages'] }),
   });
 }

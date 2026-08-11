@@ -9,6 +9,7 @@ import { ListEventsUseCase } from './application/use-cases/list-events.use-case'
 import { SendMessageUseCase } from './application/use-cases/send-message.use-case';
 import { ListMessagesUseCase } from './application/use-cases/list-messages.use-case';
 import { MarkMessageReadUseCase } from './application/use-cases/mark-message-read.use-case';
+import { EditMessageUseCase } from './application/use-cases/edit-message.use-case';
 import { AnnouncementRepositoryPort } from './application/ports/announcement.repository.port';
 import { TypeOrmAnnouncementRepository } from './infrastructure/repositories/typeorm-announcement.repository';
 import { EventRepositoryPort } from './application/ports/event.repository.port';
@@ -30,6 +31,7 @@ import { IdentityModule } from '../identity/identity.module';
     SendMessageUseCase,
     ListMessagesUseCase,
     MarkMessageReadUseCase,
+    EditMessageUseCase,
     { provide: MessageRepositoryPort, useClass: TypeOrmMessageRepository },
   ],
 })

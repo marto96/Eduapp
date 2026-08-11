@@ -27,5 +27,6 @@ export const config = {
     '/announcements/:path*',
     '/calendar/:path*',
     '/messages/:path*',
+    '/surveys/:path*',
   ],
 };

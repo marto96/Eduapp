@@ -35,6 +35,7 @@ export class TypeOrmMessageRepository extends MessageRepositoryPort {
       body: message.body,
       sentAt: new Date(message.sentAt),
       readAt: message.readAt ? new Date(message.readAt) : null,
+      editedAt: message.editedAt ? new Date(message.editedAt) : null,
     });
   }
 
@@ -46,6 +47,7 @@ export class TypeOrmMessageRepository extends MessageRepositoryPort {
       row.body,
       row.sentAt.toISOString(),
       row.readAt ? row.readAt.toISOString() : null,
+      row.editedAt ? row.editedAt.toISOString() : null,
     );
   }
 }

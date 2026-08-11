@@ -191,4 +191,22 @@ export interface Message {
   body: string;
   sentAt: string;
   readAt: string | null;
+  editedAt: string | null;
+}
+
+export interface Survey {
+  id: string;
+  question: string;
+  options: string[];
+  createdBy: string;
+  createdAt: string;
+}
+
+export interface SurveyResults {
+  surveyId: string;
+  question: string;
+  options: string[];
+  counts: Record<string, number>;
+  totalResponses: number;
+  respondedOption: string | null;
 }

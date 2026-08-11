@@ -77,3 +77,10 @@ export function canManageEvents(roles: string[]): boolean {
     roles.includes('admin_institucion') || roles.includes('directivo') || roles.includes('secretaria')
   );
 }
+
+/** Mismo criterio que `canManageEvents`: crear encuestas es tarea administrativa (responderlas es para todos). */
+export function canManageSurveys(roles: string[]): boolean {
+  return (
+    roles.includes('admin_institucion') || roles.includes('directivo') || roles.includes('secretaria')
+  );
+}

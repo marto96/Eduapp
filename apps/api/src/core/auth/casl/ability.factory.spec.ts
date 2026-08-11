@@ -82,6 +82,19 @@ describe('AbilityFactory', () => {
     expect(factory.createForUser(payload(['padre_tutor'])).can('create', 'Message')).toBe(true);
   });
 
+  it('secretaria puede manage Survey, docente/estudiante solo read (crear encuestas es administrativo)', () => {
+    expect(factory.createForUser(payload(['secretaria'])).can('create', 'Survey')).toBe(true);
+    expect(factory.createForUser(payload(['docente'])).can('create', 'Survey')).toBe(false);
+    expect(factory.createForUser(payload(['docente'])).can('read', 'Survey')).toBe(true);
+    expect(factory.createForUser(payload(['estudiante'])).can('read', 'Survey')).toBe(true);
+  });
+
+  it('docente y estudiante pueden manage SurveyResponse (a diferencia de Survey, responder es para todos)', () => {
+    expect(factory.createForUser(payload(['docente'])).can('create', 'SurveyResponse')).toBe(true);
+    expect(factory.createForUser(payload(['estudiante'])).can('create', 'SurveyResponse')).toBe(true);
+    expect(factory.createForUser(payload(['padre_tutor'])).can('create', 'SurveyResponse')).toBe(true);
+  });
+
   it('un rol desconocido no obtiene ninguna ability', () => {
     const ability = factory.createForUser(payload(['padre_tutor']));
     expect(ability.can('read', 'AcademicYear')).toBe(true);

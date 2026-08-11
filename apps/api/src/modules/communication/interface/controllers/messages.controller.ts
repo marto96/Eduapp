@@ -5,7 +5,9 @@ import { JwtPayload } from '../../../../core/auth/jwt-payload.interface';
 import { SendMessageUseCase } from '../../application/use-cases/send-message.use-case';
 import { ListMessagesUseCase } from '../../application/use-cases/list-messages.use-case';
 import { MarkMessageReadUseCase } from '../../application/use-cases/mark-message-read.use-case';
+import { EditMessageUseCase } from '../../application/use-cases/edit-message.use-case';
 import { SendMessageDto } from '../dtos/send-message.dto';
+import { EditMessageDto } from '../dtos/edit-message.dto';
 
 @Controller('messages')
 export class MessagesController {
@@ -13,6 +15,7 @@ export class MessagesController {
     private readonly sendMessage: SendMessageUseCase,
     private readonly listMessages: ListMessagesUseCase,
     private readonly markMessageRead: MarkMessageReadUseCase,
+    private readonly editMessage: EditMessageUseCase,
   ) {}
 
   @Post()
@@ -30,5 +33,11 @@ export class MessagesController {
   @CheckPolicies((ability) => ability.can('update', 'Message'))
   async markRead(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
     return this.markMessageRead.execute(id, user);
+  }
+
+  @Patch(':id')
+  @CheckPolicies((ability) => ability.can('update', 'Message'))
+  async edit(@Param('id') id: string, @Body() dto: EditMessageDto, @CurrentUser() user: JwtPayload) {
+    return this.editMessage.execute(id, dto.body, user);
   }
 }

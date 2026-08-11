@@ -3,9 +3,10 @@ export class Message {
     public readonly id: string,
     public readonly senderId: string,
     public readonly recipientId: string,
-    public readonly body: string,
+    public body: string,
     public readonly sentAt: string,
     public readAt: string | null,
+    public editedAt: string | null = null,
   ) {
     if (!body.trim()) {
       throw new Error('El mensaje no puede estar vacío');
@@ -18,5 +19,13 @@ export class Message {
   markRead(): void {
     if (this.readAt) return;
     this.readAt = new Date().toISOString();
+  }
+
+  edit(newBody: string): void {
+    if (!newBody.trim()) {
+      throw new Error('El mensaje no puede estar vacío');
+    }
+    this.body = newBody;
+    this.editedAt = new Date().toISOString();
   }
 }

@@ -36,6 +36,8 @@ export class AbilityFactory {
         'Announcement',
         'Event',
         'Message',
+        'Survey',
+        'SurveyResponse',
       ]);
       can('read', 'all');
     }
@@ -57,7 +59,7 @@ export class AbilityFactory {
       // compartido de abajo — legajos de personal no son visibles para
       // docente/estudiante/padre_tutor, ni siquiera en modo lectura (ver
       // EmployeesController/LeavesController).
-      can('manage', ['Finance', 'Hr', 'Document', 'Announcement', 'Event']);
+      can('manage', ['Finance', 'Hr', 'Document', 'Announcement', 'Event', 'Survey']);
     }
 
     if (roles.some((role) => ['docente', 'secretaria', 'estudiante', 'padre_tutor'].includes(role))) {
@@ -78,6 +80,7 @@ export class AbilityFactory {
         'Document',
         'Announcement',
         'Event',
+        'Survey',
       ]);
       // A diferencia de todo lo anterior (donde este bloque es de solo
       // lectura y la gestión queda para admin/directivo/secretaria), acá
@@ -85,8 +88,10 @@ export class AbilityFactory {
       // docente-estudiante...), no una publicación institucional — la
       // privacidad real la da el filtro por participación en
       // ListMessagesUseCase/MarkMessageReadUseCase, no este chequeo de
-      // tipo de recurso.
-      can('manage', 'Message');
+      // tipo de recurso. Mismo criterio para 'SurveyResponse': cualquiera
+      // puede responder una encuesta (a diferencia de 'Survey', que solo
+      // admin/directivo/secretaria pueden crear).
+      can('manage', ['Message', 'SurveyResponse']);
     }
 
     return build();

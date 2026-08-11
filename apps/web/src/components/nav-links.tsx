@@ -22,6 +22,7 @@ const LINKS = [
   { href: '/announcements', label: 'Comunicados' },
   { href: '/calendar', label: 'Calendario' },
   { href: '/messages', label: 'Mensajes' },
+  { href: '/surveys', label: 'Encuestas' },
 ];
 
 export function NavLinks() {
