@@ -1,4 +1,4 @@
-import { IsISO8601, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsISO8601, IsOptional, IsString, IsUUID, MinLength } from 'class-validator';
 
 export class CreateEventDto {
   @IsString()
@@ -15,4 +15,8 @@ export class CreateEventDto {
   @IsOptional()
   @IsISO8601()
   endsAt?: string;
+
+  @IsOptional()
+  @IsUUID()
+  sectionId?: string;
 }

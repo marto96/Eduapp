@@ -28,6 +28,8 @@ export type AppSubjects =
   | 'Survey'
   | 'SurveyResponse'
   | 'GuardianLink'
+  | 'Book'
+  | 'Loan'
   | 'all';
 
 export type AppAbility = Ability<[AppAction, AppSubjects]>;

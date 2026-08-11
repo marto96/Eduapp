@@ -32,7 +32,7 @@ export class TypeOrmSurveyResponseRepository extends SurveyResponseRepositoryPor
       id: response.id,
       surveyId: response.surveyId,
       respondentId: response.respondentId,
-      selectedOption: response.selectedOption,
+      answers: response.answers,
       respondedAt: new Date(response.respondedAt),
     });
   }
@@ -42,7 +42,7 @@ export class TypeOrmSurveyResponseRepository extends SurveyResponseRepositoryPor
       row.id,
       row.surveyId,
       row.respondentId,
-      row.selectedOption,
+      row.answers,
       row.respondedAt.toISOString(),
     );
   }

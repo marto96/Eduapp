@@ -5,11 +5,13 @@ import { TenantRepositoryPort } from '../../modules/platform/application/ports/t
 
 export interface TenantRecord {
   id: string;
+  name: string;
   subdomain: string;
   customDomain: string | null;
   schemaName: string;
   status: 'active' | 'suspended';
   enabledModules: string[];
+  primaryColor: string | null;
 }
 
 const CACHE_TTL_SECONDS = 60;
@@ -41,11 +43,13 @@ export class TenantRegistryService {
 
     const record: TenantRecord = {
       id: tenant.id,
+      name: tenant.name,
       subdomain: tenant.subdomain,
       customDomain: tenant.customDomain,
       schemaName: tenant.schemaName,
       status: tenant.status,
       enabledModules: tenant.enabledModules,
+      primaryColor: tenant.primaryColor,
     };
 
     await this.redis.set(cacheKey, JSON.stringify(record), 'EX', CACHE_TTL_SECONDS);

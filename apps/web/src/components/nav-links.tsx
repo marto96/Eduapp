@@ -3,46 +3,39 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
-
-const LINKS = [
-  { href: '/dashboard', label: 'Panel' },
-  { href: '/academic/years', label: 'Años lectivos' },
-  { href: '/academic/grades', label: 'Grados' },
-  { href: '/academic/sections', label: 'Secciones' },
-  { href: '/academic/subjects', label: 'Asignaturas' },
-  { href: '/schedule', label: 'Horarios' },
-  { href: '/enrollment', label: 'Matrícula' },
-  { href: '/attendance', label: 'Asistencia' },
-  { href: '/grading', label: 'Calificaciones' },
-  { href: '/finance', label: 'Finanzas' },
-  { href: '/hr', label: 'RRHH' },
-  { href: '/documents', label: 'Documentos' },
-  { href: '/users', label: 'Usuarios' },
-  { href: '/portal', label: 'Mi familia' },
-  { href: '/announcements', label: 'Comunicados' },
-  { href: '/calendar', label: 'Calendario' },
-  { href: '/messages', label: 'Mensajes' },
-  { href: '/surveys', label: 'Encuestas' },
-];
+import { NAV_LINKS } from '@/lib/nav-config';
+import { useUnreadMessagesCount } from '@/features/messages/use-messages';
 
 export function NavLinks() {
   const pathname = usePathname();
+  const { data: unreadCount } = useUnreadMessagesCount();
 
   return (
-    <nav className="flex flex-wrap gap-4 text-sm">
-      {LINKS.map((link) => (
-        <Link
-          key={link.href}
-          href={link.href}
-          className={cn(
-            pathname === link.href
-              ? 'text-primary underline'
-              : 'text-muted-foreground hover:underline',
-          )}
-        >
-          {link.label}
-        </Link>
-      ))}
+    <nav className="flex flex-col gap-0.5 text-sm">
+      {NAV_LINKS.map((link) => {
+        const Icon = link.icon;
+        const isActive = pathname === link.href;
+        return (
+          <Link
+            key={link.href}
+            href={link.href}
+            className={cn(
+              'flex items-center gap-2.5 rounded px-2.5 py-2 transition-colors',
+              isActive
+                ? 'bg-primary/10 text-primary'
+                : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+            )}
+          >
+            <Icon className="h-4 w-4 shrink-0" />
+            <span className="truncate">{link.label}</span>
+            {link.href === '/messages' && !!unreadCount && (
+              <span className="ml-auto flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-medium text-background">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </Link>
+        );
+      })}
     </nav>
   );
 }

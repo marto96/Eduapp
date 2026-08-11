@@ -11,6 +11,7 @@ const config: Config = {
     extend: {
       colors: {
         background: 'hsl(var(--background))',
+        surface: 'hsl(var(--surface))',
         foreground: 'hsl(var(--foreground))',
         primary: 'hsl(var(--primary))',
         muted: 'hsl(var(--muted))',

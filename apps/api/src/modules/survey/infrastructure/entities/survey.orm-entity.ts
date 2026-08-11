@@ -1,15 +1,22 @@
 import { Column, DeleteDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { SurveyQuestion } from '../../domain/entities/survey.entity';
 
 @Entity({ name: 'surveys' })
 export class SurveyOrmEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column()
-  question: string;
+  @Column({ type: 'jsonb' })
+  questions: SurveyQuestion[];
 
-  @Column({ type: 'text', array: true })
-  options: string[];
+  @Column({ name: 'closes_at', type: 'timestamptz', nullable: true })
+  closesAt: Date | null;
+
+  @Column({ name: 'edited_at', type: 'timestamptz', nullable: true })
+  editedAt: Date | null;
+
+  @Column({ name: 'voided_at', type: 'timestamptz', nullable: true })
+  voidedAt: Date | null;
 
   @Column({ name: 'created_by' })
   createdBy: string;

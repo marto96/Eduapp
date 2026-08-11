@@ -3,31 +3,43 @@
 @tailwind utilities;
 
 /*
-  Paleta minimalista por defecto. Cada tenant puede sobreescribir estas
-  variables (logo, color primario) sin tocar componentes.
+  Paleta "Nocturne" (ver /Users/martingaona/.claude/plans — diseño
+  compartido vía claude.ai/design). Fondo/superficie/texto/borde son
+  iguales para todas las instituciones, en ambos temas; el acento
+  (--primary) es el único valor que cada tenant puede personalizar — se
+  sobreescribe en runtime en el <html> (ver app/layout.tsx +
+  lib/getTenantBranding), el valor de acá es solo el default antes de
+  que cargue ese fetch / si falla.
 */
 :root {
-  --background: 0 0% 100%;
-  --foreground: 222 20% 12%;
-  --primary: 222 47% 20%;
-  --muted: 210 20% 96%;
-  --muted-foreground: 215 15% 45%;
-  --border: 214 15% 90%;
+  --background: 227 36% 95%;
+  --surface: 0 0% 100%;
+  --foreground: 232 19% 15%;
+  --primary: 249 53% 68%;
+  --muted: 229 8% 93%;
+  --muted-foreground: 230 9% 50%;
+  --border: 240 1% 88%;
   --destructive: 0 72% 51%;
   --font-sans: 'Inter', system-ui, sans-serif;
 }
 
 .dark {
-  --background: 222 20% 8%;
-  --foreground: 210 20% 96%;
-  --primary: 210 90% 70%;
-  --muted: 222 15% 14%;
-  --muted-foreground: 215 15% 65%;
-  --border: 222 15% 20%;
+  --background: 233 27% 12%;
+  --surface: 232 18% 17%;
+  --foreground: 240 2% 92%;
+  --primary: 249 53% 68%;
+  --muted: 227 10% 27%;
+  --muted-foreground: 230 13% 62%;
+  --border: 236 11% 25%;
   --destructive: 0 63% 60%;
 }
 
 body {
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 500;
+  letter-spacing: -0.015em;
 }

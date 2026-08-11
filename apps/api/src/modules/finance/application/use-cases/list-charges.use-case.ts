@@ -5,7 +5,7 @@ import { Charge } from '../../domain/entities/charge.entity';
 import { EnrollmentAccessService } from '../../../enrollment/application/services/enrollment-access.service';
 import { JwtPayload } from '../../../../core/auth/jwt-payload.interface';
 
-export type ChargeStatus = 'pendiente' | 'parcial' | 'pagado';
+export type ChargeStatus = 'pendiente' | 'parcial' | 'pagado' | 'anulado';
 
 export interface ChargeWithBalance extends Charge {
   paidAmount: number;
@@ -40,6 +40,7 @@ export class ListChargesUseCase {
     const allPayments = await this.payments.findAll({ chargeIds: visibleCharges.map((c) => c.id) });
     const paidByCharge = new Map<string, number>();
     for (const payment of allPayments) {
+      if (payment.voidedAt) continue; // un pago anulado no cuenta para el saldo
       paidByCharge.set(payment.chargeId, (paidByCharge.get(payment.chargeId) ?? 0) + payment.amount);
     }
 
@@ -50,7 +51,13 @@ export class ListChargesUseCase {
       // balance <= 0 cubre tanto "pagado con plata" como "cubierto por
       // completo con una beca/descuento, sin ningún pago registrado" —
       // antes de discountAmount alcanzaba con mirar paidAmount, ya no.
-      const status: ChargeStatus = balance <= 0 ? 'pagado' : paidAmount > 0 ? 'parcial' : 'pendiente';
+      const status: ChargeStatus = charge.voidedAt
+        ? 'anulado'
+        : balance <= 0
+          ? 'pagado'
+          : paidAmount > 0
+            ? 'parcial'
+            : 'pendiente';
       return { ...charge, paidAmount, netAmount, balance, status } as ChargeWithBalance;
     });
 

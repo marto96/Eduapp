@@ -2,5 +2,6 @@ import { Event } from '../../domain/entities/event.entity';
 
 export abstract class EventRepositoryPort {
   abstract findAll(): Promise<Event[]>;
+  abstract findById(id: string): Promise<Event | null>;
   abstract save(event: Event): Promise<void>;
 }

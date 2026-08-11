@@ -25,6 +25,11 @@ export class TypeOrmPaymentRepository extends PaymentRepositoryPort {
     return rows.map((row) => this.toDomain(row));
   }
 
+  async findById(id: string): Promise<Payment | null> {
+    const row = await this.repo.findOne({ where: { id } });
+    return row ? this.toDomain(row) : null;
+  }
+
   async save(payment: Payment): Promise<void> {
     await this.repo.save({
       id: payment.id,
@@ -33,6 +38,7 @@ export class TypeOrmPaymentRepository extends PaymentRepositoryPort {
       method: payment.method,
       paidAt: payment.paidAt,
       reference: payment.reference ?? null,
+      voidedAt: payment.voidedAt ? new Date(payment.voidedAt) : null,
     });
   }
 
@@ -44,6 +50,7 @@ export class TypeOrmPaymentRepository extends PaymentRepositoryPort {
       row.method,
       row.paidAt,
       row.reference ?? undefined,
+      row.voidedAt ? row.voidedAt.toISOString() : null,
     );
   }
 }

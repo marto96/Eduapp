@@ -3,13 +3,21 @@ import { SurveyRepositoryPort } from '../ports/survey.repository.port';
 import { SurveyResponseRepositoryPort } from '../ports/survey-response.repository.port';
 import { JwtPayload } from '../../../../core/auth/jwt-payload.interface';
 
-export interface SurveyResultsOutput {
-  surveyId: string;
-  question: string;
+export interface SurveyQuestionResult {
+  questionId: string;
+  text: string;
   options: string[];
   counts: Record<string, number>;
-  totalResponses: number;
-  respondedOption: string | null;
+  myAnswer: string | null;
+}
+
+export interface SurveyResultsOutput {
+  surveyId: string;
+  closesAt: string | null;
+  isClosed: boolean;
+  voidedAt: string | null;
+  totalRespondents: number;
+  questions: SurveyQuestionResult[];
 }
 
 @Injectable()
@@ -26,23 +34,37 @@ export class GetSurveyResultsUseCase {
     }
 
     const allResponses = await this.responses.findAllForSurvey(surveyId);
-    const counts: Record<string, number> = {};
-    for (const option of survey.options) {
-      counts[option] = 0;
-    }
-    for (const response of allResponses) {
-      counts[response.selectedOption] = (counts[response.selectedOption] ?? 0) + 1;
-    }
-
     const mine = allResponses.find((r) => r.respondentId === currentUser.sub);
+
+    const questions = survey.questions.map((question) => {
+      const counts: Record<string, number> = {};
+      for (const option of question.options) {
+        counts[option] = 0;
+      }
+      for (const response of allResponses) {
+        const answer = response.answers.find((a) => a.questionId === question.id);
+        if (answer) {
+          counts[answer.selectedOption] = (counts[answer.selectedOption] ?? 0) + 1;
+        }
+      }
+      const myAnswer = mine?.answers.find((a) => a.questionId === question.id)?.selectedOption ?? null;
+
+      return {
+        questionId: question.id,
+        text: question.text,
+        options: question.options,
+        counts,
+        myAnswer,
+      };
+    });
 
     return {
       surveyId: survey.id,
-      question: survey.question,
-      options: survey.options,
-      counts,
-      totalResponses: allResponses.length,
-      respondedOption: mine ? mine.selectedOption : null,
+      closesAt: survey.closesAt,
+      isClosed: survey.isClosed(),
+      voidedAt: survey.voidedAt,
+      totalRespondents: allResponses.length,
+      questions,
     };
   }
 }

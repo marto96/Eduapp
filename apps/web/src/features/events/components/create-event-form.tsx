@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from 'react';
 import { useCreateEvent } from '../use-events';
+import { useSections } from '@/features/academic/use-sections';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -9,11 +10,13 @@ import { cn } from '@/lib/utils';
 
 export function CreateEventForm() {
   const createEvent = useCreateEvent();
+  const { data: sections } = useSections();
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [startsAt, setStartsAt] = useState('');
   const [endsAt, setEndsAt] = useState('');
+  const [sectionId, setSectionId] = useState('');
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -24,6 +27,7 @@ export function CreateEventForm() {
         description,
         startsAt: new Date(startsAt).toISOString(),
         endsAt: endsAt ? new Date(endsAt).toISOString() : undefined,
+        sectionId: sectionId || undefined,
       },
       {
         onSuccess: () => {
@@ -31,6 +35,7 @@ export function CreateEventForm() {
           setDescription('');
           setStartsAt('');
           setEndsAt('');
+          setSectionId('');
         },
       },
     );
@@ -69,6 +74,22 @@ export function CreateEventForm() {
             value={endsAt}
             onChange={(e) => setEndsAt(e.target.value)}
           />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="sectionId">Sección (opcional, vacío = institucional)</Label>
+          <select
+            id="sectionId"
+            value={sectionId}
+            onChange={(e) => setSectionId(e.target.value)}
+            className="flex h-10 w-56 rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
+          >
+            <option value="">Institucional (todos)</option>
+            {sections?.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
       <div className="space-y-1.5">

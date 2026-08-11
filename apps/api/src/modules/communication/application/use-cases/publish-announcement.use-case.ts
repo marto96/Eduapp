@@ -9,6 +9,7 @@ export interface PublishAnnouncementInput {
   category: AnnouncementCategory;
   publishedAt: string;
   publishedBy: string;
+  sectionId?: string;
 }
 
 @Injectable()
@@ -25,6 +26,7 @@ export class PublishAnnouncementUseCase {
       input.category,
       input.publishedAt,
       input.publishedBy,
+      input.sectionId ?? null,
     );
 
     await this.announcements.save(announcement);

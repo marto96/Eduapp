@@ -1,12 +1,15 @@
-import { ArrayMinSize, IsArray, IsString, MinLength } from 'class-validator';
+import { Type } from 'class-transformer';
+import { ArrayMinSize, IsArray, IsISO8601, IsOptional, ValidateNested } from 'class-validator';
+import { SurveyQuestionDto } from './survey-question.dto';
 
 export class CreateSurveyDto {
-  @IsString()
-  @MinLength(1)
-  question: string;
-
   @IsArray()
-  @ArrayMinSize(2)
-  @IsString({ each: true })
-  options: string[];
+  @ArrayMinSize(1)
+  @ValidateNested({ each: true })
+  @Type(() => SurveyQuestionDto)
+  questions: SurveyQuestionDto[];
+
+  @IsOptional()
+  @IsISO8601()
+  closesAt?: string;
 }

@@ -84,3 +84,10 @@ export function canManageSurveys(roles: string[]): boolean {
     roles.includes('admin_institucion') || roles.includes('directivo') || roles.includes('secretaria')
   );
 }
+
+/** Mismo criterio que `canManageDocuments`: cargar libros y gestionar préstamos es tarea de secretaría. */
+export function canManageLibrary(roles: string[]): boolean {
+  return (
+    roles.includes('admin_institucion') || roles.includes('directivo') || roles.includes('secretaria')
+  );
+}

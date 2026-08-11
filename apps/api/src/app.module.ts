@@ -20,8 +20,9 @@ import { HrModule } from './modules/hr/hr.module';
 import { DocumentsModule } from './modules/documents/documents.module';
 import { CommunicationModule } from './modules/communication/communication.module';
 import { SurveyModule } from './modules/survey/survey.module';
+import { LibraryModule } from './modules/library/library.module';
 
-// A medida que se implementen los demás módulos (library, etc.) se
+// A medida que se implementen los demás módulos (reports, etc.) se
 // importan acá siguiendo el mismo patrón que AcademicModule.
 
 @Module({
@@ -46,6 +47,7 @@ import { SurveyModule } from './modules/survey/survey.module';
     DocumentsModule,
     CommunicationModule,
     SurveyModule,
+    LibraryModule,
   ],
 })
 export class AppModule implements NestModule {

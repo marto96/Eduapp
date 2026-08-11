@@ -27,6 +27,11 @@ export class TypeOrmAnnouncementRepository extends AnnouncementRepositoryPort {
     return rows.map((row) => this.toDomain(row));
   }
 
+  async findById(id: string): Promise<Announcement | null> {
+    const row = await this.repo.findOne({ where: { id } });
+    return row ? this.toDomain(row) : null;
+  }
+
   async save(announcement: Announcement): Promise<void> {
     await this.repo.save({
       id: announcement.id,
@@ -35,6 +40,9 @@ export class TypeOrmAnnouncementRepository extends AnnouncementRepositoryPort {
       category: announcement.category,
       publishedAt: announcement.publishedAt,
       publishedBy: announcement.publishedBy,
+      sectionId: announcement.sectionId,
+      editedAt: announcement.editedAt ? new Date(announcement.editedAt) : null,
+      voidedAt: announcement.voidedAt ? new Date(announcement.voidedAt) : null,
     });
   }
 
@@ -46,6 +54,9 @@ export class TypeOrmAnnouncementRepository extends AnnouncementRepositoryPort {
       row.category,
       row.publishedAt,
       row.publishedBy,
+      row.sectionId,
+      row.editedAt ? row.editedAt.toISOString() : null,
+      row.voidedAt ? row.voidedAt.toISOString() : null,
     );
   }
 }

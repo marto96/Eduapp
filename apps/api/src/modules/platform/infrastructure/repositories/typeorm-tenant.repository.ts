@@ -20,6 +20,11 @@ export class TypeOrmTenantRepository extends TenantRepositoryPort {
     super();
   }
 
+  async findById(id: string): Promise<Tenant | null> {
+    const row = await this.repo.findOne({ where: { id } });
+    return row ? this.toDomain(row) : null;
+  }
+
   async findBySubdomain(subdomain: string): Promise<Tenant | null> {
     const row = await this.repo.findOne({ where: { subdomain } });
     return row ? this.toDomain(row) : null;
@@ -49,6 +54,7 @@ export class TypeOrmTenantRepository extends TenantRepositoryPort {
       schemaName: tenant.schemaName,
       status: tenant.status,
       enabledModules: tenant.enabledModules,
+      primaryColor: tenant.primaryColor,
     });
   }
 
@@ -61,6 +67,7 @@ export class TypeOrmTenantRepository extends TenantRepositoryPort {
       row.schemaName,
       row.status,
       row.enabledModules,
+      row.primaryColor,
     );
   }
 }

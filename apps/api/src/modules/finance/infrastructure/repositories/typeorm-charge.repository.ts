@@ -39,6 +39,8 @@ export class TypeOrmChargeRepository extends ChargeRepositoryPort {
       amount: charge.amount,
       dueDate: charge.dueDate,
       discountAmount: charge.discountAmount,
+      editedAt: charge.editedAt ? new Date(charge.editedAt) : null,
+      voidedAt: charge.voidedAt ? new Date(charge.voidedAt) : null,
     });
   }
 
@@ -51,6 +53,8 @@ export class TypeOrmChargeRepository extends ChargeRepositoryPort {
       row.amount,
       row.dueDate,
       row.discountAmount,
+      row.editedAt ? row.editedAt.toISOString() : null,
+      row.voidedAt ? row.voidedAt.toISOString() : null,
     );
   }
 }

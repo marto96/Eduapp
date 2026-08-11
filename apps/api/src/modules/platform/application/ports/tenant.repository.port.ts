@@ -1,6 +1,7 @@
 import { Tenant } from '../../domain/entities/tenant.entity';
 
 export abstract class TenantRepositoryPort {
+  abstract findById(id: string): Promise<Tenant | null>;
   abstract findBySubdomain(subdomain: string): Promise<Tenant | null>;
   abstract findByCustomDomain(customDomain: string): Promise<Tenant | null>;
   abstract findAll(): Promise<Tenant[]>;

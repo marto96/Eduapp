@@ -1,4 +1,5 @@
 import { Column, DeleteDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { SurveyAnswer } from '../../domain/entities/survey-response.entity';
 
 @Entity({ name: 'survey_responses' })
 export class SurveyResponseOrmEntity {
@@ -11,8 +12,8 @@ export class SurveyResponseOrmEntity {
   @Column({ name: 'respondent_id' })
   respondentId: string;
 
-  @Column({ name: 'selected_option' })
-  selectedOption: string;
+  @Column({ type: 'jsonb' })
+  answers: SurveyAnswer[];
 
   @Column({ name: 'responded_at', type: 'timestamptz' })
   respondedAt: Date;

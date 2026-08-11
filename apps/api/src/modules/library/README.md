@@ -1,16 +1,16 @@
 # Módulo: library
 
-Catálogo de biblioteca y préstamos.
+Catálogo de biblioteca y préstamos. Sigue el patrón Clean Architecture
+estándar del proyecto (ver `identity` como referencia):
 
-Este módulo todavía no está implementado. Seguir exactamente el patrón del
-módulo `identity` (`apps/api/src/modules/identity`) como plantilla:
+- `domain/entities`: `Book`, `Loan`.
+- `application/ports` + `application/use-cases`: alta/listado de libros;
+  alta/devolución/listado de préstamos (filtrado por rol: admin/directivo/
+  secretaria ven todo, estudiante ve lo propio, padre_tutor ve lo de sus
+  hijos aprobados).
+- `infrastructure/entities` + `infrastructure/repositories`: TypeORM.
+- `interface/controllers` + `interface/dtos`: `BooksController`,
+  `LoansController`.
 
-- `domain/entities`: entidades y reglas de negocio puras (sin TypeORM, sin NestJS).
-- `application/ports`: interfaces que el dominio necesita (repositorios, servicios externos).
-- `application/use-cases`: un caso de uso por acción de negocio, orquesta el dominio a través de los puertos.
-- `infrastructure/entities`: entidades TypeORM (mapeo a tablas).
-- `infrastructure/repositories`: implementación concreta de los puertos.
-- `interface/controllers` + `interface/dtos`: HTTP, validación de entrada, sin lógica de negocio.
-- `library.module.ts`: wiring de NestJS (imports, providers, controllers).
-
-Registrar el módulo en `app.module.ts` una vez implementado.
+Sin integración al Portal de padres todavía (queda como pendiente
+siguiente, igual que Documentos→PDF).

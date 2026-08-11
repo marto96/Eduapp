@@ -45,10 +45,25 @@ async function editMessage({ id, body }: EditMessageInput): Promise<Message> {
   return res.json();
 }
 
+async function fetchUnreadCount(): Promise<number> {
+  const res = await fetch('/api/messages/unread-count');
+  if (!res.ok) throw new Error('No se pudo obtener el conteo de no leídos');
+  const data = await res.json();
+  return data.count;
+}
+
 export function useMessages() {
   return useQuery({
     queryKey: ['messages'],
     queryFn: fetchMessages,
+  });
+}
+
+export function useUnreadMessagesCount() {
+  return useQuery({
+    queryKey: ['messages-unread-count'],
+    queryFn: fetchUnreadCount,
+    refetchInterval: 20000,
   });
 }
 
@@ -64,7 +79,10 @@ export function useMarkMessageRead() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: markMessageRead,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['messages'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['messages'] });
+      queryClient.invalidateQueries({ queryKey: ['messages-unread-count'] });
+    },
   });
 }
 

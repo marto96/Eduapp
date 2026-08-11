@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from 'react';
 import { usePublishAnnouncement } from '../use-announcements';
+import { useSections } from '@/features/academic/use-sections';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -16,21 +17,24 @@ const CATEGORIES: { value: AnnouncementCategory; label: string }[] = [
 
 export function PublishAnnouncementForm() {
   const publishAnnouncement = usePublishAnnouncement();
+  const { data: sections } = useSections();
 
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState<AnnouncementCategory>('comunicado');
   const [body, setBody] = useState('');
   const [publishedAt, setPublishedAt] = useState(() => new Date().toISOString().slice(0, 10));
+  const [sectionId, setSectionId] = useState('');
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
     if (!title || !body || !publishedAt) return;
     publishAnnouncement.mutate(
-      { title, body, category, publishedAt },
+      { title, body, category, publishedAt, sectionId: sectionId || undefined },
       {
         onSuccess: () => {
           setTitle('');
           setBody('');
+          setSectionId('');
         },
       },
     );
@@ -73,6 +77,22 @@ export function PublishAnnouncementForm() {
             value={publishedAt}
             onChange={(e) => setPublishedAt(e.target.value)}
           />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="sectionId">Sección (opcional, vacío = institucional)</Label>
+          <select
+            id="sectionId"
+            value={sectionId}
+            onChange={(e) => setSectionId(e.target.value)}
+            className="flex h-10 w-56 rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
+          >
+            <option value="">Institucional (todos)</option>
+            {sections?.map((s) => (
+              <option key={s.id} value={s.id}>
+                {s.name}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
       <div className="space-y-1.5">

@@ -9,9 +9,14 @@ async function fetchSurveys(): Promise<Survey[]> {
   return res.json();
 }
 
-export interface CreateSurveyInput {
-  question: string;
+export interface CreateSurveyQuestionInput {
+  text: string;
   options: string[];
+}
+
+export interface CreateSurveyInput {
+  questions: CreateSurveyQuestionInput[];
+  closesAt?: string;
 }
 
 async function createSurvey(input: CreateSurveyInput): Promise<Survey> {
@@ -24,16 +29,21 @@ async function createSurvey(input: CreateSurveyInput): Promise<Survey> {
   return res.json();
 }
 
-export interface SubmitSurveyResponseInput {
-  surveyId: string;
+export interface SurveyAnswerInput {
+  questionId: string;
   selectedOption: string;
 }
 
-async function submitSurveyResponse({ surveyId, selectedOption }: SubmitSurveyResponseInput): Promise<void> {
+export interface SubmitSurveyResponseInput {
+  surveyId: string;
+  answers: SurveyAnswerInput[];
+}
+
+async function submitSurveyResponse({ surveyId, answers }: SubmitSurveyResponseInput): Promise<void> {
   const res = await fetch(`/api/surveys/${surveyId}/responses`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ selectedOption }),
+    body: JSON.stringify({ answers }),
   });
   if (!res.ok) throw new Error('No se pudo enviar la respuesta');
 }
@@ -41,6 +51,28 @@ async function submitSurveyResponse({ surveyId, selectedOption }: SubmitSurveyRe
 async function fetchSurveyResults(surveyId: string): Promise<SurveyResults> {
   const res = await fetch(`/api/surveys/${surveyId}/results`);
   if (!res.ok) throw new Error('No se pudieron cargar los resultados');
+  return res.json();
+}
+
+async function rescheduleSurvey({
+  surveyId,
+  closesAt,
+}: {
+  surveyId: string;
+  closesAt?: string;
+}): Promise<Survey> {
+  const res = await fetch(`/api/surveys/${surveyId}`, {
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ closesAt }),
+  });
+  if (!res.ok) throw new Error('No se pudo actualizar la fecha de cierre');
+  return res.json();
+}
+
+async function voidSurvey(surveyId: string): Promise<Survey> {
+  const res = await fetch(`/api/surveys/${surveyId}/void`, { method: 'PATCH' });
+  if (!res.ok) throw new Error('No se pudo anular la encuesta');
   return res.json();
 }
 
@@ -69,6 +101,28 @@ export function useSubmitSurveyResponse() {
     mutationFn: submitSurveyResponse,
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['survey-results', variables.surveyId] });
+    },
+  });
+}
+
+export function useRescheduleSurvey() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: rescheduleSurvey,
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['surveys'] });
+      queryClient.invalidateQueries({ queryKey: ['survey-results', variables.surveyId] });
+    },
+  });
+}
+
+export function useVoidSurvey() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: voidSurvey,
+    onSuccess: (_data, surveyId) => {
+      queryClient.invalidateQueries({ queryKey: ['surveys'] });
+      queryClient.invalidateQueries({ queryKey: ['survey-results', surveyId] });
     },
   });
 }

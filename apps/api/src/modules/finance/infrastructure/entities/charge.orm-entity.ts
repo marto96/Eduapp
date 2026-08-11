@@ -26,6 +26,12 @@ export class ChargeOrmEntity {
   @Column({ name: 'discount_amount', type: 'real', default: 0 })
   discountAmount: number;
 
+  @Column({ name: 'edited_at', type: 'timestamptz', nullable: true })
+  editedAt: Date | null;
+
+  @Column({ name: 'voided_at', type: 'timestamptz', nullable: true })
+  voidedAt: Date | null;
+
   @Column({ name: 'created_at', type: 'timestamptz', default: () => 'now()' })
   createdAt: Date;
 

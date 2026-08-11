@@ -17,7 +17,7 @@ export default async function CalendarPage() {
       </div>
 
       {canManage && <CreateEventForm />}
-      <EventsList />
+      <EventsList canManage={canManage} />
     </main>
   );
 }

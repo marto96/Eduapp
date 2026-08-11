@@ -17,7 +17,7 @@ export default async function SurveysPage() {
       </div>
 
       {canManage && <CreateSurveyForm />}
-      <SurveysList />
+      <SurveysList canManage={canManage} />
     </main>
   );
 }

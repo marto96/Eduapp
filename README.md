@@ -258,35 +258,139 @@ Resueltos recientemente (4 recortes pendientes):
   sentido "editar" una constancia ya emitida, solo anularla y emitir una
   nueva si hace falta.
 
+Resueltos recientemente (restricción de mensajería, edición/anulación de
+comunicados y eventos, encuestas multi-pregunta):
+
+- **Mensajería — restricción de contacto**: nuevo
+  `MessagingPolicyService` (módulo `communication`) evaluado en
+  `SendMessageUseCase` antes de crear el mensaje (`ForbiddenException` si
+  no aplica). Regla: el staff (`admin_institucion`/`directivo`/
+  `secretaria`) es un punto de contacto abierto en ambos sentidos;
+  docentes se coordinan libremente entre sí; `docente↔estudiante` o
+  `docente↔padre_tutor` requiere una relación real (sección compartida,
+  mismo cruce que ya usa `EnrollmentAccessService`: `TeacherSectionsService`
+  + `EnrollmentRepositoryPort` + `GuardianAccessService`); `padre_tutor` solo
+  le puede escribir a sus propios hijos aprobados. Todo lo demás
+  (estudiante↔estudiante, padre↔padre, pares no emparentados) queda
+  bloqueado. Es una restricción de instancia, no de tipo de recurso — sin
+  cambios de CASL, mismo criterio que `EnrollmentAccessService`.
+- **Mensajería — badge de no leídos**: `GET /messages/unread-count`
+  (cuenta mensajes propios con `readAt` nulo) consumido por un hook con
+  polling de 20s en `NavLinks`; se invalida también al marcar un mensaje
+  como leído, así que el número baja apenas se abre la conversación.
+- **Comunicados y Calendario — edición y anulación**: mismo patrón para
+  `Announcement` y `Event`: `edit(...)` (revalida y marca `editedAt`) y
+  `markVoided()` (idempotente, `ConflictException` si se reintenta o si
+  se intenta editar algo ya anulado — calcado de
+  `IssuedDocument.markVoided()`). `PATCH /announcements/:id` +
+  `/announcements/:id/void`, mismo par para `/events`. La UI muestra
+  "(editado)"/"ANULADO" y un modo de edición inline sobre la propia
+  tarjeta; ambos siguen visibles como registro histórico una vez
+  anulados, no se ocultan.
+- **Encuestas — multi-pregunta y cierre**: `Survey.questions` reemplaza
+  al viejo `question`+`options` únicos (cada pregunta con su propio `id`
+  y set de opciones, columna `jsonb`); `SurveyResponse.answers` guarda una
+  respuesta por pregunta. `closesAt` opcional + `Survey.isClosed()`:
+  votar después de esa fecha devuelve `ConflictException`. La migración de
+  restructura (`1700000000030`) descarta los datos de encuestas previas
+  (solo eran de prueba). El frontend permite agregar/quitar preguntas al
+  crear, y `survey-card` itera resultados por pregunta.
+
+Resueltos recientemente (encuestas, segmentación, finanzas, módulo
+Biblioteca):
+
+- **Encuestas — reprogramar cierre y anulación**: `Survey.reschedule()`
+  (`PATCH /surveys/:id`, cambia `closesAt` en cualquier momento) y
+  `markVoided()` (`PATCH /surveys/:id/void`, deja de aceptar respuestas
+  sin importar `closesAt` — mensaje distinto de "cerró" para diferenciar
+  el motivo). Se descartó permitir editar preguntas/opciones: una opción
+  borrada dejaría respuestas huérfanas — alcance acotado deliberadamente.
+  Sobre "anonimato": revisado, ya se cumple por diseño —
+  `GetSurveyResultsUseCase` nunca devuelve `respondentId` (solo conteos
+  agregados + la propia respuesta) y no hay ningún endpoint que exponga
+  `SurveyResponse` crudas — no hizo falta código nuevo.
+- **Comunicados y Calendario — segmentación por sección**: `sectionId`
+  opcional (`null` = institucional, como antes). Nuevo
+  `AudienceAccessService` (módulo `communication`) resuelve qué secciones
+  puede ver cada usuario — mismo cruce de fuentes que
+  `MessagingPolicyService`/`EnrollmentAccessService`
+  (`TeacherSectionsService`, matrículas propias o de los hijos
+  aprobados). Staff sigue viendo todo, segmentado o no.
+- **Finanzas — editar/anular cargo, anular pago**: `Charge.edit()` (monto,
+  descripción, vencimiento, descuento) + `markVoided()`; `Payment`
+  también anulable (sin edición — un pago mal cargado se anula y se
+  vuelve a registrar, no se corrige in place). `ChargeStatus` gana el
+  valor `'anulado'`; `ListChargesUseCase` excluye los pagos anulados del
+  cálculo de `paidAmount`/`balance` (si no, anular un pago no cambiaría
+  nada).
+- **Módulo Biblioteca (`library`)**: primer módulo nuevo desde Fase 3 —
+  catálogo de libros (`Book`) + préstamos a estudiantes (`Loan`) con
+  devolución. `CreateLoanUseCase` valida disponibilidad (copias totales
+  menos préstamos activos) y que el destino tenga rol `estudiante`.
+  `ListLoansUseCase` filtra por instancia (estudiante ve lo propio,
+  padre_tutor lo de sus hijos aprobados), mismo criterio que
+  `EnrollmentAccessService`. Catálogo de solo lectura visible para todos
+  (`can('read','Book')` en el bloque compartido); gestión y préstamos
+  reservados a admin/directivo/secretaria. Sin integración al Portal
+  todavía.
+
+Resueltos recientemente (color de marca personalizable por institución,
+tema claro/oscuro real, reskin "Nocturne", dashboard con widgets por rol):
+
+- **Color de marca por institución**: `Tenant.primaryColor` (hex,
+  nullable — default `#9184d9` si no se seteó), editable vía nuevo
+  `PATCH /platform/tenants/:id` (antes no existía forma de editar un
+  tenant ya creado). Nuevo `GET /tenant/public` — sin JWT pero con el
+  tenant ya resuelto por `TenantResolutionMiddleware` — expone
+  `{name, primaryColor}`; lo consume el layout raíz del frontend
+  (`getTenantBranding()`, con fallback si el fetch falla) para inyectar
+  `--primary` en runtime en el `<html>`, así el acento de marca aplica
+  hasta en `/login`, antes de loguearse. Solo el acento es personalizable
+  por institución — fondo/superficie/texto/bordes son iguales para todos
+  los tenants, en ambos temas (si no, se pierde control de contraste sin
+  agregar valor real). Sin pantalla de superadmin con color-picker
+  todavía (no existe frontend de `/platform/*` para nada) — se setea vía
+  API, mismo criterio que la creación de tenants hoy.
+- **Tema claro/oscuro real**: `.dark` existía en el CSS pero nunca se
+  aplicaba (no había switcher). Ahora hay un script bloqueante en el
+  `<head>` (lee `localStorage` o `prefers-color-scheme`, aplica `.dark`
+  antes del primer paint — evita flash) + un botón `ThemeToggle` nuevo en
+  el header compartido, persistido en `localStorage`.
+- **Reskin "Nocturne"**: sistema de diseño migrado desde un proyecto
+  compartido vía claude.ai/design (`DesignSync.get_file`) a los tokens
+  base de EduApp (`globals.css`, `tailwind.config.ts`) y los componentes
+  `components/ui/` (`Card` con fondo `surface` propio y padding más
+  compacto; `Button` con la variante `primary` pasada a outline en vez de
+  relleno sólido, más una variante `secondary` nueva; nuevo `Tag` para
+  uso futuro, sin retrofit de los status-badges ya existentes). Cambio a
+  nivel de tokens/primitivos: las ~18 páginas existentes lo heredan sin
+  haberse tocado una por una — verificado en `/finance` y `/surveys`.
+- **`/dashboard` real**: dejó de ser el saludo-stub de la Fase 0. Grid de
+  widgets condicionado por rol, todos sobre hooks que ya filtraban por
+  rol/instancia en el backend (sin cambios de backend para esto):
+  no leídos, próximos eventos, comunicados recientes (todos los roles);
+  matrícula activa + secciones + cargos pendientes (admin/directivo);
+  cargos pendientes (secretaria); horario de hoy (docente); préstamos
+  activos (estudiante/padre_tutor); cargos pendientes + préstamos + link
+  a `/portal` (padre_tutor).
+
 Pendientes conocidos:
 
-1. Finanzas: sin conciliación bancaria; sin editar/anular un cargo o pago
-   ya creado (más allá del descuento, que sí se resolvió).
+1. Finanzas: sin conciliación bancaria.
 2. Documentos: sin generación real de archivo/PDF (solo el registro de
    emisión), sin firmas digitales, y sin "actas" institucionales (no
    ligadas a una matrícula) — fuera de alcance de la primera pasada.
 3. Portal de padres: sin listado detallado (asistencia/notas se muestran
-   resumidas, no registro por registro).
-4. Comunicados: sin segmentación por audiencia (hoy todo comunicado es
-   institucional, visible a todos — no se puede dirigir a una sola sección
-   o año), y sin edición/anulación de un comunicado ya publicado.
-5. Calendario de eventos: mismo límite que Comunicados (sin segmentación
-   por audiencia ni edición/anulación); sin recordatorios ni integración
-   con un calendario externo (ICS, Google Calendar).
-6. Mensajería interna: sin restricción de a quién se le puede escribir
-   (cualquier usuario del tenant le puede escribir a cualquier otro, no
-   solo docente↔padre/estudiante); sin badge de no leídos en la nav (hoy
-   solo se ve al entrar a `/messages`); sin notificaciones en tiempo real
-   ni recordatorios (confirmado que queda para después); sin adjuntos de
-   archivos/imágenes (solo texto plano — necesitaría subida a un storage
-   externo, no hay nada de eso en el proyecto); sin borrado de mensajes.
-7. Encuestas: sin formularios multi-pregunta (solo poll de una pregunta +
-   opciones), sin fecha de cierre/vencimiento, sin edición/anulación de
-   una encuesta ya publicada, y sin anonimato real (la respuesta queda
-   asociada al usuario para poder impedir votar dos veces, aunque no se
-   exponga en los resultados).
-8. **Fase 3 completa** (los 5 frentes del roadmap de "Comunicación y
-   comunidad" están implementados). Quedan sin implementar `library`
-   (biblioteca) y `reports` (analítica/dashboards) — ambos ya tienen su
-   carpeta con un `README.md` de plantilla en `apps/api/src/modules/`,
-   pero ningún código todavía.
+   resumidas, no registro por registro); sin integración con Biblioteca.
+4. Calendario de eventos: sin recordatorios ni integración con un
+   calendario externo (ICS, Google Calendar).
+5. Mensajería interna: sin notificaciones en tiempo real (el badge es por
+   polling, no push) ni recordatorios (confirmado que queda para después);
+   sin adjuntos de archivos/imágenes (solo texto plano — necesitaría
+   subida a un storage externo, no hay nada de eso en el proyecto); sin
+   borrado de mensajes.
+6. **Fase 3 completa** (los 5 frentes del roadmap de "Comunicación y
+   comunidad" están implementados) y el módulo `library` (Biblioteca) ya
+   tiene una primera versión funcional. Queda sin implementar `reports`
+   (analítica/dashboards) — ya tiene su carpeta con un `README.md` de
+   plantilla en `apps/api/src/modules/`, pero ningún código todavía.

@@ -8,9 +8,14 @@ export class Payment {
     public readonly method: PaymentMethod,
     public readonly paidAt: string,
     public readonly reference?: string,
+    public voidedAt: string | null = null,
   ) {
     if (amount <= 0) {
       throw new Error('El monto del pago debe ser mayor a cero');
     }
+  }
+
+  markVoided(): void {
+    this.voidedAt = new Date().toISOString();
   }
 }

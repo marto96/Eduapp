@@ -9,6 +9,7 @@ export interface CreateEventInput {
   startsAt: string;
   endsAt?: string | null;
   createdBy: string;
+  sectionId?: string;
 }
 
 @Injectable()
@@ -23,6 +24,7 @@ export class CreateEventUseCase {
       input.startsAt,
       input.endsAt ?? null,
       input.createdBy,
+      input.sectionId ?? null,
     );
 
     await this.events.save(event);

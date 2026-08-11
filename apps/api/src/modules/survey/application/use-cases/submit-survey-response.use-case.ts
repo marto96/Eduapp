@@ -2,11 +2,11 @@ import { randomUUID } from 'node:crypto';
 import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { SurveyRepositoryPort } from '../ports/survey.repository.port';
 import { SurveyResponseRepositoryPort } from '../ports/survey-response.repository.port';
-import { SurveyResponse } from '../../domain/entities/survey-response.entity';
+import { SurveyResponse, SurveyAnswer } from '../../domain/entities/survey-response.entity';
 
 export interface SubmitSurveyResponseInput {
   surveyId: string;
-  selectedOption: string;
+  answers: SurveyAnswer[];
   respondentId: string;
 }
 
@@ -22,8 +22,25 @@ export class SubmitSurveyResponseUseCase {
     if (!survey) {
       throw new NotFoundException(`No existe la encuesta "${input.surveyId}"`);
     }
-    if (!survey.options.includes(input.selectedOption)) {
-      throw new BadRequestException('La opción elegida no pertenece a esta encuesta');
+    if (survey.voidedAt) {
+      throw new ConflictException('La encuesta fue anulada');
+    }
+    if (survey.isClosed()) {
+      throw new ConflictException('La encuesta ya cerró');
+    }
+    if (input.answers.length !== survey.questions.length) {
+      throw new BadRequestException('Debe responder todas las preguntas');
+    }
+
+    const questionById = new Map(survey.questions.map((q) => [q.id, q]));
+    for (const answer of input.answers) {
+      const question = questionById.get(answer.questionId);
+      if (!question) {
+        throw new BadRequestException(`La pregunta "${answer.questionId}" no pertenece a esta encuesta`);
+      }
+      if (!question.options.includes(answer.selectedOption)) {
+        throw new BadRequestException('La opción elegida no pertenece a esta pregunta');
+      }
     }
 
     const existing = await this.responses.findBySurveyAndRespondent(
@@ -38,7 +55,7 @@ export class SubmitSurveyResponseUseCase {
       randomUUID(),
       input.surveyId,
       input.respondentId,
-      input.selectedOption,
+      input.answers,
       new Date().toISOString(),
     );
 

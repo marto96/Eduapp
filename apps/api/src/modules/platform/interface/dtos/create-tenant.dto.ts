@@ -1,4 +1,4 @@
-import { IsArray, IsOptional, IsString, Matches, MinLength } from 'class-validator';
+import { IsArray, IsHexColor, IsOptional, IsString, Matches, MinLength } from 'class-validator';
 
 export class CreateTenantDto {
   @IsString()
@@ -19,4 +19,8 @@ export class CreateTenantDto {
   @IsArray()
   @IsString({ each: true })
   enabledModules?: string[];
+
+  @IsOptional()
+  @IsHexColor()
+  primaryColor?: string;
 }

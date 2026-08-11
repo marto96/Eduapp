@@ -97,7 +97,7 @@ export interface Schedule {
 }
 
 export type ChargeConcept = 'matricula' | 'pension' | 'otro';
-export type ChargeStatus = 'pendiente' | 'parcial' | 'pagado';
+export type ChargeStatus = 'pendiente' | 'parcial' | 'pagado' | 'anulado';
 export type PaymentMethod = 'efectivo' | 'transferencia' | 'tarjeta' | 'otro';
 
 export interface Charge {
@@ -108,6 +108,8 @@ export interface Charge {
   amount: number;
   dueDate: string;
   discountAmount: number;
+  editedAt: string | null;
+  voidedAt: string | null;
   paidAmount: number;
   netAmount: number;
   balance: number;
@@ -121,6 +123,7 @@ export interface Payment {
   method: PaymentMethod;
   paidAt: string;
   reference?: string;
+  voidedAt: string | null;
 }
 
 export type ContractType = 'planta' | 'contrato' | 'suplente';
@@ -180,6 +183,9 @@ export interface Announcement {
   category: AnnouncementCategory;
   publishedAt: string;
   publishedBy: string;
+  sectionId: string | null;
+  editedAt: string | null;
+  voidedAt: string | null;
 }
 
 export interface Event {
@@ -189,6 +195,9 @@ export interface Event {
   startsAt: string;
   endsAt: string | null;
   createdBy: string;
+  sectionId: string | null;
+  editedAt: string | null;
+  voidedAt: string | null;
 }
 
 export interface Message {
@@ -201,19 +210,51 @@ export interface Message {
   editedAt: string | null;
 }
 
+export interface SurveyQuestion {
+  id: string;
+  text: string;
+  options: string[];
+}
+
 export interface Survey {
   id: string;
-  question: string;
-  options: string[];
+  questions: SurveyQuestion[];
   createdBy: string;
   createdAt: string;
+  closesAt: string | null;
+  editedAt: string | null;
+  voidedAt: string | null;
+}
+
+export interface SurveyQuestionResult {
+  questionId: string;
+  text: string;
+  options: string[];
+  counts: Record<string, number>;
+  myAnswer: string | null;
 }
 
 export interface SurveyResults {
   surveyId: string;
-  question: string;
-  options: string[];
-  counts: Record<string, number>;
-  totalResponses: number;
-  respondedOption: string | null;
+  closesAt: string | null;
+  isClosed: boolean;
+  voidedAt: string | null;
+  totalRespondents: number;
+  questions: SurveyQuestionResult[];
+}
+
+export interface Book {
+  id: string;
+  title: string;
+  author: string;
+  totalCopies: number;
+}
+
+export interface Loan {
+  id: string;
+  bookId: string;
+  studentId: string;
+  borrowedAt: string;
+  dueDate: string;
+  returnedAt: string | null;
 }

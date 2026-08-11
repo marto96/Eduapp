@@ -9,6 +9,7 @@ export interface CreateTenantInput {
   subdomain: string;
   customDomain?: string;
   enabledModules?: string[];
+  primaryColor?: string;
 }
 
 @Injectable()
@@ -34,6 +35,7 @@ export class CreateTenantUseCase {
       schemaName,
       'active',
       input.enabledModules ?? ['identity', 'academic'],
+      input.primaryColor ?? null,
     );
 
     // El schema se crea y migra ANTES de registrar el tenant: si algo falla acá,

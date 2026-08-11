@@ -5,6 +5,7 @@ import { PlatformAuthController } from './interface/controllers/platform-auth.co
 import { PlatformAdminGuard } from './interface/guards/platform-admin.guard';
 import { CreateTenantUseCase } from './application/use-cases/create-tenant.use-case';
 import { ListTenantsUseCase } from './application/use-cases/list-tenants.use-case';
+import { UpdateTenantUseCase } from './application/use-cases/update-tenant.use-case';
 import { AuthenticatePlatformAdminUseCase } from './application/use-cases/authenticate-platform-admin.use-case';
 import { TenantRepositoryPort } from './application/ports/tenant.repository.port';
 import { SchemaProvisionerPort } from './application/ports/schema-provisioner.port';
@@ -24,6 +25,7 @@ import { BcryptPasswordHasher } from '../../core/security/bcrypt-password-hasher
     PlatformAdminGuard,
     CreateTenantUseCase,
     ListTenantsUseCase,
+    UpdateTenantUseCase,
     AuthenticatePlatformAdminUseCase,
     { provide: TenantRepositoryPort, useClass: TypeOrmTenantRepository },
     { provide: SchemaProvisionerPort, useClass: SchemaProvisionerAdapter },

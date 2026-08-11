@@ -24,6 +24,7 @@ const TENANT_MODULES = [
   'documents',
   'communication',
   'survey',
+  'library',
 ];
 
 export const tenantDataSourceOptions: PostgresConnectionOptions = {

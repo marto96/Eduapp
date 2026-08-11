@@ -19,6 +19,11 @@ export class TypeOrmEventRepository extends EventRepositoryPort {
     return rows.map((row) => this.toDomain(row));
   }
 
+  async findById(id: string): Promise<Event | null> {
+    const row = await this.repo.findOne({ where: { id } });
+    return row ? this.toDomain(row) : null;
+  }
+
   async save(event: Event): Promise<void> {
     await this.repo.save({
       id: event.id,
@@ -27,6 +32,9 @@ export class TypeOrmEventRepository extends EventRepositoryPort {
       startsAt: new Date(event.startsAt),
       endsAt: event.endsAt ? new Date(event.endsAt) : null,
       createdBy: event.createdBy,
+      sectionId: event.sectionId,
+      editedAt: event.editedAt ? new Date(event.editedAt) : null,
+      voidedAt: event.voidedAt ? new Date(event.voidedAt) : null,
     });
   }
 
@@ -38,6 +46,9 @@ export class TypeOrmEventRepository extends EventRepositoryPort {
       row.startsAt.toISOString(),
       row.endsAt ? row.endsAt.toISOString() : null,
       row.createdBy,
+      row.sectionId,
+      row.editedAt ? row.editedAt.toISOString() : null,
+      row.voidedAt ? row.voidedAt.toISOString() : null,
     );
   }
 }

@@ -6,6 +6,7 @@ import { SendMessageUseCase } from '../../application/use-cases/send-message.use
 import { ListMessagesUseCase } from '../../application/use-cases/list-messages.use-case';
 import { MarkMessageReadUseCase } from '../../application/use-cases/mark-message-read.use-case';
 import { EditMessageUseCase } from '../../application/use-cases/edit-message.use-case';
+import { CountUnreadMessagesUseCase } from '../../application/use-cases/count-unread-messages.use-case';
 import { SendMessageDto } from '../dtos/send-message.dto';
 import { EditMessageDto } from '../dtos/edit-message.dto';
 
@@ -16,6 +17,7 @@ export class MessagesController {
     private readonly listMessages: ListMessagesUseCase,
     private readonly markMessageRead: MarkMessageReadUseCase,
     private readonly editMessage: EditMessageUseCase,
+    private readonly countUnreadMessages: CountUnreadMessagesUseCase,
   ) {}
 
   @Post()
@@ -27,6 +29,11 @@ export class MessagesController {
   @Get()
   async list(@CurrentUser() user: JwtPayload) {
     return this.listMessages.execute(user);
+  }
+
+  @Get('unread-count')
+  async unreadCount(@CurrentUser() user: JwtPayload) {
+    return { count: await this.countUnreadMessages.execute(user) };
   }
 
   @Patch(':id/read')

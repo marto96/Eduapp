@@ -38,6 +38,8 @@ export class AbilityFactory {
         'Message',
         'Survey',
         'SurveyResponse',
+        'Book',
+        'Loan',
       ]);
       can('read', 'all');
     }
@@ -59,7 +61,7 @@ export class AbilityFactory {
       // compartido de abajo — legajos de personal no son visibles para
       // docente/estudiante/padre_tutor, ni siquiera en modo lectura (ver
       // EmployeesController/LeavesController).
-      can('manage', ['Finance', 'Hr', 'Document', 'Announcement', 'Event', 'Survey']);
+      can('manage', ['Finance', 'Hr', 'Document', 'Announcement', 'Event', 'Survey', 'Book', 'Loan']);
     }
 
     if (roles.some((role) => ['docente', 'secretaria', 'estudiante', 'padre_tutor'].includes(role))) {
@@ -81,6 +83,7 @@ export class AbilityFactory {
         'Announcement',
         'Event',
         'Survey',
+        'Book',
       ]);
       // A diferencia de todo lo anterior (donde este bloque es de solo
       // lectura y la gestión queda para admin/directivo/secretaria), acá

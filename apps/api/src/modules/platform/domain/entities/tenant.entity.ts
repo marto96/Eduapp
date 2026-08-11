@@ -11,6 +11,7 @@ export class Tenant {
     public readonly schemaName: string,
     public status: 'active' | 'suspended',
     public enabledModules: string[],
+    public primaryColor: string | null = null,
   ) {}
 
   suspend(): void {

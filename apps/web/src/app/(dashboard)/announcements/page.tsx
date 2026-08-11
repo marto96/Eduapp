@@ -17,7 +17,7 @@ export default async function AnnouncementsPage() {
       </div>
 
       {canManage && <PublishAnnouncementForm />}
-      <AnnouncementsList />
+      <AnnouncementsList canManage={canManage} />
     </main>
   );
 }

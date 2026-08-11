@@ -19,6 +19,7 @@ export interface PublishAnnouncementInput {
   body: string;
   category: AnnouncementCategory;
   publishedAt: string;
+  sectionId?: string;
 }
 
 async function publishAnnouncement(input: PublishAnnouncementInput): Promise<Announcement> {
@@ -28,6 +29,29 @@ async function publishAnnouncement(input: PublishAnnouncementInput): Promise<Ann
     body: JSON.stringify(input),
   });
   if (!res.ok) throw new Error('No se pudo publicar el comunicado');
+  return res.json();
+}
+
+export interface EditAnnouncementInput {
+  id: string;
+  title: string;
+  body: string;
+  sectionId?: string;
+}
+
+async function editAnnouncement({ id, ...input }: EditAnnouncementInput): Promise<Announcement> {
+  const res = await fetch(`/api/announcements/${id}`, {
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error('No se pudo editar el comunicado');
+  return res.json();
+}
+
+async function voidAnnouncement(id: string): Promise<Announcement> {
+  const res = await fetch(`/api/announcements/${id}/void`, { method: 'PATCH' });
+  if (!res.ok) throw new Error('No se pudo anular el comunicado');
   return res.json();
 }
 
@@ -42,6 +66,22 @@ export function usePublishAnnouncement() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: publishAnnouncement,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['announcements'] }),
+  });
+}
+
+export function useEditAnnouncement() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: editAnnouncement,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['announcements'] }),
+  });
+}
+
+export function useVoidAnnouncement() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: voidAnnouncement,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['announcements'] }),
   });
 }

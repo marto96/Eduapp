@@ -27,14 +27,24 @@ export class TypeOrmSurveyRepository extends SurveyRepositoryPort {
   async save(survey: Survey): Promise<void> {
     await this.repo.save({
       id: survey.id,
-      question: survey.question,
-      options: survey.options,
+      questions: survey.questions,
+      closesAt: survey.closesAt ? new Date(survey.closesAt) : null,
+      editedAt: survey.editedAt ? new Date(survey.editedAt) : null,
+      voidedAt: survey.voidedAt ? new Date(survey.voidedAt) : null,
       createdBy: survey.createdBy,
       createdAt: new Date(survey.createdAt),
     });
   }
 
   private toDomain(row: SurveyOrmEntity): Survey {
-    return new Survey(row.id, row.question, row.options, row.createdBy, row.createdAt.toISOString());
+    return new Survey(
+      row.id,
+      row.questions,
+      row.createdBy,
+      row.createdAt.toISOString(),
+      row.closesAt ? row.closesAt.toISOString() : null,
+      row.editedAt ? row.editedAt.toISOString() : null,
+      row.voidedAt ? row.voidedAt.toISOString() : null,
+    );
   }
 }

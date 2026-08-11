@@ -7,5 +7,6 @@ export interface PaymentFilter {
 
 export abstract class PaymentRepositoryPort {
   abstract findAll(filter?: PaymentFilter): Promise<Payment[]>;
+  abstract findById(id: string): Promise<Payment | null>;
   abstract save(payment: Payment): Promise<void>;
 }

@@ -1,4 +1,4 @@
-import { IsDateString, IsIn, IsString, MinLength } from 'class-validator';
+import { IsDateString, IsIn, IsOptional, IsString, IsUUID, MinLength } from 'class-validator';
 import { AnnouncementCategory } from '../../domain/entities/announcement.entity';
 
 const KNOWN_CATEGORIES: AnnouncementCategory[] = ['comunicado', 'circular', 'aviso'];
@@ -17,4 +17,8 @@ export class PublishAnnouncementDto {
 
   @IsDateString()
   publishedAt: string;
+
+  @IsOptional()
+  @IsUUID()
+  sectionId?: string;
 }

@@ -49,3 +49,43 @@ export function useCreateCharge() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['charges'] }),
   });
 }
+
+export interface EditChargeInput {
+  id: string;
+  amount: number;
+  description: string;
+  dueDate: string;
+  discountAmount?: number;
+}
+
+async function editCharge({ id, ...input }: EditChargeInput): Promise<Charge> {
+  const res = await fetch(`/api/finance/charges/${id}`, {
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) throw new Error('No se pudo editar el cargo');
+  return res.json();
+}
+
+async function voidCharge(id: string): Promise<Charge> {
+  const res = await fetch(`/api/finance/charges/${id}/void`, { method: 'PATCH' });
+  if (!res.ok) throw new Error('No se pudo anular el cargo');
+  return res.json();
+}
+
+export function useEditCharge() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: editCharge,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['charges'] }),
+  });
+}
+
+export function useVoidCharge() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: voidCharge,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['charges'] }),
+  });
+}
