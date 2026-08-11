@@ -174,3 +174,21 @@ export interface Announcement {
   publishedAt: string;
   publishedBy: string;
 }
+
+export interface Event {
+  id: string;
+  title: string;
+  description: string;
+  startsAt: string;
+  endsAt: string | null;
+  createdBy: string;
+}
+
+export interface Message {
+  id: string;
+  senderId: string;
+  recipientId: string;
+  body: string;
+  sentAt: string;
+  readAt: string | null;
+}

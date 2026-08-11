@@ -20,6 +20,8 @@ const LINKS = [
   { href: '/users', label: 'Usuarios' },
   { href: '/portal', label: 'Mi familia' },
   { href: '/announcements', label: 'Comunicados' },
+  { href: '/calendar', label: 'Calendario' },
+  { href: '/messages', label: 'Mensajes' },
 ];
 
 export function NavLinks() {

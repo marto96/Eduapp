@@ -25,5 +25,7 @@ export const config = {
     '/documents/:path*',
     '/portal/:path*',
     '/announcements/:path*',
+    '/calendar/:path*',
+    '/messages/:path*',
   ],
 };

@@ -70,3 +70,10 @@ export function canManageAnnouncements(roles: string[]): boolean {
     roles.includes('admin_institucion') || roles.includes('directivo') || roles.includes('secretaria')
   );
 }
+
+/** Mismo criterio que `canManageAnnouncements`: cargar eventos institucionales es tarea de secretaría. */
+export function canManageEvents(roles: string[]): boolean {
+  return (
+    roles.includes('admin_institucion') || roles.includes('directivo') || roles.includes('secretaria')
+  );
+}

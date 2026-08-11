@@ -43,7 +43,8 @@ pnpm dev                    # corre api y web en paralelo (Turborepo)
 
 **Fase 0 (fundación), Fase 1 (núcleo académico) y Fase 2 (administrativo:
 Finanzas + RRHH + Documentos) completas y funcionando de punta a punta.
-Fase 3 (comunidad) iniciada con el Portal de padres y Comunicados/circulares.**
+Fase 3 (comunidad) iniciada con el Portal de padres, Comunicados/circulares,
+Calendario de eventos y Mensajería interna.**
 
 - `platform`: alta de instituciones (`POST /platform/tenants`), protegido
   por login real de superadmin (`POST /platform/auth/login`, tabla
@@ -61,13 +62,14 @@ Fase 3 (comunidad) iniciada con el Portal de padres y Comunicados/circulares.**
   `academic_years`/`grades`/`sections`/`subjects`, `enrollments`,
   `attendance_records`, `evaluations`/`grade_scores`, `schedules`,
   `charges`/`payments`, `employees`/`leaves`, `documents`, `guardians`,
-  `announcements`) y seed de desarrollo (`pnpm --filter @eduapp/api
-  seed:dev`).
+  `announcements`, `events`, `messages`) y seed de desarrollo (`pnpm
+  --filter @eduapp/api seed:dev`).
 - Frontend: login, panel, y las pantallas de académico + usuarios +
   matrícula + asistencia + calificaciones + horarios + finanzas + RRHH +
-  documentos + portal de padres ("Mi familia") + comunicados, con auth vía
-  cookies httpOnly (Next.js Route Handlers como BFF — el navegador nunca ve
-  el JWT) y navegación compartida (`app/(dashboard)/layout.tsx`).
+  documentos + portal de padres ("Mi familia") + comunicados + calendario +
+  mensajes, con auth vía cookies httpOnly (Next.js Route Handlers como BFF
+  — el navegador nunca ve el JWT) y navegación compartida
+  (`app/(dashboard)/layout.tsx`).
 - CI: ESLint + Jest wireados en `apps/api`/`apps/web`, workflow de GitHub
   Actions (`.github/workflows/ci.yml`).
 
@@ -150,6 +152,32 @@ por instancia). Mismo criterio de gestión que `finance`/`documents`:
 `docente`/`estudiante`/`padre_tutor` solo leen. Sin segmentación por
 audiencia todavía (sección/año/rol) — ver pendientes.
 
+**Fase 3 — tercer módulo, Calendario de eventos**: segunda entidad del
+mismo módulo `communication` (junto a `Announcement`), con `POST`/`GET
+/events`. Mismo criterio de gestión y visibilidad que `Announcement`. A
+diferencia de este, sí necesita horario (`startsAt`/`endsAt` en
+`timestamptz`, no solo `date`) — primer campo de negocio del proyecto que
+usa hora además de fecha (`schedules` usa `varchar "HH:mm"`, el resto usa
+`date`). Sin solapamiento ni instancia: varios eventos pueden coexistir el
+mismo horario, es información institucional sin `enrollmentId`.
+
+**Fase 3 — cuarto módulo, Mensajería interna**: tercera entidad de
+`communication` (`Message`), con `POST`/`GET /messages` y `PATCH
+/messages/:id/read`. **Rompe el patrón de visibilidad institucional** de
+`Announcement`/`Event`: un mensaje solo lo ven su remitente y su
+destinatario (`ListMessagesUseCase` filtra por participación —
+`senderId`/`recipientId` == usuario actual —, no por rol ni por
+matrícula), ni siquiera `admin_institucion` ve mensajes ajenos aunque
+tenga `manage` sobre `all`. CASL sigue siendo amplio a nivel de recurso
+(`can('manage', 'Message')` para todos los roles, no solo
+admin/directivo/secretaria — mensajería es entre pares), la privacidad
+real la da el filtro del `WHERE`, no el guard. `readAt` se marca solo por
+el destinatario (`ForbiddenException` si lo intenta el remitente); el
+frontend (`/messages`, con panel de conversaciones + hilo, agrupando en el
+cliente una lista plana por interlocutor) lo dispara automáticamente al
+abrir una conversación. Sin recordatorios/notificaciones en tiempo real
+(confirmado explícitamente que queda para una iteración futura).
+
 Resueltos recientemente:
 
 - **Baja/completar matrícula**: `PATCH /enrollments/:id/withdraw` y
@@ -194,6 +222,14 @@ Pendientes conocidos:
 5. Comunicados: sin segmentación por audiencia (hoy todo comunicado es
    institucional, visible a todos — no se puede dirigir a una sola sección
    o año), y sin edición/anulación de un comunicado ya publicado.
-6. Fase 3: quedan mensajería interna, encuestas/formularios y calendario de
-   eventos — siguiente paso del roadmap (portal de padres y comunicados ya
-   arrancaron).
+6. Calendario de eventos: mismo límite que Comunicados (sin segmentación
+   por audiencia ni edición/anulación); sin recordatorios ni integración
+   con un calendario externo (ICS, Google Calendar).
+7. Mensajería interna: sin restricción de a quién se le puede escribir
+   (cualquier usuario del tenant le puede escribir a cualquier otro, no
+   solo docente↔padre/estudiante); sin badge de no leídos en la nav (hoy
+   solo se ve al entrar a `/messages`); sin notificaciones en tiempo real
+   ni recordatorios (confirmado que queda para después); sin adjuntos ni
+   borrado de mensajes.
+8. Fase 3: queda encuestas/formularios — último frente del roadmap (portal
+   de padres, comunicados, calendario y mensajería ya arrancaron).

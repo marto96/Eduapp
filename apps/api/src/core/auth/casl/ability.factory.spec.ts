@@ -68,6 +68,20 @@ describe('AbilityFactory', () => {
     expect(factory.createForUser(payload(['estudiante'])).can('read', 'Announcement')).toBe(true);
   });
 
+  it('secretaria puede manage Event, docente/estudiante solo read', () => {
+    expect(factory.createForUser(payload(['secretaria'])).can('create', 'Event')).toBe(true);
+    expect(factory.createForUser(payload(['docente'])).can('create', 'Event')).toBe(false);
+    expect(factory.createForUser(payload(['docente'])).can('read', 'Event')).toBe(true);
+    expect(factory.createForUser(payload(['estudiante'])).can('read', 'Event')).toBe(true);
+  });
+
+  it('docente y estudiante pueden manage Message (a diferencia de Announcement/Event/Hr, mensajería es entre pares)', () => {
+    expect(factory.createForUser(payload(['docente'])).can('create', 'Message')).toBe(true);
+    expect(factory.createForUser(payload(['docente'])).can('update', 'Message')).toBe(true);
+    expect(factory.createForUser(payload(['estudiante'])).can('create', 'Message')).toBe(true);
+    expect(factory.createForUser(payload(['padre_tutor'])).can('create', 'Message')).toBe(true);
+  });
+
   it('un rol desconocido no obtiene ninguna ability', () => {
     const ability = factory.createForUser(payload(['padre_tutor']));
     expect(ability.can('read', 'AcademicYear')).toBe(true);

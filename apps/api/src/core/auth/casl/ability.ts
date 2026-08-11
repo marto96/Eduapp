@@ -23,6 +23,8 @@ export type AppSubjects =
   | 'Hr'
   | 'Document'
   | 'Announcement'
+  | 'Event'
+  | 'Message'
   | 'all';
 
 export type AppAbility = Ability<[AppAction, AppSubjects]>;

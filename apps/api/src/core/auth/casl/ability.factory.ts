@@ -34,6 +34,8 @@ export class AbilityFactory {
         'Hr',
         'Document',
         'Announcement',
+        'Event',
+        'Message',
       ]);
       can('read', 'all');
     }
@@ -55,7 +57,7 @@ export class AbilityFactory {
       // compartido de abajo — legajos de personal no son visibles para
       // docente/estudiante/padre_tutor, ni siquiera en modo lectura (ver
       // EmployeesController/LeavesController).
-      can('manage', ['Finance', 'Hr', 'Document', 'Announcement']);
+      can('manage', ['Finance', 'Hr', 'Document', 'Announcement', 'Event']);
     }
 
     if (roles.some((role) => ['docente', 'secretaria', 'estudiante', 'padre_tutor'].includes(role))) {
@@ -75,7 +77,16 @@ export class AbilityFactory {
         'Finance',
         'Document',
         'Announcement',
+        'Event',
       ]);
+      // A diferencia de todo lo anterior (donde este bloque es de solo
+      // lectura y la gestión queda para admin/directivo/secretaria), acá
+      // 'manage' es para todos: mensajería es entre pares (docente-padre,
+      // docente-estudiante...), no una publicación institucional — la
+      // privacidad real la da el filtro por participación en
+      // ListMessagesUseCase/MarkMessageReadUseCase, no este chequeo de
+      // tipo de recurso.
+      can('manage', 'Message');
     }
 
     return build();
