@@ -55,6 +55,7 @@ export class TypeOrmTenantRepository extends TenantRepositoryPort {
       status: tenant.status,
       enabledModules: tenant.enabledModules,
       primaryColor: tenant.primaryColor,
+      logoUrl: tenant.logoUrl,
     });
   }
 
@@ -68,6 +69,7 @@ export class TypeOrmTenantRepository extends TenantRepositoryPort {
       row.status,
       row.enabledModules,
       row.primaryColor,
+      row.logoUrl,
     );
   }
 }

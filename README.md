@@ -374,6 +374,75 @@ tema claro/oscuro real, reskin "Nocturne", dashboard con widgets por rol):
   activos (estudiante/padre_tutor); cargos pendientes + préstamos + link
   a `/portal` (padre_tutor).
 
+Resueltos recientemente (sidebar de navegación, título de sección dinámico
+y filtrado de links por rol):
+
+- **Sidebar de navegación**: la barra horizontal de links pasó a un
+  sidebar vertical fijo a la izquierda (`components/nav-links.tsx`),
+  con el nombre e ícono (`lucide-react`) de cada módulo y el toggle de
+  tema arriba. La lista de links se extrajo a
+  `apps/web/src/lib/nav-config.ts` (`NAV_LINKS`), compartida con el
+  nuevo título de sección.
+- **Título de sección dinámico en el header**: nuevo
+  `components/page-title.tsx` (`usePathname()` + lookup en
+  `NAV_LINKS`) mostrado en `app/(dashboard)/layout.tsx`, pegado al
+  sidebar y al mismo nivel que el usuario logueado (nombre + rol +
+  avatar con iniciales, ver `lib/roles.ts`) — cambia de "Panel" a
+  "Finanzas", etc., al navegar, sin recargar la página.
+- **Links filtrados por rol**: antes los 19 links se mostraban a
+  cualquier usuario logueado, sin relación con lo que ese rol puede
+  hacer. `NavLink` ahora lleva `roles: string[]` (`nav-config.ts`),
+  con el mismo criterio ya usado en `lib/permissions.ts`/
+  `AbilityFactory` del backend: estructura académica y Usuarios solo
+  admin/directivo; Horarios/Matrícula también secretaria+docente;
+  Asistencia/Calificaciones admin/directivo+docente (no secretaria);
+  Finanzas/RRHH/Documentos admin/directivo+secretaria (no docente, que
+  solo tiene lectura); Comunicados/Calendario/Mensajes/Encuestas/
+  Biblioteca visibles para todos (módulos institucionales o de
+  participación entre pares); "Mi familia" (`/portal`) exclusivo de
+  estudiante/padre_tutor, igual que ya redirigía la página. Filtro solo
+  de navegación — la autorización real sigue siendo CASL en el backend.
+
+Resueltos recientemente (módulo de superadministrador — personalización
+por institución de color, logo y nombre):
+
+- **Frontend de plataforma, antes inexistente**: hasta ahora
+  `/platform/*` solo se gestionaba por curl (creación de tenants, y el
+  `PATCH` de color agregado en el batch anterior). Nueva sección
+  `apps/web/src/app/platform/` (`login`, `tenants`, `tenants/new`,
+  `tenants/[id]`) con su propio flujo de auth BFF —cookie httpOnly
+  **`platform_access_token`**, deliberadamente distinta de `access_token`
+  (la de sesión de un tenant), para que un superadmin pueda tener ambas
+  sesiones abiertas en el mismo navegador sin pisarse. Sin refresh token
+  (el backend tampoco lo emite para superadmin — token de 8h, re-login al
+  expirar).
+- **Logo institucional, campo 100% nuevo**: `Tenant.logoUrl` (antes solo
+  existía `primaryColor`). No había ningún mecanismo de subida de
+  archivos en el proyecto — se construyó uno mínimo: puerto
+  `LogoStoragePort` (Clean Architecture, mismo patrón que
+  `TenantRepositoryPort`) con un único adapter `LocalDiskLogoStorage`
+  (disco local + `@nestjs/serve-static` sirviendo `/uploads`). El puerto
+  siempre devuelve una URL absoluta — el día que se necesite S3/cloud
+  storage en producción, el cambio queda contenido a un adapter nuevo,
+  sin tocar casos de uso ni frontend. `POST /platform/tenants/:id/logo`
+  (multipart, límite 2MB, solo png/jpeg/svg+xml/webp).
+- **Nuevos endpoints**: `GET /platform/tenants/:id` (antes solo existía
+  list/create/update, faltaba el fetch individual que necesita el
+  formulario de edición) y `GET /platform/auth/me` (para que el layout
+  del frontend valide el token contra el backend, no solo la presencia
+  de la cookie — mismo criterio que `getCurrentUser()` del lado tenant).
+- **`GET /tenant/public` gana `logoUrl`**: el sidebar de
+  `(dashboard)/layout.tsx` ahora muestra el logo real de la institución
+  en vez del texto fijo "EduApp" (con fallback al nombre real del tenant,
+  no más al string hardcodeado, si no hay logo seteado). Mismo cache de
+  60s en Redis que ya tenía `primaryColor` — tradeoff ya aceptado, un
+  cambio de logo/color tarda hasta 60s en reflejarse sin reiniciar Redis.
+- **Fuera de alcance, explícito**: sin adapter de S3 (solo el puerto
+  listo para agregarlo), sin redimensionado de imagen, un solo logo por
+  tenant (sin historial), sin autogestión para `admin_institucion` (es
+  exclusivo de superadmin), sin control de suspender/reactivar tenant en
+  la UI (no hay caso de uso de backend para `status` todavía).
+
 Pendientes conocidos:
 
 1. Finanzas: sin conciliación bancaria.

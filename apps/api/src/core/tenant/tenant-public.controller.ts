@@ -27,6 +27,7 @@ export class TenantPublicController {
     return {
       name: tenant.name,
       primaryColor: tenant.primaryColor ?? DEFAULT_PRIMARY_COLOR,
+      logoUrl: tenant.logoUrl,
     };
   }
 }

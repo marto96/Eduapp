@@ -29,6 +29,9 @@ export class TenantOrmEntity {
   @Column({ name: 'primary_color', type: 'varchar', nullable: true })
   primaryColor: string | null;
 
+  @Column({ name: 'logo_url', type: 'varchar', nullable: true })
+  logoUrl: string | null;
+
   @Column({ name: 'created_at', type: 'timestamptz', default: () => 'now()' })
   createdAt: Date;
 }

@@ -12,6 +12,7 @@ export interface TenantRecord {
   status: 'active' | 'suspended';
   enabledModules: string[];
   primaryColor: string | null;
+  logoUrl: string | null;
 }
 
 const CACHE_TTL_SECONDS = 60;
@@ -50,6 +51,7 @@ export class TenantRegistryService {
       status: tenant.status,
       enabledModules: tenant.enabledModules,
       primaryColor: tenant.primaryColor,
+      logoUrl: tenant.logoUrl,
     };
 
     await this.redis.set(cacheKey, JSON.stringify(record), 'EX', CACHE_TTL_SECONDS);

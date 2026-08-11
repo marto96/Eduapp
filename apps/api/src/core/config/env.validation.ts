@@ -20,4 +20,7 @@ export const envValidationSchema = Joi.object({
 
   PLATFORM_JWT_SECRET: Joi.string().min(16).required(),
   PLATFORM_JWT_EXPIRES_IN: Joi.string().default('8h'),
+
+  UPLOADS_DIR: Joi.string().default('./uploads'),
+  API_PUBLIC_URL: Joi.string().uri().default('http://localhost:3001'),
 }).unknown(true);

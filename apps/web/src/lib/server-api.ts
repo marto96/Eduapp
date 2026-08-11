@@ -35,9 +35,10 @@ export function getCurrentUser(): Promise<AuthenticatedUser | null> {
 export interface TenantBranding {
   name: string;
   primaryColor: string;
+  logoUrl: string | null;
 }
 
-const DEFAULT_BRANDING: TenantBranding = { name: 'EduApp', primaryColor: '#9184d9' };
+const DEFAULT_BRANDING: TenantBranding = { name: 'EduApp', primaryColor: '#9184d9', logoUrl: null };
 
 /**
  * A diferencia de `serverApiFetch`, no depende de la cookie de sesión —

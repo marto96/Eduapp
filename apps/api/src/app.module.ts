@@ -1,6 +1,8 @@
 import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'node:path';
 import { envValidationSchema } from './core/config/env.validation';
 import { platformDataSourceOptions } from './core/database/platform.datasource';
 import { DatabaseModule } from './core/database/database.module';
@@ -31,6 +33,15 @@ import { LibraryModule } from './modules/library/library.module';
     // Única conexión "fija" del proceso: schema `public` (registro de tenants).
     // Las conexiones de tenant se abren dinámicamente, ver core/database/DatabaseModule.
     TypeOrmModule.forRoot({ ...platformDataSourceOptions, name: 'platform' }),
+    // Sirve los logos institucionales subidos (ver LocalDiskLogoStorage). Lee
+    // `process.env.UPLOADS_DIR` directo (no vía ConfigService, todavía no
+    // existe acá) — funciona porque `platform.datasource.ts` (importado
+    // arriba) hace `import 'dotenv/config'` como side-effect, cargando el
+    // .env antes de que se evalúe el resto de este archivo.
+    ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), process.env.UPLOADS_DIR ?? 'uploads'),
+      serveRoot: '/uploads',
+    }),
     DatabaseModule,
     RedisModule,
     AuthModule,
@@ -55,9 +66,16 @@ export class AppModule implements NestModule {
     // Resuelve el tenant (por subdominio/host) antes de cualquier controlador,
     // salvo en /platform/*: gestión de instituciones vive en el schema
     // `public` y no depende de que exista (o se pueda resolver) un tenant.
+    // También se excluye /uploads/*: una petición de imagen (<img src="...">)
+    // llega con el host del propio servidor API, no con el subdominio de
+    // ningún tenant, y este middleware rechazaría el request con 404 si no
+    // se excluye.
     consumer
       .apply(TenantResolutionMiddleware)
-      .exclude({ path: 'platform/(.*)', method: RequestMethod.ALL })
+      .exclude(
+        { path: 'platform/(.*)', method: RequestMethod.ALL },
+        { path: 'uploads/(.*)', method: RequestMethod.ALL },
+      )
       .forRoutes('*');
   }
 }

@@ -258,3 +258,15 @@ export interface Loan {
   dueDate: string;
   returnedAt: string | null;
 }
+
+export interface PlatformTenant {
+  id: string;
+  name: string;
+  subdomain: string;
+  customDomain: string | null;
+  schemaName: string;
+  status: 'active' | 'suspended';
+  enabledModules: string[];
+  primaryColor: string | null;
+  logoUrl: string | null;
+}

@@ -12,6 +12,7 @@ export class Tenant {
     public status: 'active' | 'suspended',
     public enabledModules: string[],
     public primaryColor: string | null = null,
+    public logoUrl: string | null = null,
   ) {}
 
   suspend(): void {
