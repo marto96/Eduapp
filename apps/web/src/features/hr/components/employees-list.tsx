@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useEmployees } from '../use-employees';
-import { useLeaves } from '../use-leaves';
+import { useEmployees, useTerminateEmployee } from '../use-employees';
+import { useLeaves, useCancelLeave } from '../use-leaves';
 import { CreateLeaveForm } from './create-leave-form';
 import { useUsers } from '@/features/users/use-users';
 import { Card } from '@/components/ui/card';
@@ -26,6 +26,8 @@ export function EmployeesList({ canManage }: { canManage: boolean }) {
   const { data: users } = useUsers();
   const { data: leaves } = useLeaves();
   const [addingLeaveFor, setAddingLeaveFor] = useState<string | null>(null);
+  const terminateEmployee = useTerminateEmployee();
+  const cancelLeave = useCancelLeave();
 
   if (isLoading) return <p className="text-sm text-muted-foreground">Cargando...</p>;
   if (error) return <p className="text-sm text-destructive">No se pudieron cargar los legajos.</p>;
@@ -48,6 +50,7 @@ export function EmployeesList({ canManage }: { canManage: boolean }) {
                 <p className="text-sm text-muted-foreground">
                   {employee.position} — {CONTRACT_LABELS[employee.contractType] ?? employee.contractType}{' '}
                   — ingreso {employee.hireDate}
+                  {employee.salary != null ? ` — $${employee.salary}` : ''}
                 </p>
               </div>
               <span className="text-xs uppercase text-muted-foreground">{employee.status}</span>
@@ -56,9 +59,20 @@ export function EmployeesList({ canManage }: { canManage: boolean }) {
             {employeeLeaves.length > 0 && (
               <ul className="space-y-1 border-t border-border pt-2 text-sm text-muted-foreground">
                 {employeeLeaves.map((leave) => (
-                  <li key={leave.id}>
-                    {LEAVE_TYPE_LABELS[leave.type] ?? leave.type}: {leave.startDate} — {leave.endDate}
-                    {leave.reason ? ` (${leave.reason})` : ''}
+                  <li key={leave.id} className="flex items-center justify-between gap-2">
+                    <span>
+                      {LEAVE_TYPE_LABELS[leave.type] ?? leave.type}: {leave.startDate} — {leave.endDate}
+                      {leave.reason ? ` (${leave.reason})` : ''}
+                    </span>
+                    {canManage && (
+                      <Button
+                        variant="ghost"
+                        disabled={cancelLeave.isPending}
+                        onClick={() => cancelLeave.mutate(leave.id)}
+                      >
+                        Cancelar
+                      </Button>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -68,9 +82,20 @@ export function EmployeesList({ canManage }: { canManage: boolean }) {
               (addingLeaveFor === employee.id ? (
                 <CreateLeaveForm employeeId={employee.id} onDone={() => setAddingLeaveFor(null)} />
               ) : (
-                <Button variant="ghost" onClick={() => setAddingLeaveFor(employee.id)}>
-                  Cargar licencia
-                </Button>
+                <div className="flex gap-2">
+                  <Button variant="ghost" onClick={() => setAddingLeaveFor(employee.id)}>
+                    Cargar licencia
+                  </Button>
+                  {employee.status === 'activo' && (
+                    <Button
+                      variant="ghost"
+                      disabled={terminateEmployee.isPending}
+                      onClick={() => terminateEmployee.mutate(employee.id)}
+                    >
+                      Dar de baja
+                    </Button>
+                  )}
+                </div>
               ))}
           </Card>
         );

@@ -38,10 +38,19 @@ export class TypeOrmChargeRepository extends ChargeRepositoryPort {
       description: charge.description,
       amount: charge.amount,
       dueDate: charge.dueDate,
+      discountAmount: charge.discountAmount,
     });
   }
 
   private toDomain(row: ChargeOrmEntity): Charge {
-    return new Charge(row.id, row.enrollmentId, row.concept, row.description, row.amount, row.dueDate);
+    return new Charge(
+      row.id,
+      row.enrollmentId,
+      row.concept,
+      row.description,
+      row.amount,
+      row.dueDate,
+      row.discountAmount,
+    );
   }
 }

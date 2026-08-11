@@ -22,6 +22,7 @@ export interface CreateChargeInput {
   description: string;
   amount: number;
   dueDate: string;
+  discountAmount?: number;
 }
 
 async function createCharge(input: CreateChargeInput): Promise<Charge> {

@@ -17,7 +17,7 @@ export default async function DocumentsPage() {
       </div>
 
       {canManage && <IssueDocumentForm />}
-      <DocumentsList />
+      <DocumentsList canManage={canManage} />
     </main>
   );
 }

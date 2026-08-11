@@ -1,4 +1,4 @@
-import { IsDateString, IsIn, IsString, IsUUID, MinLength } from 'class-validator';
+import { IsDateString, IsIn, IsNumber, IsOptional, IsString, IsUUID, Min, MinLength } from 'class-validator';
 import { ContractType } from '../../domain/entities/employee.entity';
 
 const KNOWN_CONTRACT_TYPES: ContractType[] = ['planta', 'contrato', 'suplente'];
@@ -16,4 +16,9 @@ export class CreateEmployeeDto {
 
   @IsDateString()
   hireDate: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  salary?: number;
 }

@@ -46,3 +46,16 @@ export function useCreateLeave() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['leaves'] }),
   });
 }
+
+async function cancelLeave(id: string): Promise<void> {
+  const res = await fetch(`/api/hr/leaves/${id}/cancel`, { method: 'PATCH' });
+  if (!res.ok) throw new Error('No se pudo cancelar la licencia');
+}
+
+export function useCancelLeave() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: cancelLeave,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['leaves'] }),
+  });
+}

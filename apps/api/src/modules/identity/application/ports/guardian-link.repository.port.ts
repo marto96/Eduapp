@@ -7,5 +7,6 @@ export interface GuardianLinkFilter {
 
 export abstract class GuardianLinkRepositoryPort {
   abstract findAll(filter?: GuardianLinkFilter): Promise<GuardianLink[]>;
+  abstract findById(id: string): Promise<GuardianLink | null>;
   abstract save(link: GuardianLink): Promise<void>;
 }

@@ -94,6 +94,14 @@ export class AbilityFactory {
       can('manage', ['Message', 'SurveyResponse']);
     }
 
+    if (roles.includes('padre_tutor')) {
+      // Autogestión del vínculo padre↔hijo: un padre_tutor puede
+      // *solicitar* el vínculo (queda 'pending'), pero no aprobarlo — eso
+      // sigue siendo exclusivo de admin/directivo (can('manage','User')),
+      // ver RequestGuardianLinkUseCase/ApproveGuardianLinkUseCase.
+      can('create', 'GuardianLink');
+    }
+
     return build();
   }
 }

@@ -46,3 +46,17 @@ export function useIssueDocument() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['documents'] }),
   });
 }
+
+async function voidDocument(id: string): Promise<IssuedDocument> {
+  const res = await fetch(`/api/documents/${id}/void`, { method: 'PATCH' });
+  if (!res.ok) throw new Error('No se pudo anular el documento');
+  return res.json();
+}
+
+export function useVoidDocument() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: voidDocument,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['documents'] }),
+  });
+}

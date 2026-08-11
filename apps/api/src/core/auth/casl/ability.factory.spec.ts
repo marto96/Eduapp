@@ -95,6 +95,12 @@ describe('AbilityFactory', () => {
     expect(factory.createForUser(payload(['padre_tutor'])).can('create', 'SurveyResponse')).toBe(true);
   });
 
+  it('padre_tutor puede create GuardianLink (autogestión), docente/estudiante no', () => {
+    expect(factory.createForUser(payload(['padre_tutor'])).can('create', 'GuardianLink')).toBe(true);
+    expect(factory.createForUser(payload(['docente'])).can('create', 'GuardianLink')).toBe(false);
+    expect(factory.createForUser(payload(['estudiante'])).can('create', 'GuardianLink')).toBe(false);
+  });
+
   it('un rol desconocido no obtiene ninguna ability', () => {
     const ability = factory.createForUser(payload(['padre_tutor']));
     expect(ability.can('read', 'AcademicYear')).toBe(true);

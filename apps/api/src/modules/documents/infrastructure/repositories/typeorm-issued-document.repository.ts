@@ -28,6 +28,11 @@ export class TypeOrmIssuedDocumentRepository extends IssuedDocumentRepositoryPor
     return rows.map((row) => this.toDomain(row));
   }
 
+  async findById(id: string): Promise<IssuedDocument | null> {
+    const row = await this.repo.findOne({ where: { id } });
+    return row ? this.toDomain(row) : null;
+  }
+
   async save(document: IssuedDocument): Promise<void> {
     await this.repo.save({
       id: document.id,
@@ -36,6 +41,7 @@ export class TypeOrmIssuedDocumentRepository extends IssuedDocumentRepositoryPor
       description: document.description,
       issuedAt: document.issuedAt,
       issuedBy: document.issuedBy,
+      voidedAt: document.voidedAt ? new Date(document.voidedAt) : null,
     });
   }
 
@@ -47,6 +53,7 @@ export class TypeOrmIssuedDocumentRepository extends IssuedDocumentRepositoryPor
       row.description,
       row.issuedAt,
       row.issuedBy,
+      row.voidedAt ? row.voidedAt.toISOString() : null,
     );
   }
 }

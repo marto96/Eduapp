@@ -12,6 +12,7 @@ export interface CreateEmployeeInput {
   position: string;
   contractType: ContractType;
   hireDate: string;
+  salary?: number;
 }
 
 @Injectable()
@@ -36,6 +37,8 @@ export class CreateEmployeeUseCase {
       input.position,
       input.contractType,
       input.hireDate,
+      'activo',
+      input.salary ?? null,
     );
 
     await this.employees.save(employee);

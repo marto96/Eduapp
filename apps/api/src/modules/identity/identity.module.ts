@@ -9,6 +9,8 @@ import { CreateUserUseCase } from './application/use-cases/create-user.use-case'
 import { ListUsersUseCase } from './application/use-cases/list-users.use-case';
 import { LinkGuardianUseCase } from './application/use-cases/link-guardian.use-case';
 import { ListGuardianLinksUseCase } from './application/use-cases/list-guardian-links.use-case';
+import { RequestGuardianLinkUseCase } from './application/use-cases/request-guardian-link.use-case';
+import { ApproveGuardianLinkUseCase } from './application/use-cases/approve-guardian-link.use-case';
 import { GuardianAccessService } from './application/services/guardian-access.service';
 import { UserRepositoryPort } from './application/ports/user.repository.port';
 import { GuardianLinkRepositoryPort } from './application/ports/guardian-link.repository.port';
@@ -33,6 +35,8 @@ import { BcryptPasswordHasher } from '../../core/security/bcrypt-password-hasher
     ListUsersUseCase,
     LinkGuardianUseCase,
     ListGuardianLinksUseCase,
+    RequestGuardianLinkUseCase,
+    ApproveGuardianLinkUseCase,
     GuardianAccessService,
     { provide: UserRepositoryPort, useClass: TypeOrmUserRepository },
     { provide: GuardianLinkRepositoryPort, useClass: TypeOrmGuardianLinkRepository },

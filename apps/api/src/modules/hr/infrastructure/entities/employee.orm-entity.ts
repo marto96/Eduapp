@@ -21,6 +21,9 @@ export class EmployeeOrmEntity {
   @Column({ default: 'activo' })
   status: EmployeeStatus;
 
+  @Column({ type: 'real', nullable: true })
+  salary: number | null;
+
   @Column({ name: 'created_at', type: 'timestamptz', default: () => 'now()' })
   createdAt: Date;
 

@@ -27,6 +27,7 @@ export type AppSubjects =
   | 'Message'
   | 'Survey'
   | 'SurveyResponse'
+  | 'GuardianLink'
   | 'all';
 
 export type AppAbility = Ability<[AppAction, AppSubjects]>;

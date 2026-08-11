@@ -9,6 +9,7 @@ export type ChargeStatus = 'pendiente' | 'parcial' | 'pagado';
 
 export interface ChargeWithBalance extends Charge {
   paidAmount: number;
+  netAmount: number;
   balance: number;
   status: ChargeStatus;
 }
@@ -44,9 +45,13 @@ export class ListChargesUseCase {
 
     const enriched = visibleCharges.map((charge) => {
       const paidAmount = paidByCharge.get(charge.id) ?? 0;
-      const balance = charge.amount - paidAmount;
-      const status: ChargeStatus = paidAmount === 0 ? 'pendiente' : balance > 0 ? 'parcial' : 'pagado';
-      return { ...charge, paidAmount, balance, status } as ChargeWithBalance;
+      const netAmount = charge.amount - charge.discountAmount;
+      const balance = netAmount - paidAmount;
+      // balance <= 0 cubre tanto "pagado con plata" como "cubierto por
+      // completo con una beca/descuento, sin ningún pago registrado" —
+      // antes de discountAmount alcanzaba con mirar paidAmount, ya no.
+      const status: ChargeStatus = balance <= 0 ? 'pagado' : paidAmount > 0 ? 'parcial' : 'pendiente';
+      return { ...charge, paidAmount, netAmount, balance, status } as ChargeWithBalance;
     });
 
     return input?.status ? enriched.filter((c) => c.status === input.status) : enriched;

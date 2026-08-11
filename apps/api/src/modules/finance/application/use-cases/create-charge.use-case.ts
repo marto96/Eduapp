@@ -10,6 +10,7 @@ export interface CreateChargeInput {
   description: string;
   amount: number;
   dueDate: string;
+  discountAmount?: number;
 }
 
 @Injectable()
@@ -34,6 +35,7 @@ export class CreateChargeUseCase {
         input.description,
         input.amount,
         input.dueDate,
+        input.discountAmount ?? 0,
       );
     } catch (err) {
       throw new BadRequestException((err as Error).message);

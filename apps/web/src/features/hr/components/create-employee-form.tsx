@@ -24,6 +24,7 @@ export function CreateEmployeeForm() {
   const [position, setPosition] = useState('');
   const [contractType, setContractType] = useState<ContractType>('planta');
   const [hireDate, setHireDate] = useState('');
+  const [salary, setSalary] = useState('');
 
   const staffUsers = useMemo(
     () => (users ?? []).filter((u) => u.roles.some((role) => STAFF_ROLES.includes(role))),
@@ -34,7 +35,7 @@ export function CreateEmployeeForm() {
     event.preventDefault();
     if (!userId || !position || !hireDate) return;
     createEmployee.mutate(
-      { userId, position, contractType, hireDate },
+      { userId, position, contractType, hireDate, salary: salary ? Number(salary) : undefined },
       { onSuccess: () => setPosition('') },
     );
   }
@@ -93,6 +94,18 @@ export function CreateEmployeeForm() {
           className="w-40"
           value={hireDate}
           onChange={(e) => setHireDate(e.target.value)}
+        />
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="salary">Salario (opcional)</Label>
+        <Input
+          id="salary"
+          type="number"
+          min={0}
+          step="0.01"
+          className="w-32"
+          value={salary}
+          onChange={(e) => setSalary(e.target.value)}
         />
       </div>
       <Button type="submit" disabled={createEmployee.isPending}>

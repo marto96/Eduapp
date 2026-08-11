@@ -21,6 +21,9 @@ export class IssuedDocumentOrmEntity {
   @Column({ name: 'issued_by' })
   issuedBy: string;
 
+  @Column({ name: 'voided_at', type: 'timestamptz', nullable: true })
+  voidedAt: Date | null;
+
   @Column({ name: 'created_at', type: 'timestamptz', default: () => 'now()' })
   createdAt: Date;
 

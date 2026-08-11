@@ -1,4 +1,5 @@
 import { Column, DeleteDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { GuardianLinkStatus } from '../../domain/entities/guardian-link.entity';
 
 @Entity({ name: 'guardians' })
 export class GuardianLinkOrmEntity {
@@ -10,6 +11,9 @@ export class GuardianLinkOrmEntity {
 
   @Column({ name: 'student_user_id' })
   studentUserId: string;
+
+  @Column({ default: 'approved' })
+  status: GuardianLinkStatus;
 
   @Column({ name: 'created_at', type: 'timestamptz', default: () => 'now()' })
   createdAt: Date;

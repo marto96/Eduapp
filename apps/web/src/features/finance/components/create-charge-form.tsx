@@ -27,6 +27,7 @@ export function CreateChargeForm() {
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [dueDate, setDueDate] = useState('');
+  const [discountAmount, setDiscountAmount] = useState('');
 
   const studentNameById = useMemo(() => new Map(students?.map((s) => [s.id, s.fullName])), [students]);
   const sectionNameById = useMemo(() => new Map(sections?.map((s) => [s.id, s.name])), [sections]);
@@ -39,7 +40,14 @@ export function CreateChargeForm() {
     event.preventDefault();
     if (!enrollmentId || !amount || !dueDate) return;
     createCharge.mutate(
-      { enrollmentId, concept, description, amount: Number(amount), dueDate },
+      {
+        enrollmentId,
+        concept,
+        description,
+        amount: Number(amount),
+        dueDate,
+        discountAmount: discountAmount ? Number(discountAmount) : undefined,
+      },
       { onSuccess: () => setDescription('') },
     );
   }
@@ -111,6 +119,18 @@ export function CreateChargeForm() {
           className="w-40"
           value={dueDate}
           onChange={(e) => setDueDate(e.target.value)}
+        />
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="discountAmount">Beca/descuento</Label>
+        <Input
+          id="discountAmount"
+          type="number"
+          min={0}
+          step="0.01"
+          className="w-28"
+          value={discountAmount}
+          onChange={(e) => setDiscountAmount(e.target.value)}
         />
       </div>
       <Button type="submit" disabled={createCharge.isPending}>

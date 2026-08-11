@@ -19,6 +19,7 @@ export interface CreateEmployeeInput {
   position: string;
   contractType: ContractType;
   hireDate: string;
+  salary?: number;
 }
 
 async function createEmployee(input: CreateEmployeeInput): Promise<Employee> {
@@ -42,6 +43,20 @@ export function useCreateEmployee() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: createEmployee,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['employees'] }),
+  });
+}
+
+async function terminateEmployee(id: string): Promise<Employee> {
+  const res = await fetch(`/api/hr/employees/${id}/terminate`, { method: 'PATCH' });
+  if (!res.ok) throw new Error('No se pudo dar de baja el legajo');
+  return res.json();
+}
+
+export function useTerminateEmployee() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: terminateEmployee,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['employees'] }),
   });
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
-import { useGuardians, useLinkGuardian } from '../use-guardians';
+import { useGuardians, useLinkGuardian, useApproveGuardianLink } from '../use-guardians';
 import { useUsers } from '../use-users';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -12,6 +12,7 @@ export function LinkGuardianForm() {
   const { data: students } = useUsers('estudiante');
   const { data: links } = useGuardians();
   const linkGuardian = useLinkGuardian();
+  const approveGuardianLink = useApproveGuardianLink();
 
   const [guardianUserId, setGuardianUserId] = useState('');
   const [studentUserId, setStudentUserId] = useState('');
@@ -85,14 +86,38 @@ export function LinkGuardianForm() {
           </p>
         )}
       </form>
-      {links && links.length > 0 && (
+      {links && links.some((l) => l.status === 'pending') && (
+        <ul className="space-y-1.5 border-t border-border pt-2 text-sm">
+          {links
+            .filter((l) => l.status === 'pending')
+            .map((link) => (
+              <li key={link.id} className="flex items-center justify-between gap-2">
+                <span>
+                  {guardianNameById.get(link.guardianUserId) ?? link.guardianUserId} →{' '}
+                  {studentNameById.get(link.studentUserId) ?? link.studentUserId}{' '}
+                  <span className="text-xs uppercase text-muted-foreground">Pendiente</span>
+                </span>
+                <Button
+                  variant="ghost"
+                  disabled={approveGuardianLink.isPending}
+                  onClick={() => approveGuardianLink.mutate(link.id)}
+                >
+                  Aprobar
+                </Button>
+              </li>
+            ))}
+        </ul>
+      )}
+      {links && links.some((l) => l.status === 'approved') && (
         <ul className="space-y-1 border-t border-border pt-2 text-sm text-muted-foreground">
-          {links.map((link) => (
-            <li key={link.id}>
-              {guardianNameById.get(link.guardianUserId) ?? link.guardianUserId} →{' '}
-              {studentNameById.get(link.studentUserId) ?? link.studentUserId}
-            </li>
-          ))}
+          {links
+            .filter((l) => l.status === 'approved')
+            .map((link) => (
+              <li key={link.id}>
+                {guardianNameById.get(link.guardianUserId) ?? link.guardianUserId} →{' '}
+                {studentNameById.get(link.studentUserId) ?? link.studentUserId}
+              </li>
+            ))}
         </ul>
       )}
     </Card>

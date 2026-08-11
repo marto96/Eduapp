@@ -107,7 +107,9 @@ export interface Charge {
   description: string;
   amount: number;
   dueDate: string;
+  discountAmount: number;
   paidAmount: number;
+  netAmount: number;
   balance: number;
   status: ChargeStatus;
 }
@@ -132,6 +134,7 @@ export interface Employee {
   contractType: ContractType;
   hireDate: string;
   status: EmployeeStatus;
+  salary: number | null;
 }
 
 export interface Leave {
@@ -156,12 +159,16 @@ export interface IssuedDocument {
   description: string;
   issuedAt: string;
   issuedBy: string;
+  voidedAt: string | null;
 }
+
+export type GuardianLinkStatus = 'pending' | 'approved';
 
 export interface GuardianLink {
   id: string;
   guardianUserId: string;
   studentUserId: string;
+  status: GuardianLinkStatus;
 }
 
 export type AnnouncementCategory = 'comunicado' | 'circular' | 'aviso';

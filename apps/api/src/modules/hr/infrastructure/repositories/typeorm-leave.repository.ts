@@ -24,6 +24,11 @@ export class TypeOrmLeaveRepository extends LeaveRepositoryPort {
     return rows.map((row) => this.toDomain(row));
   }
 
+  async findById(id: string): Promise<Leave | null> {
+    const row = await this.repo.findOne({ where: { id } });
+    return row ? this.toDomain(row) : null;
+  }
+
   async save(leave: Leave): Promise<void> {
     await this.repo.save({
       id: leave.id,
@@ -33,6 +38,10 @@ export class TypeOrmLeaveRepository extends LeaveRepositoryPort {
       endDate: leave.endDate,
       reason: leave.reason ?? null,
     });
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.repo.softDelete(id);
   }
 
   private toDomain(row: LeaveOrmEntity): Leave {

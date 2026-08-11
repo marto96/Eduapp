@@ -40,6 +40,7 @@ export class TypeOrmEmployeeRepository extends EmployeeRepositoryPort {
       contractType: employee.contractType,
       hireDate: employee.hireDate,
       status: employee.status,
+      salary: employee.salary,
     });
   }
 
@@ -51,6 +52,7 @@ export class TypeOrmEmployeeRepository extends EmployeeRepositoryPort {
       row.contractType,
       row.hireDate,
       row.status,
+      row.salary,
     );
   }
 }

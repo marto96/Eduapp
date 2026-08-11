@@ -12,5 +12,10 @@ export class IssuedDocument {
     public readonly description: string,
     public readonly issuedAt: string,
     public readonly issuedBy: string,
+    public voidedAt: string | null = null,
   ) {}
+
+  markVoided(): void {
+    this.voidedAt = new Date().toISOString();
+  }
 }

@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { PortalView } from '@/features/portal/components/portal-view';
+import { RequestGuardianLinkForm } from '@/features/portal/components/request-guardian-link-form';
 import { getCurrentUser } from '@/lib/server-api';
 
 export default async function PortalPage() {
@@ -25,6 +26,7 @@ export default async function PortalPage() {
         </p>
       </div>
 
+      {isGuardian && <RequestGuardianLinkForm />}
       <PortalView isGuardian={isGuardian} />
     </main>
   );

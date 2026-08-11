@@ -27,15 +27,21 @@ export class TypeOrmGuardianLinkRepository extends GuardianLinkRepositoryPort {
     return rows.map((row) => this.toDomain(row));
   }
 
+  async findById(id: string): Promise<GuardianLink | null> {
+    const row = await this.repo.findOne({ where: { id } });
+    return row ? this.toDomain(row) : null;
+  }
+
   async save(link: GuardianLink): Promise<void> {
     await this.repo.save({
       id: link.id,
       guardianUserId: link.guardianUserId,
       studentUserId: link.studentUserId,
+      status: link.status,
     });
   }
 
   private toDomain(row: GuardianLinkOrmEntity): GuardianLink {
-    return new GuardianLink(row.id, row.guardianUserId, row.studentUserId);
+    return new GuardianLink(row.id, row.guardianUserId, row.studentUserId, row.status);
   }
 }

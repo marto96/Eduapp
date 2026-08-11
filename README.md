@@ -227,39 +227,65 @@ Resueltos recientemente:
   del docente/sección, no encaja en "datos personales del estudiante" —
   exclusión deliberada, no pendiente).
 
+Resueltos recientemente (4 recortes pendientes):
+
+- **Portal de padres — autogestión del vínculo padre↔hijo**: un
+  `padre_tutor` puede solicitarlo desde `/portal` (`POST
+  /guardians/requests`, `guardianUserId` forzado desde el JWT — nunca del
+  body), pero sigue haciendo falta que `admin_institucion`/`directivo` lo
+  apruebe (`PATCH /guardians/:id/approve`) antes de otorgar acceso real —
+  `GuardianLink.status` (`'pending' | 'approved'`) y
+  `GuardianAccessService.getChildrenIds` solo cuenta los aprobados. Nuevo
+  subject de CASL `'GuardianLink'` (`can('create', ...)` solo para
+  `padre_tutor`) y endpoint de autoservicio `GET /guardians/mine`.
+- **RRHH — salario + baja de legajo + cancelar licencia**: `Employee`
+  ahora tiene `salary` opcional y un método `terminate()` (`PATCH
+  /hr/employees/:id/terminate`, mismo patrón que
+  `Enrollment.withdraw()`). Cancelar una licencia (`PATCH
+  /hr/leaves/:id/cancel`) reutiliza el soft-delete que `Leave` ya tenía
+  (el constraint de solapamiento de base ya excluía `deleted_at IS NULL`,
+  así que no hizo falta tocar la migración de ese constraint).
+- **Finanzas — becas/descuentos**: `Charge.discountAmount` (0 por
+  defecto, no puede superar el monto). `ListChargesUseCase` ahora calcula
+  `netAmount = amount - discountAmount` y simplificó el cálculo de
+  `status` a `balance <= 0 ? 'pagado' : ...` — antes una beca del 100% sin
+  ningún pago hubiera quedado mal clasificada como "pendiente".
+- **Documentos — anulación**: `PATCH /documents/:id/void` marca
+  `voidedAt` (`ConflictException` si se reintenta anular uno ya anulado —
+  idempotencia explícita). El documento sigue visible en la lista con una
+  etiqueta "Anulado" — es un registro histórico, no se oculta ni se
+  borra. Se descartó agregar edición del documento emitido: no tiene
+  sentido "editar" una constancia ya emitida, solo anularla y emitir una
+  nueva si hace falta.
+
 Pendientes conocidos:
 
-1. Finanzas: sin becas/descuentos ni conciliación bancaria todavía (primera
-   pasada cubre solo cargos + pagos con saldo). Sin editar/anular un cargo o
-   pago ya creado.
-2. RRHH: sin salario en el modelo, sin baja de legajo ni cancelación de
-   licencia todavía (primera pasada cubre solo legajo + licencias con
-   detección de solapamiento).
-3. Documentos: sin generación real de archivo/PDF (solo el registro de
+1. Finanzas: sin conciliación bancaria; sin editar/anular un cargo o pago
+   ya creado (más allá del descuento, que sí se resolvió).
+2. Documentos: sin generación real de archivo/PDF (solo el registro de
    emisión), sin firmas digitales, y sin "actas" institucionales (no
    ligadas a una matrícula) — fuera de alcance de la primera pasada.
-4. Portal de padres: sin autogestión del vínculo padre↔hijo (hoy solo
-   admin/directivo lo cargan desde `/users`) y sin listado detallado
-   (asistencia/notas se muestran resumidas, no registro por registro).
-5. Comunicados: sin segmentación por audiencia (hoy todo comunicado es
+3. Portal de padres: sin listado detallado (asistencia/notas se muestran
+   resumidas, no registro por registro).
+4. Comunicados: sin segmentación por audiencia (hoy todo comunicado es
    institucional, visible a todos — no se puede dirigir a una sola sección
    o año), y sin edición/anulación de un comunicado ya publicado.
-6. Calendario de eventos: mismo límite que Comunicados (sin segmentación
+5. Calendario de eventos: mismo límite que Comunicados (sin segmentación
    por audiencia ni edición/anulación); sin recordatorios ni integración
    con un calendario externo (ICS, Google Calendar).
-7. Mensajería interna: sin restricción de a quién se le puede escribir
+6. Mensajería interna: sin restricción de a quién se le puede escribir
    (cualquier usuario del tenant le puede escribir a cualquier otro, no
    solo docente↔padre/estudiante); sin badge de no leídos en la nav (hoy
    solo se ve al entrar a `/messages`); sin notificaciones en tiempo real
    ni recordatorios (confirmado que queda para después); sin adjuntos de
    archivos/imágenes (solo texto plano — necesitaría subida a un storage
    externo, no hay nada de eso en el proyecto); sin borrado de mensajes.
-8. Encuestas: sin formularios multi-pregunta (solo poll de una pregunta +
+7. Encuestas: sin formularios multi-pregunta (solo poll de una pregunta +
    opciones), sin fecha de cierre/vencimiento, sin edición/anulación de
    una encuesta ya publicada, y sin anonimato real (la respuesta queda
    asociada al usuario para poder impedir votar dos veces, aunque no se
    exponga en los resultados).
-9. **Fase 3 completa** (los 5 frentes del roadmap de "Comunicación y
+8. **Fase 3 completa** (los 5 frentes del roadmap de "Comunicación y
    comunidad" están implementados). Quedan sin implementar `library`
    (biblioteca) y `reports` (analítica/dashboards) — ambos ya tienen su
    carpeta con un `README.md` de plantilla en `apps/api/src/modules/`,

@@ -23,6 +23,9 @@ export class ChargeOrmEntity {
   @Column({ name: 'due_date', type: 'date' })
   dueDate: string;
 
+  @Column({ name: 'discount_amount', type: 'real', default: 0 })
+  discountAmount: number;
+
   @Column({ name: 'created_at', type: 'timestamptz', default: () => 'now()' })
   createdAt: Date;
 

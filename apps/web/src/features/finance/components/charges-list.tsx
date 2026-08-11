@@ -64,11 +64,14 @@ export function ChargesList({ canManage }: { canManage: boolean }) {
                 </p>
                 <p className="text-sm text-muted-foreground">
                   {charge.description} — vence {charge.dueDate}
+                  {charge.discountAmount > 0
+                    ? ` — $${charge.amount} (beca -$${charge.discountAmount}) → $${charge.netAmount}`
+                    : ''}
                 </p>
               </div>
               <div className="text-right">
                 <p className="font-medium">
-                  {charge.paidAmount} / {charge.amount}
+                  {charge.paidAmount} / {charge.netAmount}
                 </p>
                 <span className={`text-xs uppercase ${STATUS_CLASSES[charge.status]}`}>
                   {STATUS_LABELS[charge.status]}
