@@ -63,3 +63,10 @@ export function canManageDocuments(roles: string[]): boolean {
     roles.includes('admin_institucion') || roles.includes('directivo') || roles.includes('secretaria')
   );
 }
+
+/** Mismo criterio que `canManageDocuments`: publicar comunicados es tarea de secretaría. */
+export function canManageAnnouncements(roles: string[]): boolean {
+  return (
+    roles.includes('admin_institucion') || roles.includes('directivo') || roles.includes('secretaria')
+  );
+}

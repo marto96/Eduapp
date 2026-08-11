@@ -24,5 +24,6 @@ export const config = {
     '/hr/:path*',
     '/documents/:path*',
     '/portal/:path*',
+    '/announcements/:path*',
   ],
 };

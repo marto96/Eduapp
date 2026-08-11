@@ -22,6 +22,7 @@ export type AppSubjects =
   | 'Finance'
   | 'Hr'
   | 'Document'
+  | 'Announcement'
   | 'all';
 
 export type AppAbility = Ability<[AppAction, AppSubjects]>;

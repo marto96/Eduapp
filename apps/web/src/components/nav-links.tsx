@@ -19,6 +19,7 @@ const LINKS = [
   { href: '/documents', label: 'Documentos' },
   { href: '/users', label: 'Usuarios' },
   { href: '/portal', label: 'Mi familia' },
+  { href: '/announcements', label: 'Comunicados' },
 ];
 
 export function NavLinks() {

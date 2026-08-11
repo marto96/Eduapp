@@ -43,7 +43,7 @@ pnpm dev                    # corre api y web en paralelo (Turborepo)
 
 **Fase 0 (fundación), Fase 1 (núcleo académico) y Fase 2 (administrativo:
 Finanzas + RRHH + Documentos) completas y funcionando de punta a punta.
-Fase 3 (comunidad) iniciada con el Portal de padres.**
+Fase 3 (comunidad) iniciada con el Portal de padres y Comunicados/circulares.**
 
 - `platform`: alta de instituciones (`POST /platform/tenants`), protegido
   por login real de superadmin (`POST /platform/auth/login`, tabla
@@ -60,13 +60,14 @@ Fase 3 (comunidad) iniciada con el Portal de padres.**
 - Migraciones (`public.tenants`, `public.platform_admins`, `users`,
   `academic_years`/`grades`/`sections`/`subjects`, `enrollments`,
   `attendance_records`, `evaluations`/`grade_scores`, `schedules`,
-  `charges`/`payments`, `employees`/`leaves`, `documents`, `guardians`) y
-  seed de desarrollo (`pnpm --filter @eduapp/api seed:dev`).
+  `charges`/`payments`, `employees`/`leaves`, `documents`, `guardians`,
+  `announcements`) y seed de desarrollo (`pnpm --filter @eduapp/api
+  seed:dev`).
 - Frontend: login, panel, y las pantallas de académico + usuarios +
   matrícula + asistencia + calificaciones + horarios + finanzas + RRHH +
-  documentos + portal de padres ("Mi familia"), con auth vía cookies
-  httpOnly (Next.js Route Handlers como BFF — el navegador nunca ve el JWT)
-  y navegación compartida (`app/(dashboard)/layout.tsx`).
+  documentos + portal de padres ("Mi familia") + comunicados, con auth vía
+  cookies httpOnly (Next.js Route Handlers como BFF — el navegador nunca ve
+  el JWT) y navegación compartida (`app/(dashboard)/layout.tsx`).
 - CI: ESLint + Jest wireados en `apps/api`/`apps/web`, workflow de GitHub
   Actions (`.github/workflows/ci.yml`).
 
@@ -139,6 +140,16 @@ ya existían (`GET /enrollments`, `/attendance`, `/grading/scores`,
 `/finance/charges`, `/documents`), que ahora **sí** filtran por instancia
 para los cinco (antes solo `attendance`/`grading` lo hacían, ver abajo).
 
+**Fase 3 — segundo módulo, Comunicados/circulares** (`communication`):
+registro de comunicados/circulares/avisos institucionales (`POST`/`GET
+/announcements`), visibles para toda la comunidad (a diferencia de
+`documents`/`finance`, no está atado a una matrícula — es información
+institucional, no personal de un estudiante, así que no aplica el filtrado
+por instancia). Mismo criterio de gestión que `finance`/`documents`:
+`admin_institucion`/`directivo`/`secretaria` publican,
+`docente`/`estudiante`/`padre_tutor` solo leen. Sin segmentación por
+audiencia todavía (sección/año/rol) — ver pendientes.
+
 Resueltos recientemente:
 
 - **Baja/completar matrícula**: `PATCH /enrollments/:id/withdraw` y
@@ -180,6 +191,9 @@ Pendientes conocidos:
 4. Portal de padres: sin autogestión del vínculo padre↔hijo (hoy solo
    admin/directivo lo cargan desde `/users`) y sin listado detallado
    (asistencia/notas se muestran resumidas, no registro por registro).
-5. Fase 3: quedan mensajería interna, comunicados/circulares, encuestas y
-   calendario de eventos — siguiente paso del roadmap (portal de padres ya
-   arrancó).
+5. Comunicados: sin segmentación por audiencia (hoy todo comunicado es
+   institucional, visible a todos — no se puede dirigir a una sola sección
+   o año), y sin edición/anulación de un comunicado ya publicado.
+6. Fase 3: quedan mensajería interna, encuestas/formularios y calendario de
+   eventos — siguiente paso del roadmap (portal de padres y comunicados ya
+   arrancaron).

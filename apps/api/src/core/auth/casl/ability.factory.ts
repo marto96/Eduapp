@@ -33,6 +33,7 @@ export class AbilityFactory {
         'Finance',
         'Hr',
         'Document',
+        'Announcement',
       ]);
       can('read', 'all');
     }
@@ -54,7 +55,7 @@ export class AbilityFactory {
       // compartido de abajo — legajos de personal no son visibles para
       // docente/estudiante/padre_tutor, ni siquiera en modo lectura (ver
       // EmployeesController/LeavesController).
-      can('manage', ['Finance', 'Hr', 'Document']);
+      can('manage', ['Finance', 'Hr', 'Document', 'Announcement']);
     }
 
     if (roles.some((role) => ['docente', 'secretaria', 'estudiante', 'padre_tutor'].includes(role))) {
@@ -73,6 +74,7 @@ export class AbilityFactory {
         'Schedule',
         'Finance',
         'Document',
+        'Announcement',
       ]);
     }
 

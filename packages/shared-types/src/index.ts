@@ -163,3 +163,14 @@ export interface GuardianLink {
   guardianUserId: string;
   studentUserId: string;
 }
+
+export type AnnouncementCategory = 'comunicado' | 'circular' | 'aviso';
+
+export interface Announcement {
+  id: string;
+  title: string;
+  body: string;
+  category: AnnouncementCategory;
+  publishedAt: string;
+  publishedBy: string;
+}
