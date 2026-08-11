@@ -6,13 +6,14 @@ import { cn } from '@/lib/utils';
 import { NAV_LINKS } from '@/lib/nav-config';
 import { useUnreadMessagesCount } from '@/features/messages/use-messages';
 
-export function NavLinks() {
+export function NavLinks({ roles }: { roles: string[] }) {
   const pathname = usePathname();
   const { data: unreadCount } = useUnreadMessagesCount();
+  const links = NAV_LINKS.filter((link) => link.roles.some((role) => roles.includes(role)));
 
   return (
     <nav className="flex flex-col gap-0.5 text-sm">
-      {NAV_LINKS.map((link) => {
+      {links.map((link) => {
         const Icon = link.icon;
         const isActive = pathname === link.href;
         return (

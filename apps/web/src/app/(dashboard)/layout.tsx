@@ -17,7 +17,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           <ThemeToggle />
         </div>
         <div className="flex-1 overflow-y-auto p-3">
-          <NavLinks />
+          <NavLinks roles={user.roles} />
         </div>
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
