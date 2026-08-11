@@ -21,6 +21,7 @@ export type AppSubjects =
   | 'Schedule'
   | 'Finance'
   | 'Hr'
+  | 'Document'
   | 'all';
 
 export type AppAbility = Ability<[AppAction, AppSubjects]>;

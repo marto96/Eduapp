@@ -1,16 +1,23 @@
 'use client';
 
-import { useEnrollments } from '../use-enrollments';
+import {
+  useCompleteEnrollment,
+  useEnrollments,
+  useWithdrawEnrollment,
+} from '../use-enrollments';
 import { useUsers } from '@/features/users/use-users';
 import { useAcademicYears } from '@/features/academic/use-academic-years';
 import { useSections } from '@/features/academic/use-sections';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
-export function EnrollmentsList() {
+export function EnrollmentsList({ canManage }: { canManage: boolean }) {
   const { data: enrollments, isLoading, error } = useEnrollments();
   const { data: students } = useUsers('estudiante');
   const { data: years } = useAcademicYears();
   const { data: sections } = useSections();
+  const withdrawEnrollment = useWithdrawEnrollment();
+  const completeEnrollment = useCompleteEnrollment();
 
   if (isLoading) return <p className="text-sm text-muted-foreground">Cargando...</p>;
   if (error) return <p className="text-sm text-destructive">No se pudieron cargar las matrículas.</p>;
@@ -35,7 +42,27 @@ export function EnrollmentsList() {
               {sectionNameById.get(enrollment.sectionId) ?? enrollment.sectionId}
             </p>
           </div>
-          <span className="text-xs uppercase text-muted-foreground">{enrollment.status}</span>
+          <div className="flex items-center gap-3">
+            <span className="text-xs uppercase text-muted-foreground">{enrollment.status}</span>
+            {canManage && enrollment.status === 'active' && (
+              <>
+                <Button
+                  variant="ghost"
+                  disabled={completeEnrollment.isPending}
+                  onClick={() => completeEnrollment.mutate(enrollment.id)}
+                >
+                  Completar
+                </Button>
+                <Button
+                  variant="ghost"
+                  disabled={withdrawEnrollment.isPending}
+                  onClick={() => withdrawEnrollment.mutate(enrollment.id)}
+                >
+                  Dar de baja
+                </Button>
+              </>
+            )}
+          </div>
         </Card>
       ))}
     </ul>

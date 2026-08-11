@@ -1,5 +1,7 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { CheckPolicies } from '../../../../core/auth/casl/policies.decorator';
+import { CurrentUser } from '../../../../core/auth/current-user.decorator';
+import { JwtPayload } from '../../../../core/auth/jwt-payload.interface';
 import { CreateEvaluationUseCase } from '../../application/use-cases/create-evaluation.use-case';
 import { ListEvaluationsUseCase } from '../../application/use-cases/list-evaluations.use-case';
 import { CreateEvaluationDto } from '../dtos/create-evaluation.dto';
@@ -14,8 +16,8 @@ export class EvaluationsController {
 
   @Post()
   @CheckPolicies((ability) => ability.can('create', 'Grading'))
-  async create(@Body() dto: CreateEvaluationDto) {
-    return this.createEvaluation.execute(dto);
+  async create(@Body() dto: CreateEvaluationDto, @CurrentUser() user: JwtPayload) {
+    return this.createEvaluation.execute(dto, user);
   }
 
   @Get()

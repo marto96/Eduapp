@@ -1,8 +1,10 @@
 import { randomUUID } from 'node:crypto';
-import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Inject, Injectable } from '@nestjs/common';
 import { AttendanceRecordRepositoryPort } from '../ports/attendance-record.repository.port';
 import { AttendanceRecord, AttendanceStatus } from '../../domain/entities/attendance-record.entity';
 import { EnrollmentRepositoryPort } from '../../../enrollment/application/ports/enrollment.repository.port';
+import { EnrollmentAccessService } from '../../../enrollment/application/services/enrollment-access.service';
+import { JwtPayload } from '../../../../core/auth/jwt-payload.interface';
 
 export interface RecordAttendanceEntry {
   enrollmentId: string;
@@ -22,9 +24,15 @@ export class RecordAttendanceUseCase {
     @Inject(AttendanceRecordRepositoryPort)
     private readonly attendance: AttendanceRecordRepositoryPort,
     @Inject(EnrollmentRepositoryPort) private readonly enrollments: EnrollmentRepositoryPort,
+    private readonly enrollmentAccess: EnrollmentAccessService,
   ) {}
 
-  async execute(input: RecordAttendanceInput): Promise<AttendanceRecord[]> {
+  async execute(input: RecordAttendanceInput, currentUser: JwtPayload): Promise<AttendanceRecord[]> {
+    const canAccess = await this.enrollmentAccess.canTeacherAccessSection(currentUser, input.sectionId);
+    if (!canAccess) {
+      throw new ForbiddenException('No tenés un horario asignado en esa sección');
+    }
+
     const sectionEnrollments = await this.enrollments.findAll({
       sectionId: input.sectionId,
       academicYearId: input.academicYearId,

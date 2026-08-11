@@ -1,5 +1,6 @@
 import { UsersList } from '@/features/users/components/users-list';
 import { CreateUserForm } from '@/features/users/components/create-user-form';
+import { LinkGuardianForm } from '@/features/users/components/link-guardian-form';
 import { getCurrentUser } from '@/lib/server-api';
 import { canManageUsers } from '@/lib/permissions';
 
@@ -18,6 +19,7 @@ export default async function UsersPage() {
 
       {canManage && <CreateUserForm />}
       <UsersList />
+      {canManage && <LinkGuardianForm />}
     </main>
   );
 }

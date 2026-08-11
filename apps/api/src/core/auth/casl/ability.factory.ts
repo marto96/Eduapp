@@ -32,6 +32,7 @@ export class AbilityFactory {
         'Schedule',
         'Finance',
         'Hr',
+        'Document',
       ]);
       can('read', 'all');
     }
@@ -46,13 +47,14 @@ export class AbilityFactory {
     }
 
     if (roles.includes('secretaria')) {
-      // Igual que el docente con Attendance/Grading: cargar cargos/pagos y
-      // legajos/licencias es tarea administrativa diaria de secretaría, no
-      // exclusiva de dirección. A diferencia de Finance, 'Hr' NO se agrega
-      // al bloque de lectura compartido de abajo — legajos de personal no
-      // son visibles para docente/estudiante/padre_tutor, ni siquiera en
-      // modo lectura (ver EmployeesController/LeavesController).
-      can('manage', ['Finance', 'Hr']);
+      // Igual que el docente con Attendance/Grading: cargar cargos/pagos,
+      // legajos/licencias y emitir documentos es tarea administrativa
+      // diaria de secretaría, no exclusiva de dirección. A diferencia de
+      // Finance/Document, 'Hr' NO se agrega al bloque de lectura
+      // compartido de abajo — legajos de personal no son visibles para
+      // docente/estudiante/padre_tutor, ni siquiera en modo lectura (ver
+      // EmployeesController/LeavesController).
+      can('manage', ['Finance', 'Hr', 'Document']);
     }
 
     if (roles.some((role) => ['docente', 'secretaria', 'estudiante', 'padre_tutor'].includes(role))) {
@@ -70,6 +72,7 @@ export class AbilityFactory {
         'Grading',
         'Schedule',
         'Finance',
+        'Document',
       ]);
     }
 

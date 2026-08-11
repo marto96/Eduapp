@@ -16,6 +16,7 @@ const LINKS = [
   { href: '/grading', label: 'Calificaciones' },
   { href: '/finance', label: 'Finanzas' },
   { href: '/hr', label: 'RRHH' },
+  { href: '/documents', label: 'Documentos' },
   { href: '/users', label: 'Usuarios' },
 ];
 

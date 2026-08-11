@@ -3,6 +3,7 @@ import { BadRequestException, ConflictException, Inject, Injectable, NotFoundExc
 import { ScheduleRepositoryPort } from '../ports/schedule.repository.port';
 import { DayOfWeek, Schedule } from '../../domain/entities/schedule.entity';
 import { UserRepositoryPort } from '../../../identity/application/ports/user.repository.port';
+import { isExclusionViolation } from '../../../../core/database/postgres-error.util';
 
 export interface CreateScheduleInput {
   sectionId: string;
@@ -63,7 +64,19 @@ export class CreateScheduleUseCase {
       throw new ConflictException('La sección ya tiene otra asignatura asignada en ese rango');
     }
 
-    await this.schedules.save(schedule);
+    try {
+      await this.schedules.save(schedule);
+    } catch (err) {
+      // Defensa en profundidad: el chequeo de arriba (`findAll` + `some`)
+      // tiene una ventana de carrera entre la lectura y el guardado. El
+      // `EXCLUDE` de la migración 1700000000015 la cierra a nivel de
+      // base; acá solo se traduce ese error crudo de Postgres al mismo
+      // 409 que ya devuelve el chequeo de aplicación.
+      if (isExclusionViolation(err)) {
+        throw new ConflictException('El horario se superpone con otro ya existente');
+      }
+      throw err;
+    }
     return schedule;
   }
 }

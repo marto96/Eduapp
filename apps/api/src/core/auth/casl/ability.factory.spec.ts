@@ -54,6 +54,13 @@ describe('AbilityFactory', () => {
     expect(factory.createForUser(payload(['estudiante'])).can('read', 'Finance')).toBe(true);
   });
 
+  it('secretaria puede manage Document, docente/estudiante solo read (a diferencia de Hr)', () => {
+    expect(factory.createForUser(payload(['secretaria'])).can('create', 'Document')).toBe(true);
+    expect(factory.createForUser(payload(['docente'])).can('create', 'Document')).toBe(false);
+    expect(factory.createForUser(payload(['docente'])).can('read', 'Document')).toBe(true);
+    expect(factory.createForUser(payload(['estudiante'])).can('read', 'Document')).toBe(true);
+  });
+
   it('un rol desconocido no obtiene ninguna ability', () => {
     const ability = factory.createForUser(payload(['padre_tutor']));
     expect(ability.can('read', 'AcademicYear')).toBe(true);

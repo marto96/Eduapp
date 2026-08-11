@@ -17,7 +17,7 @@ export default async function EnrollmentPage() {
       </div>
 
       {canManage && <EnrollStudentForm />}
-      <EnrollmentsList />
+      <EnrollmentsList canManage={canManage} />
     </main>
   );
 }

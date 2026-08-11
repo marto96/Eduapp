@@ -41,8 +41,8 @@ pnpm dev                    # corre api y web en paralelo (Turborepo)
 
 ## Estado actual
 
-**Fase 0 (fundación) y Fase 1 (núcleo académico) completas y funcionando de
-punta a punta. Fase 2 (administrativo) en curso: Finanzas y RRHH.**
+**Fase 0 (fundación), Fase 1 (núcleo académico) y Fase 2 (administrativo:
+Finanzas + RRHH + Documentos) completas y funcionando de punta a punta.**
 
 - `platform`: alta de instituciones (`POST /platform/tenants`), protegido
   por login real de superadmin (`POST /platform/auth/login`, tabla
@@ -59,11 +59,11 @@ punta a punta. Fase 2 (administrativo) en curso: Finanzas y RRHH.**
 - Migraciones (`public.tenants`, `public.platform_admins`, `users`,
   `academic_years`/`grades`/`sections`/`subjects`, `enrollments`,
   `attendance_records`, `evaluations`/`grade_scores`, `schedules`,
-  `charges`/`payments`, `employees`/`leaves`) y seed de desarrollo
-  (`pnpm --filter @eduapp/api seed:dev`).
+  `charges`/`payments`, `employees`/`leaves`, `documents`) y seed de
+  desarrollo (`pnpm --filter @eduapp/api seed:dev`).
 - Frontend: login, panel, y las pantallas de académico + usuarios +
-  matrícula + asistencia + calificaciones + horarios + finanzas + RRHH, con
-  auth vía cookies
+  matrícula + asistencia + calificaciones + horarios + finanzas + RRHH +
+  documentos, con auth vía cookies
   httpOnly (Next.js Route Handlers como BFF — el navegador nunca ve el JWT)
   y navegación compartida (`app/(dashboard)/layout.tsx`).
 - CI: ESLint + Jest wireados en `apps/api`/`apps/web`, workflow de GitHub
@@ -113,30 +113,63 @@ plantilla para el resto:
   diferencia de `finance`/`schedule`/`grading`/`attendance`, donde al
   menos leen). Solo `admin_institucion`/`directivo`/`secretaria` (mismo
   criterio de `secretaria` que en `finance`) ven y gestionan legajos.
+- `documents` (tercer módulo de Fase 2, cierra el roadmap de Fase 2):
+  registro de emisión de constancias/certificados por matrícula
+  (`POST`/`GET /documents` — constancia de matrícula/certificado de
+  notas/constancia de buena conducta/otro). **No genera el archivo/PDF
+  real** — solo el registro de que se emitió, con quién lo emitió
+  (`issuedBy`) tomado del JWT vía `@CurrentUser()`, no del body (primera
+  vez que un caso de uso recibe el usuario autenticado en vez de
+  inferirlo todo de la entidad relacionada). Mismo criterio de
+  visibilidad que `finance` (no como `hr`): `docente`/`estudiante`/
+  `padre_tutor` leen, solo `admin_institucion`/`directivo`/`secretaria`
+  emiten.
 
-El resto de los módulos (`library`, `communication`, `documents`,
-`reports`) tienen su carpeta creada con un `README.md` que explica cómo
-implementarlos siguiendo el mismo patrón.
+El resto de los módulos (`library`, `communication`, `reports`) tienen su
+carpeta creada con un `README.md` que explica cómo implementarlos
+siguiendo el mismo patrón.
+
+Resueltos recientemente (los 4 pendientes técnicos que quedaban de Fase 1/2):
+
+- **Baja/completar matrícula**: `PATCH /enrollments/:id/withdraw` y
+  `/complete`, con botones en la lista de matrícula (solo
+  `admin_institucion`/`directivo`).
+- **Matrícula con estudiante nuevo**: la pantalla de matrícula permite
+  elegir un estudiante existente o crear uno nuevo (nombre/apellido/email/
+  contraseña) en el mismo formulario, sin pasar primero por `/users`.
+- **Constraint de superposición a nivel de base**: `schedules` y `leaves`
+  tienen un `EXCLUDE USING gist` real (extensión `btree_gist`) además de
+  la validación en el caso de uso — cierra la ventana de carrera entre
+  `findAll` y `save`. El cast de horas `"HH:mm"` a un tipo comparable para
+  el índice no puede usar `::timestamp` (la función de cast es `STABLE`,
+  no `IMMUTABLE`, y Postgres lo rechaza en un índice); se arma un
+  `int4range` en minutos desde medianoche a mano en su lugar — ver
+  `1700000000015-AddScheduleOverlapConstraint.ts`.
+- **CASL a nivel de instancia** (`EnrollmentAccessService`, módulo
+  `enrollment`): implementado para `attendance` y `grading/scores` — un
+  `docente` solo ve/marca asistencia y notas de las secciones donde tiene
+  un horario asignado (`schedules`); un `estudiante` o `padre_tutor` solo
+  ve sus propios registros o los de sus hijos vinculados (tabla nueva
+  `guardians`, alta vía `POST /guardians`, solo
+  `admin_institucion`/`directivo` — sin autogestión en este pase, ni
+  pantalla de "mis hijos" para el padre, eso es Fase 3). **No** se extendió
+  a `finance`/`documents`/`schedule` (un padre sigue viendo cargos/
+  documentos de todos los estudiantes) — queda como pendiente nuevo.
 
 Pendientes conocidos:
 
-1. Dar de baja / completar una matrícula (`Enrollment.withdraw()`/`.complete()`
-   ya existen en el dominio, sin endpoint todavía — mismo criterio que
-   `AcademicYear.close()`).
-2. UI de grados y secciones para elegir estudiante existente vs. crear uno
-   nuevo desde la propia pantalla de matrícula (hoy hay que ir primero a
-   `/users`).
-3. Reglas CASL a nivel de instancia (ej. "un docente solo ve/marca sus
-   propias secciones", "un padre solo ve las notas/asistencia de su hijo")
-   — hoy el chequeo es por tipo de recurso, no por instancia.
-4. Constraint de superposición de horarios a nivel de base (`EXCLUDE` con
-   `btree_gist`) — hoy solo se valida en la aplicación.
-5. Finanzas: sin becas/descuentos ni conciliación bancaria todavía (primera
+1. CASL a nivel de instancia en `finance`/`documents`/`schedule` (hoy solo
+   `attendance`/`grading` filtran por matrícula accesible) — mecánico de
+   extender con `EnrollmentAccessService`, no se hizo para acotar el pase.
+2. Finanzas: sin becas/descuentos ni conciliación bancaria todavía (primera
    pasada cubre solo cargos + pagos con saldo). Sin editar/anular un cargo o
    pago ya creado.
-6. RRHH: sin salario en el modelo, sin baja de legajo ni cancelación de
+3. RRHH: sin salario en el modelo, sin baja de legajo ni cancelación de
    licencia todavía (primera pasada cubre solo legajo + licencias con
-   detección de solapamiento). Constraint de solapamiento de licencias a
-   nivel de base pendiente, mismo caso que `schedules` (punto 4).
-7. Fase 2 (administrativo): gestión documental — siguiente paso del
-   roadmap (pagos/facturación y RRHH ya arrancaron con `finance`/`hr`).
+   detección de solapamiento).
+4. Documentos: sin generación real de archivo/PDF (solo el registro de
+   emisión), sin firmas digitales, y sin "actas" institucionales (no
+   ligadas a una matrícula) — fuera de alcance de la primera pasada.
+5. Fase 3 (comunidad): portal de padres (incluyendo autogestión del
+   vínculo padre↔hijo y una vista de "mis hijos"), mensajería, comunicados,
+   encuestas — siguiente fase del roadmap.

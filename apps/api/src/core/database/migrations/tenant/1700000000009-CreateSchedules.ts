@@ -1,9 +1,9 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
 /**
- * Sin constraint de superposición a nivel de base (requeriría `EXCLUDE`
- * con la extensión `btree_gist`) — la validación de conflictos vive en
- * `CreateScheduleUseCase`. Ver nota en ese archivo.
+ * La validación de conflictos vive en `CreateScheduleUseCase`; el
+ * constraint `EXCLUDE` a nivel de base que cierra la ventana de carrera
+ * se agregó después, en `1700000000015-AddScheduleOverlapConstraint`.
  */
 export class CreateSchedules1700000000009 implements MigrationInterface {
   name = 'CreateSchedules1700000000009';

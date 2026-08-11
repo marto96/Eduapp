@@ -1,5 +1,7 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { CheckPolicies } from '../../../../core/auth/casl/policies.decorator';
+import { CurrentUser } from '../../../../core/auth/current-user.decorator';
+import { JwtPayload } from '../../../../core/auth/jwt-payload.interface';
 import { RecordScoresUseCase } from '../../application/use-cases/record-scores.use-case';
 import { ListScoresUseCase } from '../../application/use-cases/list-scores.use-case';
 import { RecordScoresDto } from '../dtos/record-scores.dto';
@@ -14,12 +16,12 @@ export class ScoresController {
 
   @Post()
   @CheckPolicies((ability) => ability.can('create', 'Grading'))
-  async create(@Body() dto: RecordScoresDto) {
-    return this.recordScores.execute(dto);
+  async create(@Body() dto: RecordScoresDto, @CurrentUser() user: JwtPayload) {
+    return this.recordScores.execute(dto, user);
   }
 
   @Get()
-  async list(@Query() query: ListScoresQueryDto) {
-    return this.listScores.execute(query);
+  async list(@Query() query: ListScoresQueryDto, @CurrentUser() user: JwtPayload) {
+    return this.listScores.execute(query, user);
   }
 }

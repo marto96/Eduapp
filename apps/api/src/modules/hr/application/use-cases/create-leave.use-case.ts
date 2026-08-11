@@ -3,6 +3,7 @@ import { BadRequestException, ConflictException, Inject, Injectable, NotFoundExc
 import { EmployeeRepositoryPort } from '../ports/employee.repository.port';
 import { LeaveRepositoryPort } from '../ports/leave.repository.port';
 import { Leave, LeaveType } from '../../domain/entities/leave.entity';
+import { isExclusionViolation } from '../../../../core/database/postgres-error.util';
 
 export interface CreateLeaveInput {
   employeeId: string;
@@ -44,7 +45,17 @@ export class CreateLeaveUseCase {
       throw new ConflictException('El empleado ya tiene otra licencia cargada en ese rango de fechas');
     }
 
-    await this.leaves.save(leave);
+    try {
+      await this.leaves.save(leave);
+    } catch (err) {
+      // Defensa en profundidad, mismo motivo que en CreateScheduleUseCase:
+      // cierra la ventana de carrera entre el `findAll` y el `save` que el
+      // chequeo de arriba no cubre por sí solo.
+      if (isExclusionViolation(err)) {
+        throw new ConflictException('La licencia se superpone con otra ya cargada para este empleado');
+      }
+      throw err;
+    }
     return leave;
   }
 }

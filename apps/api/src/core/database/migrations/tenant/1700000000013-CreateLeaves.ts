@@ -1,9 +1,9 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
 /**
- * Sin constraint de superposición a nivel de base (requeriría EXCLUDE +
- * btree_gist, igual que schedules) — la validación vive en
- * CreateLeaveUseCase.
+ * La validación de conflictos vive en `CreateLeaveUseCase`; el constraint
+ * `EXCLUDE` a nivel de base se agregó después, en
+ * `1700000000016-AddLeaveOverlapConstraint`.
  */
 export class CreateLeaves1700000000013 implements MigrationInterface {
   name = 'CreateLeaves1700000000013';

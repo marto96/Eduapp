@@ -142,3 +142,24 @@ export interface Leave {
   endDate: string;
   reason?: string;
 }
+
+export type DocumentType =
+  | 'constancia_matricula'
+  | 'certificado_notas'
+  | 'constancia_buena_conducta'
+  | 'otro';
+
+export interface IssuedDocument {
+  id: string;
+  enrollmentId: string;
+  type: DocumentType;
+  description: string;
+  issuedAt: string;
+  issuedBy: string;
+}
+
+export interface GuardianLink {
+  id: string;
+  guardianUserId: string;
+  studentUserId: string;
+}

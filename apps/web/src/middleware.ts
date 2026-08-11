@@ -22,5 +22,6 @@ export const config = {
     '/schedule/:path*',
     '/finance/:path*',
     '/hr/:path*',
+    '/documents/:path*',
   ],
 };

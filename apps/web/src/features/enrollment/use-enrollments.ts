@@ -46,3 +46,31 @@ export function useEnrollStudent() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['enrollments'] }),
   });
 }
+
+async function withdrawEnrollment(id: string): Promise<Enrollment> {
+  const res = await fetch(`/api/enrollments/${id}/withdraw`, { method: 'PATCH' });
+  if (!res.ok) throw new Error('No se pudo dar de baja la matrícula');
+  return res.json();
+}
+
+async function completeEnrollment(id: string): Promise<Enrollment> {
+  const res = await fetch(`/api/enrollments/${id}/complete`, { method: 'PATCH' });
+  if (!res.ok) throw new Error('No se pudo completar la matrícula');
+  return res.json();
+}
+
+export function useWithdrawEnrollment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: withdrawEnrollment,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['enrollments'] }),
+  });
+}
+
+export function useCompleteEnrollment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: completeEnrollment,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['enrollments'] }),
+  });
+}
