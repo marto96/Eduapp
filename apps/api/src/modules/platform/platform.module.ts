@@ -12,10 +12,8 @@ import { AuthenticatePlatformAdminUseCase } from './application/use-cases/authen
 import { TenantRepositoryPort } from './application/ports/tenant.repository.port';
 import { SchemaProvisionerPort } from './application/ports/schema-provisioner.port';
 import { PlatformAdminRepositoryPort } from './application/ports/platform-admin.repository.port';
-import { LogoStoragePort } from './application/ports/logo-storage.port';
 import { TypeOrmTenantRepository } from './infrastructure/repositories/typeorm-tenant.repository';
 import { SchemaProvisionerAdapter } from './infrastructure/schema-provisioner.adapter';
-import { LocalDiskLogoStorage } from './infrastructure/logo-storage/local-disk-logo-storage';
 import { TypeOrmPlatformAdminRepository } from './infrastructure/repositories/typeorm-platform-admin.repository';
 import { TenantOrmEntity } from './infrastructure/entities/tenant.orm-entity';
 import { PlatformAdminOrmEntity } from './infrastructure/entities/platform-admin.orm-entity';
@@ -36,7 +34,6 @@ import { BcryptPasswordHasher } from '../../core/security/bcrypt-password-hasher
     { provide: TenantRepositoryPort, useClass: TypeOrmTenantRepository },
     { provide: SchemaProvisionerPort, useClass: SchemaProvisionerAdapter },
     { provide: PlatformAdminRepositoryPort, useClass: TypeOrmPlatformAdminRepository },
-    { provide: LogoStoragePort, useClass: LocalDiskLogoStorage },
     { provide: PasswordHasherPort, useClass: BcryptPasswordHasher },
   ],
   exports: [TenantRepositoryPort],

@@ -1,9 +1,11 @@
 import { randomUUID } from 'node:crypto';
 import { ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import type Redis from 'ioredis';
 import { MessageRepositoryPort } from '../ports/message.repository.port';
 import { Message } from '../../domain/entities/message.entity';
 import { UserRepositoryPort } from '../../../identity/application/ports/user.repository.port';
 import { MessagingPolicyService } from '../services/messaging-policy.service';
+import { REDIS_CLIENT } from '../../../../core/cache/redis.module';
 
 export interface SendMessageInput {
   recipientId: string;
@@ -17,6 +19,7 @@ export class SendMessageUseCase {
     @Inject(MessageRepositoryPort) private readonly messages: MessageRepositoryPort,
     @Inject(UserRepositoryPort) private readonly users: UserRepositoryPort,
     private readonly messagingPolicy: MessagingPolicyService,
+    @Inject(REDIS_CLIENT) private readonly redis: Redis,
   ) {}
 
   async execute(input: SendMessageInput): Promise<Message> {
@@ -40,6 +43,10 @@ export class SendMessageUseCase {
     );
 
     await this.messages.save(message);
+    // Best-effort: si no hay nadie escuchando en /messages/stream para este
+    // destinatario, publish() simplemente no tiene suscriptores — el mensaje
+    // ya quedó guardado, el polling de fallback del frontend lo trae igual.
+    await this.redis.publish(`messages:${input.recipientId}`, JSON.stringify(message));
     return message;
   }
 }

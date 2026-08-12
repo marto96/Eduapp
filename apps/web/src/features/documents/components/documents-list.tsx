@@ -57,6 +57,16 @@ export function DocumentsList({ canManage }: { canManage: boolean }) {
                 <p>{document.issuedAt}</p>
                 <p>{userNameById.get(document.issuedBy) ?? document.issuedBy}</p>
               </div>
+              {document.pdfGeneratedAt && (
+                <a
+                  href={`/api/documents/${document.id}/pdf`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-sm text-primary underline"
+                >
+                  Descargar PDF
+                </a>
+              )}
               {canManage && !document.voidedAt && (
                 <Button
                   variant="ghost"

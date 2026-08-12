@@ -6,6 +6,8 @@ import { PublishAnnouncementUseCase } from '../../application/use-cases/publish-
 import { ListAnnouncementsUseCase } from '../../application/use-cases/list-announcements.use-case';
 import { EditAnnouncementUseCase } from '../../application/use-cases/edit-announcement.use-case';
 import { VoidAnnouncementUseCase } from '../../application/use-cases/void-announcement.use-case';
+import { MarkAnnouncementReadUseCase } from '../../application/use-cases/mark-announcement-read.use-case';
+import { GetAnnouncementReadersUseCase } from '../../application/use-cases/get-announcement-readers.use-case';
 import { PublishAnnouncementDto } from '../dtos/publish-announcement.dto';
 import { ListAnnouncementsQueryDto } from '../dtos/list-announcements-query.dto';
 import { EditAnnouncementDto } from '../dtos/edit-announcement.dto';
@@ -17,6 +19,8 @@ export class AnnouncementsController {
     private readonly listAnnouncements: ListAnnouncementsUseCase,
     private readonly editAnnouncement: EditAnnouncementUseCase,
     private readonly voidAnnouncement: VoidAnnouncementUseCase,
+    private readonly markAnnouncementRead: MarkAnnouncementReadUseCase,
+    private readonly getAnnouncementReaders: GetAnnouncementReadersUseCase,
   ) {}
 
   @Post()
@@ -40,5 +44,17 @@ export class AnnouncementsController {
   @CheckPolicies((ability) => ability.can('update', 'Announcement'))
   async edit(@Param('id') id: string, @Body() dto: EditAnnouncementDto) {
     return this.editAnnouncement.execute(id, dto.title, dto.body, dto.sectionId ?? null);
+  }
+
+  @Patch(':id/read')
+  async markRead(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    await this.markAnnouncementRead.execute(id, user.sub);
+    return { ok: true };
+  }
+
+  @Get(':id/reads')
+  @CheckPolicies((ability) => ability.can('update', 'Announcement'))
+  async readers(@Param('id') id: string) {
+    return this.getAnnouncementReaders.execute(id);
   }
 }

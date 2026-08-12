@@ -14,5 +14,6 @@ import { EnrollmentModule } from '../enrollment/enrollment.module';
     ListAttendanceUseCase,
     { provide: AttendanceRecordRepositoryPort, useClass: TypeOrmAttendanceRecordRepository },
   ],
+  exports: [AttendanceRecordRepositoryPort],
 })
 export class AttendanceModule {}

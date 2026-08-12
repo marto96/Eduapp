@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { Announcement, AnnouncementCategory } from '@eduapp/shared-types';
+import type { Announcement, AnnouncementCategory, AnnouncementReader } from '@eduapp/shared-types';
 
 export interface AnnouncementFilter {
   category?: AnnouncementCategory;
@@ -55,6 +55,17 @@ async function voidAnnouncement(id: string): Promise<Announcement> {
   return res.json();
 }
 
+async function markAnnouncementRead(id: string): Promise<void> {
+  const res = await fetch(`/api/announcements/${id}/read`, { method: 'PATCH' });
+  if (!res.ok) throw new Error('No se pudo marcar como leído');
+}
+
+async function fetchAnnouncementReaders(id: string): Promise<AnnouncementReader[]> {
+  const res = await fetch(`/api/announcements/${id}/reads`);
+  if (!res.ok) throw new Error('No se pudieron cargar los lectores');
+  return res.json();
+}
+
 export function useAnnouncements(filter?: AnnouncementFilter) {
   return useQuery({
     queryKey: ['announcements', filter ?? 'all'],
@@ -83,5 +94,17 @@ export function useVoidAnnouncement() {
   return useMutation({
     mutationFn: voidAnnouncement,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['announcements'] }),
+  });
+}
+
+export function useMarkAnnouncementRead() {
+  return useMutation({ mutationFn: markAnnouncementRead });
+}
+
+export function useAnnouncementReaders(id: string, enabled: boolean) {
+  return useQuery({
+    queryKey: ['announcements', id, 'reads'],
+    queryFn: () => fetchAnnouncementReaders(id),
+    enabled,
   });
 }

@@ -45,7 +45,12 @@ pnpm dev                    # corre api y web en paralelo (Turborepo)
 Finanzas + RRHH + Documentos) y Fase 3 (comunidad: Portal de padres +
 Comunicados/circulares + Calendario de eventos + Mensajería interna +
 Encuestas) completas y funcionando de punta a punta — cierra todo el
-roadmap de `docs/ARCHITECTURE.md` §4.1-4.4.**
+roadmap de `docs/ARCHITECTURE.md` §4.1-4.4. Además, el módulo `library`
+(Biblioteca) y el módulo `reports` (matrícula/asistencia/finanzas +
+boletines de notas en PDF) también están implementados, junto con
+conciliación bancaria, generación real de PDFs (documentos y boletines),
+pago de cargos por el padre vía MercadoPago, y seguimiento de lectura de
+comunicados — ver "Resueltos recientemente" más abajo.**
 
 - `platform`: alta de instituciones (`POST /platform/tenants`), protegido
   por login real de superadmin (`POST /platform/auth/login`, tabla
@@ -130,9 +135,9 @@ plantilla para el resto:
   `padre_tutor` leen, solo `admin_institucion`/`directivo`/`secretaria`
   emiten.
 
-El resto de los módulos (`library`, `communication`, `reports`) tienen su
-carpeta creada con un `README.md` que explica cómo implementarlos
-siguiendo el mismo patrón.
+`library` (Biblioteca), `communication` (Comunicados/Calendario/Mensajería)
+y `reports` (matrícula/asistencia/finanzas + boletines) siguen el mismo
+patrón y también están implementados — ver más abajo.
 
 **Fase 3 (comunidad) — primer módulo, Portal de padres**: pantalla `/portal`
 ("Mi familia" para `padre_tutor`, "Mis datos" para `estudiante`; redirige a
@@ -443,23 +448,123 @@ por institución de color, logo y nombre):
   exclusivo de superadmin), sin control de suspender/reactivar tenant en
   la UI (no hay caso de uso de backend para `status` todavía).
 
+Resueltos recientemente (cierre del backlog: storage genérico, PDFs reales,
+conciliación bancaria, módulo `reports`, boletines, pago del padre por
+MercadoPago, seguimiento de lectura de comunicados, horarios por curso):
+
+- **Storage genérico (`FileStoragePort`), reemplaza el `LogoStoragePort`
+  de logos**: `core/storage/` (`@Global()`, un solo adapter
+  `LocalDiskFileStorage`) — `save(category, filename, file, visibility)`
+  con `visibility: 'public' | 'private'`. `'public'` sigue sirviéndose por
+  `/uploads` (logos); `'private'` guarda bajo `PRIVATE_UPLOADS_DIR`
+  (nuevo, `./private-uploads` por defecto), **nunca** registrado en
+  `ServeStaticModule` — solo legible vía un endpoint autenticado que llama
+  `.read()`. Base para Documentos (Parte 4) y Mensajería (Parte 3), que
+  necesitaban archivos por-registro no-públicos, algo que el
+  `LogoStoragePort` (un archivo fijo por tenant, siempre público) no podía
+  cubrir sin duplicar código.
+- **Portal — detalle completo**: `ChildSummaryCard` pasó de contadores de
+  asistencia (`"Presente: 12 · Ausente: 2"`) a un listado por fecha, igual
+  de granular que notas/cargos/documentos en la misma card. Nueva sección
+  "Préstamos" (vía `useLoans()`, ya filtraba por instancia en el backend)
+  agrupada por hijo.
+- **Calendario — export ICS**: `GET /calendar/feed.ics` (`@Public()`, sin
+  JWT — pensado para suscribirse desde una app de calendario externa),
+  arma el feed RFC 5545 a mano con los eventos institucionales
+  (`sectionId === null`; los segmentados por sección quedan fuera, no hay
+  forma de autenticar el feed por audiencia sin JWT). Botón "Agregar a mi
+  calendario" en `/calendar` que copia la URL.
+- **Mensajería — borrado, adjuntos y tiempo real**: `DELETE /messages/:id`
+  (solo el remitente, reutiliza el `deletedAt`/soft-delete que ya existía
+  sin usar en el ORM). Adjuntos (`POST`/`GET /messages/:id/attachment`,
+  límite 5MB, guardados como privados vía `FileStoragePort`). Tiempo real
+  sin sumar `socket.io`: `GET /messages/stream` con `@Sse()` de NestJS +
+  Redis pub/sub (`redis.duplicate()` por conexión, canal
+  `messages:<userId>`) — el frontend no puede mandar headers de auth en un
+  `EventSource` nativo, así que hay un proxy BFF
+  (`api/messages/stream/route.ts`) que lee la cookie httpOnly server-side
+  y streamea la respuesta. El polling de 20s se mantiene como fallback si
+  la conexión SSE se cae.
+- **Documentos — generación real de PDF**: nueva dependencia `pdfkit` (sin
+  Chrome headless). `IssueDocumentUseCase` genera el PDF al emitir y lo
+  guarda como privado (`pdfGeneratedAt` marca si hay uno descargable —
+  documentos emitidos antes de este cambio no lo tienen). `GET
+  /documents/:id/pdf` valida acceso con el mismo
+  `EnrollmentAccessService` que ya usaba el listado. Plantilla simple de
+  texto, sin logo posicionado ni firma digital.
+- **Finanzas — conciliación bancaria**: nueva entidad `BankTransaction`.
+  `POST /finance/bank-transactions/import` (CSV `date,amount,description`,
+  parseo manual — formato fijo, no ameritaba una librería) y `PATCH
+  /finance/bank-transactions/:id/match` para vincular manualmente una
+  transacción a un pago ya registrado. Sin auto-matching por monto/fecha
+  ni formatos bancarios estructurados (OFX/MT940) — matching manual como
+  primer paso.
+- **Módulo `reports`, antes solo la carpeta plantilla**: cuatro reportes,
+  todos agregando en memoria sobre `findAll()` de los módulos existentes
+  (mismo patrón que `ListChargesUseCase` — ningún repository tiene
+  conteo/suma en la base). `GET /reports/enrollment`, `/attendance`,
+  `/finance` (matrícula activa, % asistencia, cobrado vs. pendiente,
+  reservados a `admin_institucion`/`directivo` — nuevo subject CASL
+  `'Report'`) y **boletines de notas** (`GET
+  /reports/grading/report-card.pdf`, guardián de CASL `'Grading'`, no
+  `'Report'` — un docente genera boletines de su propia sección como
+  tarea normal, no como analítica institucional): un solo `studentId` da
+  el boletín individual, varios o ninguno dan un PDF combinado con una
+  página por estudiante (`pdfkit`, sin necesitar un `.zip`). El boletín se
+  recalcula al vuelo con las notas actuales — no se persiste, a
+  diferencia de los documentos de la Parte 4. `attendance`/`finance`/
+  `grading`/`academic` tuvieron que empezar a exportar sus repository
+  ports desde su `@Module` para que `reports` pudiera inyectarlos (antes
+  solo `enrollment` lo hacía). Nueva página `/reports` con pestañas,
+  visible para docente solo por la de boletines.
+- **Finanzas — que el padre pague desde el Portal**: gateway MercadoPago
+  Checkout Pro (una sola integración cubre tarjeta/transferencia/efectivo
+  en puntos de cobro, todo dentro del mismo checkout hosteado — no hace
+  falta manejar efectivo aparte). Nueva entidad `PaymentAttempt`
+  (necesaria porque la confirmación real llega async por webhook, no en
+  el click) — `POST /finance/charges/:id/checkout` crea el intento y
+  redirige; `POST /finance/payments/webhook` (público, firma verificada
+  vía `MERCADOPAGO_WEBHOOK_SECRET`) confirma contra la API real de
+  MercadoPago y recién ahí crea el `Payment`, de forma idempotente. El
+  webhook no llega por el Host normal (lo llama MercadoPago, no un
+  tenant) — mismo patrón ya usado para `/uploads`: se excluye de
+  `TenantResolutionMiddleware` y resuelve tenant por un `?tenant=` en la
+  URL. Botón "Pagar" en `/portal`, no en `/finance` (ahí es donde el
+  padre ve sus cargos). Probado hasta el límite del entorno: sin
+  credenciales reales de sandbox, se confirmó que la integración llega
+  correctamente hasta el gateway (error de autenticación esperado con el
+  token placeholder) y que el webhook enruta/idempotiza bien con un
+  payload sintético — no un pago real de punta a punta.
+- **Comunicados — seguimiento de lectura**: nueva tabla
+  `announcement_reads` (`PATCH /announcements/:id/read`, idempotente,
+  cualquier usuario del tenant; se dispara solo al ver el comunicado,
+  mismo patrón que el auto-mark-read de Mensajería). `GET
+  /announcements/:id/reads` (solo staff) lista quién lo vio y cuándo.
+  Deliberadamente **sin** el denominador de audiencia elegible (cuántos
+  deberían haberlo visto) — hubiera requerido reconstruir la misma lógica
+  de audiencia segmentada por sección para contar en vez de filtrar, y no
+  es lo que se pidió; solo la lista/conteo de lectores confirmados.
+- **Horarios — vista completa por curso**: frontend-only, `Schedule` ya
+  tenía todos los campos necesarios. Nuevo toggle "Vista lista / Vista
+  por curso" en `/schedule` — la vista nueva es una grilla día×horario
+  por sección (asignatura + docente por celda), la vista lista original
+  se mantiene intacta para el flujo de alta.
+
 Pendientes conocidos:
 
-1. Finanzas: sin conciliación bancaria.
-2. Documentos: sin generación real de archivo/PDF (solo el registro de
-   emisión), sin firmas digitales, y sin "actas" institucionales (no
-   ligadas a una matrícula) — fuera de alcance de la primera pasada.
-3. Portal de padres: sin listado detallado (asistencia/notas se muestran
-   resumidas, no registro por registro); sin integración con Biblioteca.
-4. Calendario de eventos: sin recordatorios ni integración con un
-   calendario externo (ICS, Google Calendar).
-5. Mensajería interna: sin notificaciones en tiempo real (el badge es por
-   polling, no push) ni recordatorios (confirmado que queda para después);
-   sin adjuntos de archivos/imágenes (solo texto plano — necesitaría
-   subida a un storage externo, no hay nada de eso en el proyecto); sin
-   borrado de mensajes.
-6. **Fase 3 completa** (los 5 frentes del roadmap de "Comunicación y
-   comunidad" están implementados) y el módulo `library` (Biblioteca) ya
-   tiene una primera versión funcional. Queda sin implementar `reports`
-   (analítica/dashboards) — ya tiene su carpeta con un `README.md` de
-   plantilla en `apps/api/src/modules/`, pero ningún código todavía.
+1. Documentos: sin firmas digitales, y sin "actas" institucionales (no
+   ligadas a una matrícula).
+2. Calendario de eventos: sin recordatorios por email/push ni sync
+   bidireccional con Google Calendar — no hay proveedor de email/push en
+   el proyecto (ni SMTP, ni Resend/SendGrid), agregarlo es una decisión de
+   infraestructura aparte. El feed ICS ya cubre "verlo en mi calendario".
+3. Mensajería interna: adjuntos sin preview inline (solo link de
+   descarga); tiempo real vía SSE, no WebSockets (más barato y suficiente
+   para el volumen de un chat institucional).
+4. Finanzas: conciliación bancaria sin auto-matching (por monto/fecha) ni
+   formatos bancarios estructurados (OFX/MT940); pago del padre solo vía
+   MercadoPago (sin otro gateway), sin reembolsos vía API ni cobros
+   recurrentes/suscripciones.
+5. Reportes: tablas de números, sin gráficos/visualizaciones.
+6. Comunicados: seguimiento de lectura sin el denominador de audiencia
+   elegible (solo lectores confirmados, no "X/Y").

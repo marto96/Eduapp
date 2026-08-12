@@ -23,6 +23,12 @@ export class MessageOrmEntity {
   @Column({ name: 'edited_at', type: 'timestamptz', nullable: true })
   editedAt: Date | null;
 
+  @Column({ name: 'attachment_url', type: 'varchar', nullable: true })
+  attachmentUrl: string | null;
+
+  @Column({ name: 'attachment_name', type: 'varchar', nullable: true })
+  attachmentName: string | null;
+
   @Column({ name: 'created_at', type: 'timestamptz', default: () => 'now()' })
   createdAt: Date;
 

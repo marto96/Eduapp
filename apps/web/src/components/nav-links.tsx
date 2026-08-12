@@ -4,11 +4,12 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { NAV_LINKS } from '@/lib/nav-config';
-import { useUnreadMessagesCount } from '@/features/messages/use-messages';
+import { useUnreadMessagesCount, useMessagesStream } from '@/features/messages/use-messages';
 
 export function NavLinks({ roles }: { roles: string[] }) {
   const pathname = usePathname();
   const { data: unreadCount } = useUnreadMessagesCount();
+  useMessagesStream();
   const links = NAV_LINKS.filter((link) => link.roles.some((role) => roles.includes(role)));
 
   return (

@@ -36,7 +36,13 @@ export class TypeOrmMessageRepository extends MessageRepositoryPort {
       sentAt: new Date(message.sentAt),
       readAt: message.readAt ? new Date(message.readAt) : null,
       editedAt: message.editedAt ? new Date(message.editedAt) : null,
+      attachmentUrl: message.attachmentUrl,
+      attachmentName: message.attachmentName,
     });
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.repo.softDelete(id);
   }
 
   private toDomain(row: MessageOrmEntity): Message {
@@ -48,6 +54,8 @@ export class TypeOrmMessageRepository extends MessageRepositoryPort {
       row.sentAt.toISOString(),
       row.readAt ? row.readAt.toISOString() : null,
       row.editedAt ? row.editedAt.toISOString() : null,
+      row.attachmentUrl,
+      row.attachmentName,
     );
   }
 }

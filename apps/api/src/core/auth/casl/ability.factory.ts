@@ -40,6 +40,7 @@ export class AbilityFactory {
         'SurveyResponse',
         'Book',
         'Loan',
+        'Report',
       ]);
       can('read', 'all');
     }

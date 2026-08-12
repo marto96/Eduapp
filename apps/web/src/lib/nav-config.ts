@@ -18,6 +18,7 @@ import {
   MessageCircle,
   ListChecks,
   Library,
+  PieChart,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -56,4 +57,5 @@ export const NAV_LINKS: NavLink[] = [
   { href: '/messages', label: 'Mensajes', icon: MessageCircle, roles: EVERYONE },
   { href: '/surveys', label: 'Encuestas', icon: ListChecks, roles: EVERYONE },
   { href: '/library', label: 'Biblioteca', icon: Library, roles: EVERYONE },
+  { href: '/reports', label: 'Reportes', icon: PieChart, roles: ADMIN_DOCENTE },
 ];

@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Message } from '@eduapp/shared-types';
 
@@ -52,6 +53,24 @@ async function fetchUnreadCount(): Promise<number> {
   return data.count;
 }
 
+async function deleteMessage(id: string): Promise<void> {
+  const res = await fetch(`/api/messages/${id}`, { method: 'DELETE' });
+  if (!res.ok) throw new Error('No se pudo eliminar el mensaje');
+}
+
+export interface UploadAttachmentInput {
+  id: string;
+  file: File;
+}
+
+async function uploadAttachment({ id, file }: UploadAttachmentInput): Promise<Message> {
+  const formData = new FormData();
+  formData.append('file', file);
+  const res = await fetch(`/api/messages/${id}/attachment`, { method: 'POST', body: formData });
+  if (!res.ok) throw new Error('No se pudo subir el adjunto');
+  return res.json();
+}
+
 export function useMessages() {
   return useQuery({
     queryKey: ['messages'],
@@ -92,4 +111,42 @@ export function useEditMessage() {
     mutationFn: editMessage,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['messages'] }),
   });
+}
+
+export function useDeleteMessage() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteMessage,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['messages'] });
+      queryClient.invalidateQueries({ queryKey: ['messages-unread-count'] });
+    },
+  });
+}
+
+export function useUploadAttachment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: uploadAttachment,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['messages'] }),
+  });
+}
+
+/**
+ * Se suscribe al feed SSE de mensajes nuevos (ver `api/messages/stream`) e
+ * invalida las queries relevantes al recibir un evento — reemplaza el
+ * polling constante del hilo de mensajes. El polling de 20s en
+ * `useUnreadMessagesCount` queda como fallback si esta conexión se cae.
+ */
+export function useMessagesStream() {
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const source = new EventSource('/api/messages/stream');
+    source.onmessage = () => {
+      queryClient.invalidateQueries({ queryKey: ['messages'] });
+      queryClient.invalidateQueries({ queryKey: ['messages-unread-count'] });
+    };
+    return () => source.close();
+  }, [queryClient]);
 }

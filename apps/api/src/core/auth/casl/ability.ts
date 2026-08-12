@@ -30,6 +30,7 @@ export type AppSubjects =
   | 'GuardianLink'
   | 'Book'
   | 'Loan'
+  | 'Report'
   | 'all';
 
 export type AppAbility = Ability<[AppAction, AppSubjects]>;

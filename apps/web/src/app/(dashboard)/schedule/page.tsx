@@ -1,5 +1,5 @@
 import { CreateScheduleForm } from '@/features/schedule/components/create-schedule-form';
-import { SchedulesList } from '@/features/schedule/components/schedules-list';
+import { ScheduleViewToggle } from '@/features/schedule/components/schedule-view-toggle';
 import { getCurrentUser } from '@/lib/server-api';
 import { canManageAcademic } from '@/lib/permissions';
 
@@ -17,7 +17,7 @@ export default async function SchedulePage() {
       </div>
 
       {canManage && <CreateScheduleForm />}
-      <SchedulesList />
+      <ScheduleViewToggle />
     </main>
   );
 }

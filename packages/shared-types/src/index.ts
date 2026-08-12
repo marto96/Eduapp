@@ -163,6 +163,7 @@ export interface IssuedDocument {
   issuedAt: string;
   issuedBy: string;
   voidedAt: string | null;
+  pdfGeneratedAt: string | null;
 }
 
 export type GuardianLinkStatus = 'pending' | 'approved';
@@ -208,6 +209,8 @@ export interface Message {
   sentAt: string;
   readAt: string | null;
   editedAt: string | null;
+  attachmentUrl: string | null;
+  attachmentName: string | null;
 }
 
 export interface SurveyQuestion {
@@ -257,6 +260,47 @@ export interface Loan {
   borrowedAt: string;
   dueDate: string;
   returnedAt: string | null;
+}
+
+export interface AnnouncementReader {
+  userId: string;
+  fullName: string;
+  readAt: string;
+}
+
+export interface EnrollmentReportRow {
+  sectionId: string;
+  active: number;
+  withdrawn: number;
+  completed: number;
+  total: number;
+}
+
+export interface AttendanceReportRow {
+  sectionId: string;
+  presente: number;
+  ausente: number;
+  tarde: number;
+  justificado: number;
+  total: number;
+  attendanceRate: number;
+}
+
+export interface FinanceReportRow {
+  month: string;
+  concept: string;
+  charged: number;
+  collected: number;
+  pending: number;
+}
+
+export interface BankTransaction {
+  id: string;
+  date: string;
+  amount: number;
+  description: string;
+  importedAt: string;
+  matchedPaymentId: string | null;
 }
 
 export interface PlatformTenant {

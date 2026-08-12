@@ -13,6 +13,7 @@ export class IssuedDocument {
     public readonly issuedAt: string,
     public readonly issuedBy: string,
     public voidedAt: string | null = null,
+    public pdfGeneratedAt: string | null = null,
   ) {}
 
   markVoided(): void {

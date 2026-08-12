@@ -1,7 +1,13 @@
 'use client';
 
-import { useState } from 'react';
-import { useAnnouncements, useEditAnnouncement, useVoidAnnouncement } from '../use-announcements';
+import { useEffect, useState } from 'react';
+import {
+  useAnnouncements,
+  useEditAnnouncement,
+  useVoidAnnouncement,
+  useMarkAnnouncementRead,
+  useAnnouncementReaders,
+} from '../use-announcements';
 import { useUsers } from '@/features/users/use-users';
 import { useSections } from '@/features/academic/use-sections';
 import { Card } from '@/components/ui/card';
@@ -15,16 +21,45 @@ const CATEGORY_LABELS: Record<string, string> = {
   aviso: 'Aviso',
 };
 
+function AnnouncementReadersBadge({ announcementId }: { announcementId: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const { data: readers } = useAnnouncementReaders(announcementId, expanded);
+
+  return (
+    <div className="mt-2 text-xs text-muted-foreground">
+      <button type="button" className="underline" onClick={() => setExpanded((v) => !v)}>
+        {expanded ? 'Ocultar lectores' : 'Ver quién lo vio'}
+      </button>
+      {expanded && (
+        <ul className="mt-1 space-y-0.5">
+          {readers?.length === 0 && <li>Todavía nadie lo vio.</li>}
+          {readers?.map((r) => (
+            <li key={r.userId}>
+              {r.fullName} — {new Date(r.readAt).toLocaleString('es-AR')}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
 export function AnnouncementsList({ canManage = false }: { canManage?: boolean }) {
   const { data: announcements, isLoading, error } = useAnnouncements();
   const { data: users } = useUsers();
   const { data: sections } = useSections();
   const editAnnouncement = useEditAnnouncement();
   const voidAnnouncement = useVoidAnnouncement();
+  const markRead = useMarkAnnouncementRead();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [sectionId, setSectionId] = useState('');
+
+  useEffect(() => {
+    announcements?.forEach((a) => markRead.mutate(a.id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [announcements?.map((a) => a.id).join(',')]);
 
   if (isLoading) return <p className="text-sm text-muted-foreground">Cargando...</p>;
   if (error) return <p className="text-sm text-destructive">No se pudieron cargar los comunicados.</p>;
@@ -129,6 +164,7 @@ export function AnnouncementsList({ canManage = false }: { canManage?: boolean }
                       </button>
                     </div>
                   )}
+                  {canManage && <AnnouncementReadersBadge announcementId={announcement.id} />}
                 </div>
                 <div className="shrink-0 text-right text-xs text-muted-foreground">
                   <p>{announcement.publishedAt}</p>

@@ -22,5 +22,6 @@ import { EnrollmentModule } from '../enrollment/enrollment.module';
     { provide: EvaluationRepositoryPort, useClass: TypeOrmEvaluationRepository },
     { provide: GradeScoreRepositoryPort, useClass: TypeOrmGradeScoreRepository },
   ],
+  exports: [EvaluationRepositoryPort, GradeScoreRepositoryPort],
 })
 export class GradingModule {}

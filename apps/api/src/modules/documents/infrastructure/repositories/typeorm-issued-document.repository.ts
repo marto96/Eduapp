@@ -42,6 +42,7 @@ export class TypeOrmIssuedDocumentRepository extends IssuedDocumentRepositoryPor
       issuedAt: document.issuedAt,
       issuedBy: document.issuedBy,
       voidedAt: document.voidedAt ? new Date(document.voidedAt) : null,
+      pdfGeneratedAt: document.pdfGeneratedAt ? new Date(document.pdfGeneratedAt) : null,
     });
   }
 
@@ -54,6 +55,7 @@ export class TypeOrmIssuedDocumentRepository extends IssuedDocumentRepositoryPor
       row.issuedAt,
       row.issuedBy,
       row.voidedAt ? row.voidedAt.toISOString() : null,
+      row.pdfGeneratedAt ? row.pdfGeneratedAt.toISOString() : null,
     );
   }
 }

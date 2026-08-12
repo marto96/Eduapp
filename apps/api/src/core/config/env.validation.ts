@@ -22,5 +22,11 @@ export const envValidationSchema = Joi.object({
   PLATFORM_JWT_EXPIRES_IN: Joi.string().default('8h'),
 
   UPLOADS_DIR: Joi.string().default('./uploads'),
+  PRIVATE_UPLOADS_DIR: Joi.string().default('./private-uploads'),
   API_PUBLIC_URL: Joi.string().uri().default('http://localhost:3001'),
+  WEB_PUBLIC_URL: Joi.string().uri().default('http://localhost:3000'),
+
+  MERCADOPAGO_ACCESS_TOKEN: Joi.string().default('TEST-0000000000000000-000000-00000000000000000000000000000000-000000000'),
+  MERCADOPAGO_PUBLIC_KEY: Joi.string().default(''),
+  MERCADOPAGO_WEBHOOK_SECRET: Joi.string().allow('').default(''),
 }).unknown(true);

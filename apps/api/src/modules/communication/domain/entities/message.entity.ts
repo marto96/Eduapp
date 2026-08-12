@@ -7,6 +7,8 @@ export class Message {
     public readonly sentAt: string,
     public readAt: string | null,
     public editedAt: string | null = null,
+    public attachmentUrl: string | null = null,
+    public attachmentName: string | null = null,
   ) {
     if (!body.trim()) {
       throw new Error('El mensaje no puede estar vacío');

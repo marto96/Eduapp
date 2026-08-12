@@ -1,9 +1,9 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import { ChangeEvent, FormEvent, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { useSendMessage, useEditMessage } from '../use-messages';
+import { useSendMessage, useEditMessage, useDeleteMessage, useUploadAttachment } from '../use-messages';
 import type { Message } from '@eduapp/shared-types';
 
 function formatDateTime(value: string): string {
@@ -20,7 +20,10 @@ interface MessageThreadProps {
 export function MessageThread({ partnerId, partnerName, currentUserId, messages }: MessageThreadProps) {
   const sendMessage = useSendMessage();
   const editMessage = useEditMessage();
+  const deleteMessage = useDeleteMessage();
+  const uploadAttachment = useUploadAttachment();
   const [body, setBody] = useState('');
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editBody, setEditBody] = useState('');
 
@@ -29,8 +32,20 @@ export function MessageThread({ partnerId, partnerName, currentUserId, messages 
     if (!body.trim()) return;
     sendMessage.mutate(
       { recipientId: partnerId, body },
-      { onSuccess: () => setBody('') },
+      {
+        onSuccess: (message) => {
+          setBody('');
+          if (pendingFile) {
+            uploadAttachment.mutate({ id: message.id, file: pendingFile });
+            setPendingFile(null);
+          }
+        },
+      },
     );
+  }
+
+  function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
+    setPendingFile(event.target.files?.[0] ?? null);
   }
 
   function startEditing(message: Message) {
@@ -90,11 +105,21 @@ export function MessageThread({ partnerId, partnerName, currentUserId, messages 
               ) : (
                 <div
                   className={cn(
-                    'max-w-[75%] rounded px-3 py-2 text-sm',
+                    'max-w-[75%] space-y-1 rounded px-3 py-2 text-sm',
                     isMine ? 'bg-primary text-background' : 'bg-muted',
                   )}
                 >
-                  {message.body}
+                  <p>{message.body}</p>
+                  {message.attachmentUrl && (
+                    <a
+                      href={`/api/messages/${message.id}/attachment`}
+                      className="block text-xs underline"
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      📎 {message.attachmentName ?? 'Adjunto'}
+                    </a>
+                  )}
                 </div>
               )}
               {!isEditing && (
@@ -118,23 +143,40 @@ export function MessageThread({ partnerId, partnerName, currentUserId, messages 
                       editar
                     </button>
                   )}
+                  {isMine && (
+                    <button
+                      type="button"
+                      onClick={() => deleteMessage.mutate(message.id)}
+                      className="opacity-0 text-destructive underline transition-opacity group-hover:opacity-100"
+                    >
+                      eliminar
+                    </button>
+                  )}
                 </span>
               )}
             </div>
           );
         })}
       </div>
-      <form onSubmit={handleSubmit} className="flex items-end gap-2 border-t border-border p-3">
-        <textarea
-          rows={2}
-          placeholder="Escribí un mensaje..."
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
-          className="flex-1 rounded border border-border bg-background px-3 py-2 text-sm outline-none transition-colors placeholder:text-muted-foreground/60 focus:border-primary"
+      <form onSubmit={handleSubmit} className="space-y-2 border-t border-border p-3">
+        <div className="flex items-end gap-2">
+          <textarea
+            rows={2}
+            placeholder="Escribí un mensaje..."
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            className="flex-1 rounded border border-border bg-background px-3 py-2 text-sm outline-none transition-colors placeholder:text-muted-foreground/60 focus:border-primary"
+          />
+          <Button type="submit" disabled={sendMessage.isPending || !body.trim()}>
+            {sendMessage.isPending ? 'Enviando...' : 'Enviar'}
+          </Button>
+        </div>
+        <input
+          type="file"
+          accept="image/*,application/pdf"
+          onChange={handleFileChange}
+          className="text-xs text-muted-foreground"
         />
-        <Button type="submit" disabled={sendMessage.isPending || !body.trim()}>
-          {sendMessage.isPending ? 'Enviando...' : 'Enviar'}
-        </Button>
       </form>
       {sendMessage.isError && (
         <p className="px-3 pb-2 text-sm text-destructive">No se pudo enviar el mensaje.</p>

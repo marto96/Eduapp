@@ -13,3 +13,13 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
   }
   return NextResponse.json(message);
 }
+
+export async function DELETE(_req: NextRequest, { params }: { params: { id: string } }) {
+  const result = await serverApiFetch<{ ok: boolean }>(`/messages/${params.id}`, {
+    method: 'DELETE',
+  });
+  if (result === null) {
+    return NextResponse.json({ message: 'No se pudo eliminar el mensaje' }, { status: 400 });
+  }
+  return NextResponse.json(result);
+}
