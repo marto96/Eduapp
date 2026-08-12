@@ -19,7 +19,8 @@ export async function POST(req: NextRequest) {
   });
 
   if (!apiRes.ok) {
-    const message = await apiRes.text();
+    const body = await apiRes.json().catch(() => null);
+    const message = body?.message ?? 'No se pudo iniciar sesión.';
     return NextResponse.json({ message }, { status: apiRes.status });
   }
 

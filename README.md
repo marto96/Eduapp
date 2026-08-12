@@ -550,6 +550,92 @@ MercadoPago, seguimiento de lectura de comunicados, horarios por curso):
   por sección (asignatura + docente por celda), la vista lista original
   se mantiene intacta para el flujo de alta.
 
+Resueltos recientemente (mejoras de seguridad y experiencia de usuario:
+rate limiting, bloqueo de cuenta, CORS/helmet, revocación de sesión, reset
+de contraseña, toasts, error boundaries, paginación):
+
+- **Rate limiting + bloqueo de cuenta en login**: `@nestjs/throttler`
+  global (`ThrottlerGuard` como `APP_GUARD`, corre antes que
+  `JwtAuthGuard`/`PoliciesGuard` para rechazar fuerza bruta sin gastar
+  ciclos de auth) — 20 req/min por IP en general, 5/min puntual en `POST
+  /auth/login` vía `@Throttle()`. Además, `User` (dominio) gana
+  `failedLoginAttempts`/`lockedUntil`: a los 5 intentos fallidos
+  seguidos, la cuenta se bloquea 15 minutos (`registerFailedLogin()`,
+  `isLocked()`, `resetLoginAttempts()` — mismo patrón de métodos de
+  comportamiento en la entidad que ya usan `Enrollment.withdraw()`/
+  `Employee.terminate()`).
+- **CORS restringido + helmet**: `main.ts` pasó de `origin: true`
+  (reflejaba cualquier origen) a un allowlist explícito (`CORS_ORIGINS`
+  por env, coma-separado; default `WEB_PUBLIC_URL` + `localhost:3000` en
+  dev). Nuevo `helmet()` agrega headers de seguridad (CSP, HSTS,
+  X-Frame-Options, etc.) — con `crossOriginResourcePolicy: 'cross-origin'`
+  explícito, si no el CORP por defecto rompía la carga del logo
+  institucional desde `/uploads` (puerto distinto al frontend en dev).
+- **Whitelist de mimetype en adjuntos de mensajes**: `messages.controller.ts`
+  ahora valida `image/png|jpeg|webp` + `application/pdf` antes de guardar
+  (mismo patrón que `ALLOWED_LOGO_MIME_TYPES` en logos institucionales) —
+  antes solo limitaba tamaño (5MB), se podía subir cualquier archivo.
+- **Revocación de refresh token al cerrar sesión**: el refresh token
+  ahora lleva un `jti` (los access tokens no, duran 15 min y no lo
+  necesitan). Nuevo `POST /auth/logout` (autenticado) lo blacklistea en
+  Redis con TTL igual al tiempo que le quedaba de vida —
+  `RefreshTokenUseCase` chequea la blacklist antes de emitir un par
+  nuevo. Antes, `logout` era 100% client-side (solo borraba cookies) y
+  un refresh token filtrado seguía siendo válido hasta 7 días sin forma
+  de invalidarlo.
+- **Reset de contraseña por un admin**: sin infraestructura de email en
+  el proyecto (mismo motivo que los recordatorios de calendario), un
+  "olvidé mi contraseña" autoservicio no es viable todavía — se resolvió
+  el gap operativo real en su lugar: `PATCH /users/:id/reset-password`
+  (`admin_institucion`/`directivo`) genera una contraseña temporal
+  aleatoria y la devuelve **una sola vez** en la respuesta. Botón
+  "Resetear contraseña" en `/users`, muestra la contraseña generada
+  inline con aviso de que no se vuelve a mostrar.
+- **Sistema de toasts (`sonner`)**: el `QueryClient` en `providers.tsx`
+  gana `queryCache`/`mutationCache` con un `onError` global — como todos
+  los hooks de `features/` ya lanzan `Error` con un mensaje en español,
+  esto le da feedback consistente a las ~40 queries/mutaciones
+  existentes sin tocar un solo hook. Antes, la mayoría de los errores no
+  mostraba nada en pantalla. Toasts de éxito puntuales en las acciones de
+  mayor uso (crear cargo, registrar pago, publicar comunicado, emitir
+  documento).
+- **`error.tsx`/`not-found.tsx` en `(dashboard)`**: un error de render no
+  controlado ahora muestra una pantalla con la identidad visual de la
+  app (botón "Reintentar" + volver al panel) en vez de la pantalla
+  genérica de Next.js — cubre todas las páginas del layout compartido.
+- **Paginación — patrón reusable + Finanzas/cargos**: nuevo
+  `PaginationQueryDto`/`PaginatedResult<T>` genérico
+  (`core/http/pagination.dto.ts`), aplicado de punta a punta a
+  `finance/charges` (el listado de mayor volumen esperado). Paginado
+  **después** de enriquecer/filtrar por `status` en `ListChargesUseCase`,
+  no en el repositorio — `status` es un campo derivado (no una columna),
+  paginar antes de filtrar hubiera dado un `total` y contenido de página
+  incorrectos. Sin `page`/`pageSize` en la query, se comporta exactamente
+  igual que antes (ningún otro caller de `findAll` se vio afectado).
+  Extenderlo al resto de los listados es mecánico una vez que existe el
+  patrón, pero queda fuera de este batch.
+- **Redirección automática a `/login` cuando la sesión muere de verdad**:
+  antes, el refresh silencioso de `middleware.ts` solo corría en
+  navegaciones de página (`matcher` no incluía `/api/*`) — una pestaña
+  abierta sin interacción del usuario podía quedar con fetches de fondo
+  (ej. el polling de no-leídos cada 20s) fallando en silencio hasta el
+  próximo click. El `matcher` ahora incluye `/api/:path*` (con
+  `/api/auth/*` y `/api/platform/*` excluidos en código, no en el propio
+  matcher — logout tiene que poder correr aunque la sesión ya esté
+  muerta, y `/api/platform/*` es la sesión de superadmin, cookie
+  distinta). Cuando el refresh token también está vencido/revocado, las
+  rutas `/api/*` devuelven 401 con un header puntual
+  `x-session-expired` — no un redirect HTTP, que confundiría al `fetch()`
+  que lo llamó en vez de navegar el browser. `providers.tsx` parchea
+  `window.fetch` una sola vez (cubre las ~40 llamadas existentes sin
+  tocarlas) y redirige a `/login` apenas ve ese header. **Deliberadamente
+  no** reacciona a cualquier 401/403 de una ruta BFF — `serverApiFetch`
+  mezcla ambos códigos para "no autenticado" y "no autorizado" sin
+  distinguir motivo (ver Documentos/Reportes), así que un 403 legítimo
+  por falta de permiso (ej. un docente sin acceso a `reset-password`) no
+  dispara el redirect — verificado explícitamente que no genera falsos
+  positivos.
+
 Pendientes conocidos:
 
 1. Documentos: sin firmas digitales, y sin "actas" institucionales (no
@@ -568,3 +654,12 @@ Pendientes conocidos:
 5. Reportes: tablas de números, sin gráficos/visualizaciones.
 6. Comunicados: seguimiento de lectura sin el denominador de audiencia
    elegible (solo lectores confirmados, no "X/Y").
+7. Seguridad: sin recuperación de contraseña autoservicio por email (ver
+   arriba), sin revocación de access tokens (solo refresh — el access de
+   15 min no amerita el costo de una consulta a Redis por request), sin
+   CAPTCHA en login (rate limiting + bloqueo de cuenta cubre el riesgo a
+   menor costo), sin CSP afinada por página (la de `helmet()` por
+   defecto alcanza para este batch).
+8. UX: paginación real solo en Finanzas/cargos — el resto de los
+   listados (`users`, `announcements`, `messages`, `attendance`, etc.)
+   sigue trayendo la lista completa, mismo patrón pendiente de replicar.

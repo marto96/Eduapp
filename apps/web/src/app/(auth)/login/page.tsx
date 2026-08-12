@@ -27,7 +27,8 @@ export default function LoginPage() {
     setLoading(false);
 
     if (!res.ok) {
-      setError('Email o contraseña incorrectos.');
+      const body = await res.json().catch(() => null);
+      setError(body?.message ?? 'Email o contraseña incorrectos.');
       return;
     }
 

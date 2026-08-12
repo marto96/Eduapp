@@ -11,6 +11,9 @@ export type UserRole =
   | 'estudiante'
   | 'padre_tutor';
 
+const MAX_FAILED_LOGIN_ATTEMPTS = 5;
+const LOCKOUT_MINUTES = 15;
+
 export class User {
   constructor(
     public readonly id: string,
@@ -20,6 +23,8 @@ export class User {
     public lastName: string,
     public roles: UserRole[],
     public status: 'active' | 'invited' | 'suspended',
+    private failedLoginAttempts: number = 0,
+    private lockedUntil: Date | null = null,
   ) {}
 
   get fullName(): string {
@@ -37,5 +42,35 @@ export class User {
 
   getPasswordHash(): string {
     return this.passwordHash;
+  }
+
+  setPasswordHash(hash: string): void {
+    this.passwordHash = hash;
+  }
+
+  isLocked(): boolean {
+    return this.lockedUntil !== null && this.lockedUntil.getTime() > Date.now();
+  }
+
+  /** Cuenta un intento fallido; a partir del 5º, bloquea la cuenta 15 minutos. */
+  registerFailedLogin(): void {
+    this.failedLoginAttempts += 1;
+    if (this.failedLoginAttempts >= MAX_FAILED_LOGIN_ATTEMPTS) {
+      this.lockedUntil = new Date(Date.now() + LOCKOUT_MINUTES * 60_000);
+      this.failedLoginAttempts = 0;
+    }
+  }
+
+  resetLoginAttempts(): void {
+    this.failedLoginAttempts = 0;
+    this.lockedUntil = null;
+  }
+
+  getFailedLoginAttempts(): number {
+    return this.failedLoginAttempts;
+  }
+
+  getLockedUntil(): Date | null {
+    return this.lockedUntil;
   }
 }

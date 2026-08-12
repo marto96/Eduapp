@@ -1,6 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import type { Payment, PaymentMethod } from '@eduapp/shared-types';
 
 async function fetchPayments(chargeId: string): Promise<Payment[]> {
@@ -48,6 +49,7 @@ export function useRecordPayment() {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['charges'] });
       queryClient.invalidateQueries({ queryKey: ['payments', variables.chargeId] });
+      toast.success('Pago registrado.');
     },
   });
 }

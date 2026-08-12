@@ -10,7 +10,10 @@ import { useSections } from '@/features/academic/use-sections';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Pagination } from '@/components/ui/pagination';
 import type { Charge, ChargeStatus } from '@eduapp/shared-types';
+
+const PAGE_SIZE = 20;
 
 const CONCEPT_LABELS: Record<string, string> = {
   matricula: 'Matrícula',
@@ -33,7 +36,9 @@ const STATUS_CLASSES: Record<ChargeStatus, string> = {
 };
 
 export function ChargesList({ canManage }: { canManage: boolean }) {
-  const { data: charges, isLoading, error } = useCharges();
+  const [page, setPage] = useState(1);
+  const { data, isLoading, error } = useCharges({ page, pageSize: PAGE_SIZE });
+  const charges = data?.items;
   const { data: enrollments } = useEnrollments();
   const { data: students } = useUsers('estudiante');
   const { data: sections } = useSections();
@@ -80,8 +85,9 @@ export function ChargesList({ canManage }: { canManage: boolean }) {
   }
 
   return (
-    <ul className="space-y-2">
-      {charges.map((charge) => {
+    <div className="space-y-4">
+      <ul className="space-y-2">
+        {charges.map((charge) => {
         const enrollment = enrollmentById.get(charge.enrollmentId);
         const studentName = enrollment
           ? (studentNameById.get(enrollment.studentId) ?? enrollment.studentId)
@@ -186,7 +192,11 @@ export function ChargesList({ canManage }: { canManage: boolean }) {
             )}
           </Card>
         );
-      })}
-    </ul>
+        })}
+      </ul>
+      {data && (
+        <Pagination page={data.page} pageSize={data.pageSize} total={data.total} onPageChange={setPage} />
+      )}
+    </div>
   );
 }

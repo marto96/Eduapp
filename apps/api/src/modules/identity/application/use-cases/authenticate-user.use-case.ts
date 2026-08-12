@@ -27,13 +27,24 @@ export class AuthenticateUserUseCase {
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
+    if (user.isLocked()) {
+      throw new UnauthorizedException(
+        'Cuenta bloqueada temporalmente por demasiados intentos fallidos. Probá de nuevo en unos minutos.',
+      );
+    }
+
     const passwordMatches = await this.hasher.compare(
       input.password,
       user.getPasswordHash(),
     );
     if (!passwordMatches) {
+      user.registerFailedLogin();
+      await this.users.save(user);
       throw new UnauthorizedException('Credenciales inválidas');
     }
+
+    user.resetLoginAttempts();
+    await this.users.save(user);
 
     return this.tokens.issueTokenPair(user);
   }

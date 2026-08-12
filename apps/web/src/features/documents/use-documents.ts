@@ -1,6 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import type { DocumentType, IssuedDocument } from '@eduapp/shared-types';
 
 export interface DocumentFilter {
@@ -43,7 +44,10 @@ export function useIssueDocument() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: issueDocument,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['documents'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['documents'] });
+      toast.success('Documento emitido.');
+    },
   });
 }
 

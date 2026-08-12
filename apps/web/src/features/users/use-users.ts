@@ -39,3 +39,13 @@ export function useCreateUser() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['users'] }),
   });
 }
+
+async function resetUserPassword(id: string): Promise<{ temporaryPassword: string }> {
+  const res = await fetch(`/api/users/${id}/reset-password`, { method: 'PATCH' });
+  if (!res.ok) throw new Error('No se pudo resetear la contraseña');
+  return res.json();
+}
+
+export function useResetUserPassword() {
+  return useMutation({ mutationFn: resetUserPassword });
+}

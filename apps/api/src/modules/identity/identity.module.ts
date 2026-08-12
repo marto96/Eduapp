@@ -4,9 +4,11 @@ import { UsersController } from './interface/controllers/users.controller';
 import { GuardiansController } from './interface/controllers/guardians.controller';
 import { AuthenticateUserUseCase } from './application/use-cases/authenticate-user.use-case';
 import { RefreshTokenUseCase } from './application/use-cases/refresh-token.use-case';
+import { LogoutUseCase } from './application/use-cases/logout.use-case';
 import { GetCurrentUserUseCase } from './application/use-cases/get-current-user.use-case';
 import { CreateUserUseCase } from './application/use-cases/create-user.use-case';
 import { ListUsersUseCase } from './application/use-cases/list-users.use-case';
+import { ResetUserPasswordUseCase } from './application/use-cases/reset-user-password.use-case';
 import { LinkGuardianUseCase } from './application/use-cases/link-guardian.use-case';
 import { ListGuardianLinksUseCase } from './application/use-cases/list-guardian-links.use-case';
 import { RequestGuardianLinkUseCase } from './application/use-cases/request-guardian-link.use-case';
@@ -30,9 +32,11 @@ import { BcryptPasswordHasher } from '../../core/security/bcrypt-password-hasher
   providers: [
     AuthenticateUserUseCase,
     RefreshTokenUseCase,
+    LogoutUseCase,
     GetCurrentUserUseCase,
     CreateUserUseCase,
     ListUsersUseCase,
+    ResetUserPasswordUseCase,
     LinkGuardianUseCase,
     ListGuardianLinksUseCase,
     RequestGuardianLinkUseCase,

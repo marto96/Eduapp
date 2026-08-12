@@ -1,6 +1,8 @@
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import type Redis from 'ioredis';
+import { REDIS_CLIENT } from '../../../../core/cache/redis.module';
 import { UserRepositoryPort } from '../ports/user.repository.port';
 import { TokenIssuerPort, TokenPair } from '../ports/token-issuer.port';
 import { JwtPayload } from '../../../../core/auth/jwt-payload.interface';
@@ -13,6 +15,7 @@ export class RefreshTokenUseCase {
     @Inject(TokenIssuerPort) private readonly tokens: TokenIssuerPort,
     private readonly jwt: JwtService,
     private readonly config: ConfigService,
+    @Inject(REDIS_CLIENT) private readonly redis: Redis,
   ) {}
 
   async execute(refreshToken: string): Promise<TokenPair> {
@@ -22,6 +25,10 @@ export class RefreshTokenUseCase {
         secret: this.config.get<string>('JWT_REFRESH_SECRET'),
       });
     } catch {
+      throw new UnauthorizedException('Refresh token inválido o expirado');
+    }
+
+    if (payload.jti && (await this.redis.exists(`revoked:refresh:${payload.jti}`))) {
       throw new UnauthorizedException('Refresh token inválido o expirado');
     }
 

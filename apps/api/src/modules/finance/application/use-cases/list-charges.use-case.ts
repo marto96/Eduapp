@@ -4,6 +4,7 @@ import { PaymentRepositoryPort } from '../ports/payment.repository.port';
 import { Charge } from '../../domain/entities/charge.entity';
 import { EnrollmentAccessService } from '../../../enrollment/application/services/enrollment-access.service';
 import { JwtPayload } from '../../../../core/auth/jwt-payload.interface';
+import { PaginatedResult } from '../../../../core/http/pagination.dto';
 
 export type ChargeStatus = 'pendiente' | 'parcial' | 'pagado' | 'anulado';
 
@@ -16,6 +17,8 @@ export interface ChargeWithBalance extends Charge {
 
 export interface ListChargesInput extends ChargeFilter {
   status?: ChargeStatus;
+  page?: number;
+  pageSize?: number;
 }
 
 @Injectable()
@@ -26,16 +29,21 @@ export class ListChargesUseCase {
     private readonly enrollmentAccess: EnrollmentAccessService,
   ) {}
 
-  async execute(input: ListChargesInput | undefined, currentUser: JwtPayload): Promise<ChargeWithBalance[]> {
+  async execute(
+    input: ListChargesInput | undefined,
+    currentUser: JwtPayload,
+  ): Promise<ChargeWithBalance[] | PaginatedResult<ChargeWithBalance>> {
+    const paginate = (result: ChargeWithBalance[]) => this.applyPagination(result, input);
+
     const charges = await this.charges.findAll(input);
-    if (charges.length === 0) return [];
+    if (charges.length === 0) return paginate([]);
 
     const allowedEnrollmentIds = await this.enrollmentAccess.resolveAccessibleEnrollmentIds(currentUser);
     const visibleCharges =
       allowedEnrollmentIds === null
         ? charges
         : charges.filter((c) => allowedEnrollmentIds.has(c.enrollmentId));
-    if (visibleCharges.length === 0) return [];
+    if (visibleCharges.length === 0) return paginate([]);
 
     const allPayments = await this.payments.findAll({ chargeIds: visibleCharges.map((c) => c.id) });
     const paidByCharge = new Map<string, number>();
@@ -61,6 +69,25 @@ export class ListChargesUseCase {
       return { ...charge, paidAmount, netAmount, balance, status } as ChargeWithBalance;
     });
 
-    return input?.status ? enriched.filter((c) => c.status === input.status) : enriched;
+    const filtered = input?.status ? enriched.filter((c) => c.status === input.status) : enriched;
+    return paginate(filtered);
+  }
+
+  /**
+   * Pagina sobre el resultado ya filtrado, no sobre `findAll()` — `status`
+   * es un campo derivado (calculado acá, no una columna), así que paginar
+   * en el repositorio antes de filtrar por status daría un `total` y un
+   * contenido de página incorrectos. Sin `page`/`pageSize` en el input,
+   * devuelve el array tal cual (comportamiento sin cambios).
+   */
+  private applyPagination(
+    result: ChargeWithBalance[],
+    input: ListChargesInput | undefined,
+  ): ChargeWithBalance[] | PaginatedResult<ChargeWithBalance> {
+    if (!input?.page && !input?.pageSize) return result;
+    const page = input.page ?? 1;
+    const pageSize = input.pageSize ?? 20;
+    const start = (page - 1) * pageSize;
+    return { items: result.slice(start, start + pageSize), total: result.length, page, pageSize };
   }
 }

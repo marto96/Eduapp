@@ -1,10 +1,12 @@
 import { Body, Controller, Get, HttpCode, Post } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { Public } from '../../../../core/auth/public.decorator';
 import { CurrentUser } from '../../../../core/auth/current-user.decorator';
 import { JwtPayload } from '../../../../core/auth/jwt-payload.interface';
 import { AuthenticateUserUseCase } from '../../application/use-cases/authenticate-user.use-case';
 import { RefreshTokenUseCase } from '../../application/use-cases/refresh-token.use-case';
 import { GetCurrentUserUseCase } from '../../application/use-cases/get-current-user.use-case';
+import { LogoutUseCase } from '../../application/use-cases/logout.use-case';
 import { LoginDto } from '../dtos/login.dto';
 import { RefreshTokenDto } from '../dtos/refresh-token.dto';
 
@@ -14,9 +16,11 @@ export class AuthController {
     private readonly authenticateUser: AuthenticateUserUseCase,
     private readonly refreshToken: RefreshTokenUseCase,
     private readonly getCurrentUser: GetCurrentUserUseCase,
+    private readonly logout: LogoutUseCase,
   ) {}
 
   @Public()
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
   @Post('login')
   @HttpCode(200)
   async login(@Body() dto: LoginDto) {
@@ -28,6 +32,13 @@ export class AuthController {
   @HttpCode(200)
   async refresh(@Body() dto: RefreshTokenDto) {
     return this.refreshToken.execute(dto.refreshToken);
+  }
+
+  @Post('logout')
+  @HttpCode(200)
+  async logoutSession(@Body() dto: RefreshTokenDto) {
+    await this.logout.execute(dto.refreshToken);
+    return { ok: true };
   }
 
   @Get('me')

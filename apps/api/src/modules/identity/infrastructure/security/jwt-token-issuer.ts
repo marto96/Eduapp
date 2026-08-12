@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -28,10 +29,15 @@ export class JwtTokenIssuer extends TokenIssuerPort {
       expiresIn: this.config.get<string>('JWT_ACCESS_EXPIRES_IN'),
     });
 
-    const refreshToken = this.jwt.sign(payload, {
-      secret: this.config.get<string>('JWT_REFRESH_SECRET'),
-      expiresIn: this.config.get<string>('JWT_REFRESH_EXPIRES_IN'),
-    });
+    // jti solo en el refresh token: es el único que necesita poder
+    // revocarse (dura días, no minutos) — ver LogoutUseCase.
+    const refreshToken = this.jwt.sign(
+      { ...payload, jti: randomUUID() },
+      {
+        secret: this.config.get<string>('JWT_REFRESH_SECRET'),
+        expiresIn: this.config.get<string>('JWT_REFRESH_EXPIRES_IN'),
+      },
+    );
 
     return { accessToken, refreshToken };
   }

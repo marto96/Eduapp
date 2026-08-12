@@ -18,7 +18,7 @@ export default async function UsersPage() {
       </div>
 
       {canManage && <CreateUserForm />}
-      <UsersList />
+      <UsersList canManage={canManage} />
       {canManage && <LinkGuardianForm />}
     </main>
   );

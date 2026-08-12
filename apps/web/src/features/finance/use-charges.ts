@@ -1,7 +1,8 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { Charge, ChargeConcept, ChargeStatus } from '@eduapp/shared-types';
+import { toast } from 'sonner';
+import type { Charge, ChargeConcept, ChargeStatus, PaginatedResult } from '@eduapp/shared-types';
 
 export interface ChargeFilter {
   enrollmentId?: string;
@@ -9,8 +10,17 @@ export interface ChargeFilter {
   status?: ChargeStatus;
 }
 
-async function fetchCharges(filter?: ChargeFilter): Promise<Charge[]> {
-  const qs = filter ? new URLSearchParams(filter as Record<string, string>).toString() : '';
+export interface PaginatedChargeFilter extends ChargeFilter {
+  page: number;
+  pageSize: number;
+}
+
+async function fetchCharges(
+  filter?: ChargeFilter | PaginatedChargeFilter,
+): Promise<Charge[] | PaginatedResult<Charge>> {
+  const qs = filter
+    ? new URLSearchParams(filter as unknown as Record<string, string>).toString()
+    : '';
   const res = await fetch(qs ? `/api/finance/charges?${qs}` : '/api/finance/charges');
   if (!res.ok) throw new Error('No se pudieron cargar los cargos');
   return res.json();
@@ -35,7 +45,11 @@ async function createCharge(input: CreateChargeInput): Promise<Charge> {
   return res.json();
 }
 
-export function useCharges(filter?: ChargeFilter) {
+export function useCharges(filter?: ChargeFilter): ReturnType<typeof useQuery<Charge[]>>;
+export function useCharges(
+  filter: PaginatedChargeFilter,
+): ReturnType<typeof useQuery<PaginatedResult<Charge>>>;
+export function useCharges(filter?: ChargeFilter | PaginatedChargeFilter) {
   return useQuery({
     queryKey: ['charges', filter ?? 'all'],
     queryFn: () => fetchCharges(filter),
@@ -46,7 +60,10 @@ export function useCreateCharge() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: createCharge,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['charges'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['charges'] });
+      toast.success('Cargo creado.');
+    },
   });
 }
 

@@ -54,26 +54,75 @@ function buildCookieHeader(
 }
 
 /**
+ * Señal que el frontend (ver `providers.tsx`) usa para distinguir "sesión
+ * realmente muerta" de un 401/403 cualquiera devuelto por una ruta BFF
+ * (que a veces mezcla ambos códigos sin distinguir motivo — ver
+ * `serverApiFetch`). Solo esta respuesta puntual, generada acá antes de
+ * que la request llegue a ningún route handler, dispara la redirección
+ * automática a `/login`.
+ */
+const SESSION_EXPIRED_HEADER = 'x-session-expired';
+
+/**
+ * `/api/auth/*` maneja su propio ciclo de cookies (login/logout/el refresh
+ * que este mismo middleware ya dispara) — nunca debe pasar por acá, si no
+ * un logout con sesión ya vencida quedaría bloqueado antes de poder borrar
+ * las cookies. `/api/platform/*` es la sesión de superadmin, cookie
+ * distinta (`platform_access_token`), este middleware no la toca.
+ */
+function isBypassedApiRoute(pathname: string): boolean {
+  return pathname.startsWith('/api/auth/') || pathname.startsWith('/api/platform/');
+}
+
+/**
  * El cookie `access_token` no tiene `maxAge` (dura toda la sesión del
  * navegador), así que sigue "presente" mucho después de que el JWT que
  * contiene expiró (15 min) — por eso no alcanza con chequear que exista,
  * hay que decodificar el `exp`. Si expiró pero hay `refresh_token`, se pide
  * un par nuevo a `POST /auth/refresh` de forma transparente antes de dejar
  * pasar el request — así la sesión no se corta cada 15 minutos.
+ *
+ * Corre tanto para páginas como para las rutas BFF `/api/*` (agregado para
+ * que el polling en background — ej. no-leídos cada 20s — también refresque
+ * la sesión en vez de solo hacerlo en la próxima navegación; sin esto, una
+ * pestaña abierta y sin interacción del usuario podía quedar con fetches
+ * fallando en silencio hasta el próximo click). Para páginas, una sesión
+ * sin refresh token válido redirige a `/login`; para `/api/*`, se devuelve
+ * un 401 con el header `x-session-expired` — un redirect real ahí solo
+ * confundiría al `fetch()` que lo llamó, no navega el browser.
  */
 export async function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+  const isApiRoute = pathname.startsWith('/api/');
+  if (isApiRoute && isBypassedApiRoute(pathname)) {
+    return NextResponse.next();
+  }
+
   const accessToken = req.cookies.get('access_token')?.value;
   if (isAccessTokenValid(accessToken)) {
     return NextResponse.next();
   }
 
   const refreshToken = req.cookies.get('refresh_token')?.value;
-  const loginUrl = new URL('/login', req.url);
+
+  function unauthorized(): NextResponse {
+    if (isApiRoute) {
+      const res = NextResponse.json(
+        { message: 'Sesión expirada' },
+        { status: 401, headers: { [SESSION_EXPIRED_HEADER]: '1' } },
+      );
+      res.cookies.delete('access_token');
+      res.cookies.delete('refresh_token');
+      return res;
+    }
+    const res = NextResponse.redirect(new URL('/login', req.url));
+    res.cookies.delete('access_token');
+    res.cookies.delete('refresh_token');
+    return res;
+  }
 
   if (!refreshToken) {
-    const res = NextResponse.redirect(loginUrl);
-    res.cookies.delete('access_token');
-    return res;
+    return unauthorized();
   }
 
   try {
@@ -84,10 +133,7 @@ export async function middleware(req: NextRequest) {
     });
 
     if (!apiRes.ok) {
-      const res = NextResponse.redirect(loginUrl);
-      res.cookies.delete('access_token');
-      res.cookies.delete('refresh_token');
-      return res;
+      return unauthorized();
     }
 
     const { accessToken: newAccessToken, refreshToken: newRefreshToken } = await apiRes.json();
@@ -106,7 +152,7 @@ export async function middleware(req: NextRequest) {
     res.cookies.set('refresh_token', newRefreshToken, ACCESS_TOKEN_COOKIE_OPTIONS);
     return res;
   } catch {
-    return NextResponse.redirect(loginUrl);
+    return unauthorized();
   }
 }
 
@@ -128,5 +174,6 @@ export const config = {
     '/messages/:path*',
     '/surveys/:path*',
     '/library/:path*',
+    '/api/:path*',
   ],
 };

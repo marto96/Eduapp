@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -30,6 +31,8 @@ import { AddMessageAttachmentUseCase } from '../../application/use-cases/add-mes
 import { GetMessageAttachmentUseCase } from '../../application/use-cases/get-message-attachment.use-case';
 import { SendMessageDto } from '../dtos/send-message.dto';
 import { EditMessageDto } from '../dtos/edit-message.dto';
+
+const ALLOWED_ATTACHMENT_MIME_TYPES = ['image/png', 'image/jpeg', 'image/webp', 'application/pdf'];
 
 @Controller('messages')
 export class MessagesController {
@@ -106,7 +109,15 @@ export class MessagesController {
 
   @Post(':id/attachment')
   @CheckPolicies((ability) => ability.can('update', 'Message'))
-  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: 5 * 1024 * 1024 } }))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: 5 * 1024 * 1024 },
+      fileFilter: (_req, file, cb) => {
+        const ok = ALLOWED_ATTACHMENT_MIME_TYPES.includes(file.mimetype);
+        cb(ok ? null : new BadRequestException('Formato de adjunto no soportado'), ok);
+      },
+    }),
+  )
   async uploadAttachment(
     @Param('id') id: string,
     @UploadedFile() file: Express.Multer.File,

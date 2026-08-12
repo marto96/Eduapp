@@ -25,6 +25,10 @@ export const envValidationSchema = Joi.object({
   PRIVATE_UPLOADS_DIR: Joi.string().default('./private-uploads'),
   API_PUBLIC_URL: Joi.string().uri().default('http://localhost:3001'),
   WEB_PUBLIC_URL: Joi.string().uri().default('http://localhost:3000'),
+  // Orígenes permitidos por CORS, coma-separados. En multitenant por
+  // subdominio, WEB_PUBLIC_URL solo cubre un origen — en producción con
+  // varios subdominios reales, setear CORS_ORIGINS explícito con todos.
+  CORS_ORIGINS: Joi.string().default(''),
 
   MERCADOPAGO_ACCESS_TOKEN: Joi.string().default('TEST-0000000000000000-000000-00000000000000000000000000000000-000000000'),
   MERCADOPAGO_PUBLIC_KEY: Joi.string().default(''),

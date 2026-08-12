@@ -13,6 +13,13 @@ export interface AuthenticatedUser {
   roles: string[];
 }
 
+export interface PaginatedResult<T> {
+  items: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
+
 export interface AcademicYear {
   id: string;
   name: string;

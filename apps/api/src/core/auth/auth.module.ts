@@ -3,6 +3,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { JwtStrategy } from './jwt.strategy';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { AbilityFactory } from './casl/ability.factory';
@@ -28,10 +29,16 @@ import { PoliciesGuard } from './casl/policies.guard';
         signOptions: { expiresIn: config.get<string>('JWT_ACCESS_EXPIRES_IN') },
       }),
     }),
+    // Límite general de API (20 req/min por IP); endpoints puntuales como
+    // /auth/login lo endurecen con @Throttle propio.
+    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 20 }]),
   ],
   providers: [
     JwtStrategy,
     AbilityFactory,
+    // El throttler corre primero: rechaza de una fuerza bruta sin gastar
+    // ciclos en JwtAuthGuard/PoliciesGuard.
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: PoliciesGuard },
   ],

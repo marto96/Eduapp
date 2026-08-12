@@ -32,4 +32,10 @@ export class UserOrmEntity {
 
   @Column({ name: 'updated_at', type: 'timestamptz', default: () => 'now()' })
   updatedAt: Date;
+
+  @Column({ name: 'failed_login_attempts', type: 'int', default: 0 })
+  failedLoginAttempts: number;
+
+  @Column({ name: 'locked_until', type: 'timestamptz', nullable: true })
+  lockedUntil: Date | null;
 }

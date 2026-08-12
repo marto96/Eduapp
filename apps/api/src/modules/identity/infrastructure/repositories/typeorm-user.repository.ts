@@ -48,6 +48,8 @@ export class TypeOrmUserRepository extends UserRepositoryPort {
       lastName: user.lastName,
       roles: user.roles,
       status: user.status,
+      failedLoginAttempts: user.getFailedLoginAttempts(),
+      lockedUntil: user.getLockedUntil(),
     });
   }
 
@@ -60,6 +62,8 @@ export class TypeOrmUserRepository extends UserRepositoryPort {
       row.lastName,
       row.roles as UserRole[],
       row.status,
+      row.failedLoginAttempts,
+      row.lockedUntil,
     );
   }
 }

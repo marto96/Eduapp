@@ -1,7 +1,8 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { CheckPolicies } from '../../../../core/auth/casl/policies.decorator';
 import { CreateUserUseCase } from '../../application/use-cases/create-user.use-case';
 import { ListUsersUseCase } from '../../application/use-cases/list-users.use-case';
+import { ResetUserPasswordUseCase } from '../../application/use-cases/reset-user-password.use-case';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { ListUsersQueryDto } from '../dtos/list-users-query.dto';
 import { User } from '../../domain/entities/user.entity';
@@ -28,6 +29,7 @@ export class UsersController {
   constructor(
     private readonly createUser: CreateUserUseCase,
     private readonly listUsers: ListUsersUseCase,
+    private readonly resetUserPassword: ResetUserPasswordUseCase,
   ) {}
 
   @Post()
@@ -42,5 +44,11 @@ export class UsersController {
   async list(@Query() query: ListUsersQueryDto) {
     const users = await this.listUsers.execute(query.role ? { role: query.role } : undefined);
     return users.map(toResponse);
+  }
+
+  @Patch(':id/reset-password')
+  @CheckPolicies((ability) => ability.can('manage', 'User'))
+  async resetPassword(@Param('id') id: string) {
+    return this.resetUserPassword.execute(id);
   }
 }

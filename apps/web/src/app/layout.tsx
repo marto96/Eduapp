@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import { Toaster } from 'sonner';
 import '../styles/globals.css';
 import { Providers } from './providers';
 import { getTenantBranding } from '@/lib/server-api';
@@ -39,6 +40,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body className="min-h-screen font-sans antialiased">
         <Providers>{children}</Providers>
+        <Toaster richColors position="top-right" />
       </body>
     </html>
   );

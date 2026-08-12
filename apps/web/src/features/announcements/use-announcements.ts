@@ -1,6 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import type { Announcement, AnnouncementCategory, AnnouncementReader } from '@eduapp/shared-types';
 
 export interface AnnouncementFilter {
@@ -77,7 +78,10 @@ export function usePublishAnnouncement() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: publishAnnouncement,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['announcements'] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['announcements'] });
+      toast.success('Comunicado publicado.');
+    },
   });
 }
 
