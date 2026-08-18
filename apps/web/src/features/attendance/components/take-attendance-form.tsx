@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
+import { todayLocalDate } from '@/lib/date';
 import type { AttendanceStatus } from '@eduapp/shared-types';
 
 const STATUSES: { value: AttendanceStatus; label: string }[] = [
@@ -19,10 +20,6 @@ const STATUSES: { value: AttendanceStatus; label: string }[] = [
   { value: 'justificado', label: 'Justificado' },
 ];
 
-function todayIsoDate(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
 export function TakeAttendanceForm({ readOnly = false }: { readOnly?: boolean }) {
   const { data: years } = useAcademicYears();
   const { data: sections } = useSections();
@@ -30,7 +27,7 @@ export function TakeAttendanceForm({ readOnly = false }: { readOnly?: boolean })
 
   const [academicYearId, setAcademicYearId] = useState('');
   const [sectionId, setSectionId] = useState('');
-  const [date, setDate] = useState(todayIsoDate());
+  const [date, setDate] = useState(todayLocalDate());
   const [statusByEnrollment, setStatusByEnrollment] = useState<Record<string, AttendanceStatus>>(
     {},
   );

@@ -1,5 +1,5 @@
 import { CreateEventForm } from '@/features/events/components/create-event-form';
-import { EventsList } from '@/features/events/components/events-list';
+import { EventsViewToggle } from '@/features/events/components/events-view-toggle';
 import { IcsFeedButton } from '@/components/ics-feed-button';
 import { getCurrentUser } from '@/lib/server-api';
 import { canManageEvents } from '@/lib/permissions';
@@ -21,7 +21,7 @@ export default async function CalendarPage() {
       </div>
 
       {canManage && <CreateEventForm />}
-      <EventsList canManage={canManage} />
+      <EventsViewToggle canManage={canManage} />
     </main>
   );
 }

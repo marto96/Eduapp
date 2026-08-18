@@ -46,9 +46,15 @@ export class AnnouncementsController {
     return this.editAnnouncement.execute(id, dto.title, dto.body, dto.sectionId ?? null);
   }
 
+  // Autogestión: cualquier usuario autenticado puede marcar como leído un
+  // comunicado (readAt scoped al propio `user.sub`, nunca a otro) — no hace
+  // falta policy de admin. El use-case valida que el comunicado sea
+  // efectivamente visible para este usuario (institucional o de su propia
+  // sección) antes de registrar la lectura, así que no se puede ensuciar
+  // el conteo de lectores de comunicados ajenos.
   @Patch(':id/read')
   async markRead(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
-    await this.markAnnouncementRead.execute(id, user.sub);
+    await this.markAnnouncementRead.execute(id, user);
     return { ok: true };
   }
 

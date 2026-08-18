@@ -5,6 +5,7 @@ import { useRecordPayment } from '../use-payments';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { todayLocalDate } from '@/lib/date';
 import type { PaymentMethod } from '@eduapp/shared-types';
 
 const METHODS: { value: PaymentMethod; label: string }[] = [
@@ -25,7 +26,7 @@ export function RecordPaymentForm({
 }) {
   const [amount, setAmount] = useState(String(balance));
   const [method, setMethod] = useState<PaymentMethod>('efectivo');
-  const [paidAt, setPaidAt] = useState(() => new Date().toISOString().slice(0, 10));
+  const [paidAt, setPaidAt] = useState(todayLocalDate);
   const [reference, setReference] = useState('');
   const recordPayment = useRecordPayment();
 

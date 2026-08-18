@@ -1,4 +1,4 @@
-import { createHmac } from 'node:crypto';
+import { createHmac, timingSafeEqual } from 'node:crypto';
 
 /**
  * Verifica la firma del webhook según el esquema documentado por
@@ -28,5 +28,12 @@ export function verifyMercadoPagoSignature(params: {
 
   const manifest = `id:${params.dataId.toLowerCase()};request-id:${params.xRequestId};ts:${ts};`;
   const expected = createHmac('sha256', params.secret).update(manifest).digest('hex');
-  return expected === hash;
+
+  // `timingSafeEqual` explota si los buffers difieren en largo — compararlo
+  // antes evita esa excepción sin reintroducir una comparación de tiempo
+  // variable para el caso más común (firma manipulada del mismo largo).
+  const expectedBuf = Buffer.from(expected, 'hex');
+  const hashBuf = Buffer.from(hash, 'hex');
+  if (expectedBuf.length !== hashBuf.length) return false;
+  return timingSafeEqual(expectedBuf, hashBuf);
 }

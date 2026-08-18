@@ -32,5 +32,12 @@ export const envValidationSchema = Joi.object({
 
   MERCADOPAGO_ACCESS_TOKEN: Joi.string().default('TEST-0000000000000000-000000-00000000000000000000000000000000-000000000'),
   MERCADOPAGO_PUBLIC_KEY: Joi.string().default(''),
-  MERCADOPAGO_WEBHOOK_SECRET: Joi.string().allow('').default(''),
+  // Opcional en dev/test (verify-mercadopago-signature.ts deja pasar sin
+  // chequeo si no está seteado) — pero requerido en producción: sin esto,
+  // el webhook de pagos (`@Public()`) aceptaría cualquier POST sin firma
+  // como notificación legítima de MercadoPago.
+  MERCADOPAGO_WEBHOOK_SECRET: Joi.string()
+    .allow('')
+    .default('')
+    .when('NODE_ENV', { is: 'production', then: Joi.string().required() }),
 }).unknown(true);

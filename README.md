@@ -549,6 +549,16 @@ MercadoPago, seguimiento de lectura de comunicados, horarios por curso):
   por curso" en `/schedule` — la vista nueva es una grilla día×horario
   por sección (asignatura + docente por celda), la vista lista original
   se mantiene intacta para el flujo de alta.
+- **Calendario — vista tabla y vista mensual**: frontend-only, mismo
+  patrón de toggle que Horarios. `EventsViewToggle` en `/calendar` suma
+  "Vista tabla" (filas ordenadas por fecha, columnas Inicio/Fin/Título/
+  Sección/Estado) y "Vista mes" (grilla mensual estilo Google Calendar,
+  sin librería externa — solo aritmética de `Date`). En la vista mes,
+  cada celda muestra hasta 3 títulos y un "+N más" si hay más eventos
+  ese día; al hacer clic en un día con eventos se abre un panel debajo
+  con el detalle completo (hora, sección, descripción). Deliberadamente
+  de solo lectura — crear/editar/anular sigue viviendo en "Vista lista",
+  no se duplicó esa lógica en las vistas nuevas.
 
 Resueltos recientemente (mejoras de seguridad y experiencia de usuario:
 rate limiting, bloqueo de cuenta, CORS/helmet, revocación de sesión, reset

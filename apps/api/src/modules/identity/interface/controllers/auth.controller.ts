@@ -34,6 +34,9 @@ export class AuthController {
     return this.refreshToken.execute(dto.refreshToken);
   }
 
+  // Autogestión: sin @CheckPolicies a propósito — el refresh token a
+  // revocar viene del body, nunca de un :id de otro usuario, así que solo
+  // puede cerrar la sesión que el propio caller ya posee.
   @Post('logout')
   @HttpCode(200)
   async logoutSession(@Body() dto: RefreshTokenDto) {
@@ -41,6 +44,8 @@ export class AuthController {
     return { ok: true };
   }
 
+  // Autogestión: igual criterio que arriba — devuelve solo el usuario del
+  // JWT actual (`currentUser.sub`), nunca datos de otro usuario.
   @Get('me')
   async me(@CurrentUser() currentUser: JwtPayload) {
     const user = await this.getCurrentUser.execute(currentUser.sub);

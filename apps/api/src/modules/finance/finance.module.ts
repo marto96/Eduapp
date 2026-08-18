@@ -20,10 +20,12 @@ import { PaymentRepositoryPort } from './application/ports/payment.repository.po
 import { BankTransactionRepositoryPort } from './application/ports/bank-transaction.repository.port';
 import { PaymentAttemptRepositoryPort } from './application/ports/payment-attempt.repository.port';
 import { PaymentGatewayPort } from './application/ports/payment-gateway.port';
+import { RecordApprovedPaymentPort } from './application/ports/record-approved-payment.port';
 import { TypeOrmChargeRepository } from './infrastructure/repositories/typeorm-charge.repository';
 import { TypeOrmPaymentRepository } from './infrastructure/repositories/typeorm-payment.repository';
 import { TypeOrmBankTransactionRepository } from './infrastructure/repositories/typeorm-bank-transaction.repository';
 import { TypeOrmPaymentAttemptRepository } from './infrastructure/repositories/typeorm-payment-attempt.repository';
+import { TypeOrmRecordApprovedPayment } from './infrastructure/repositories/typeorm-record-approved-payment';
 import { MercadoPagoPaymentGateway } from './infrastructure/payment-gateway/mercadopago-payment-gateway';
 import { EnrollmentModule } from '../enrollment/enrollment.module';
 import { IdentityModule } from '../identity/identity.module';
@@ -49,6 +51,7 @@ import { IdentityModule } from '../identity/identity.module';
     { provide: BankTransactionRepositoryPort, useClass: TypeOrmBankTransactionRepository },
     { provide: PaymentAttemptRepositoryPort, useClass: TypeOrmPaymentAttemptRepository },
     { provide: PaymentGatewayPort, useClass: MercadoPagoPaymentGateway },
+    { provide: RecordApprovedPaymentPort, useClass: TypeOrmRecordApprovedPayment },
   ],
   exports: [ChargeRepositoryPort, PaymentRepositoryPort],
 })

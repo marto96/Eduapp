@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { Injectable, Inject, Logger } from '@nestjs/common';
 import { PaymentAttemptRepositoryPort } from '../ports/payment-attempt.repository.port';
-import { PaymentRepositoryPort } from '../ports/payment.repository.port';
+import { RecordApprovedPaymentPort } from '../ports/record-approved-payment.port';
 import { PaymentGatewayPort } from '../ports/payment-gateway.port';
 import { Payment, PaymentMethod } from '../../domain/entities/payment.entity';
 
@@ -29,7 +29,7 @@ export class HandlePaymentWebhookUseCase {
 
   constructor(
     @Inject(PaymentAttemptRepositoryPort) private readonly attempts: PaymentAttemptRepositoryPort,
-    @Inject(PaymentRepositoryPort) private readonly payments: PaymentRepositoryPort,
+    @Inject(RecordApprovedPaymentPort) private readonly recordApprovedPayment: RecordApprovedPaymentPort,
     @Inject(PaymentGatewayPort) private readonly gateway: PaymentGatewayPort,
   ) {}
 
@@ -56,12 +56,11 @@ export class HandlePaymentWebhookUseCase {
         new Date().toISOString().slice(0, 10),
         `mercadopago:${input.data.id}`,
       );
-      await this.payments.save(payment);
       attempt.approve();
+      await this.recordApprovedPayment.execute(payment, attempt);
     } else if (info.status === 'rejected') {
       attempt.reject();
+      await this.attempts.save(attempt);
     }
-
-    await this.attempts.save(attempt);
   }
 }

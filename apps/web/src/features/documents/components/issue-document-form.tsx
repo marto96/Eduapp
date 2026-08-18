@@ -8,6 +8,7 @@ import { useSections } from '@/features/academic/use-sections';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { todayLocalDate } from '@/lib/date';
 import type { DocumentType } from '@eduapp/shared-types';
 
 const TYPES: { value: DocumentType; label: string }[] = [
@@ -26,7 +27,7 @@ export function IssueDocumentForm() {
   const [enrollmentId, setEnrollmentId] = useState('');
   const [type, setType] = useState<DocumentType>('constancia_matricula');
   const [description, setDescription] = useState('');
-  const [issuedAt, setIssuedAt] = useState(() => new Date().toISOString().slice(0, 10));
+  const [issuedAt, setIssuedAt] = useState(todayLocalDate);
 
   const studentNameById = useMemo(() => new Map(students?.map((s) => [s.id, s.fullName])), [students]);
   const sectionNameById = useMemo(() => new Map(sections?.map((s) => [s.id, s.name])), [sections]);

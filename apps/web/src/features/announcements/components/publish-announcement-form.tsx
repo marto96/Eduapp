@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
+import { todayLocalDate } from '@/lib/date';
 import type { AnnouncementCategory } from '@eduapp/shared-types';
 
 const CATEGORIES: { value: AnnouncementCategory; label: string }[] = [
@@ -22,7 +23,7 @@ export function PublishAnnouncementForm() {
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState<AnnouncementCategory>('comunicado');
   const [body, setBody] = useState('');
-  const [publishedAt, setPublishedAt] = useState(() => new Date().toISOString().slice(0, 10));
+  const [publishedAt, setPublishedAt] = useState(todayLocalDate);
   const [sectionId, setSectionId] = useState('');
 
   function handleSubmit(event: FormEvent) {
