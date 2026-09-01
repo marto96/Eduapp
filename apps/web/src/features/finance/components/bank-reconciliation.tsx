@@ -3,12 +3,21 @@
 import { ChangeEvent, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Pagination } from '@/components/ui/pagination';
+import { formatCurrency } from '@/lib/currency';
 import {
   useBankTransactions,
   useAllPayments,
   useImportBankTransactions,
   useMatchBankTransaction,
 } from '../use-bank-transactions';
+
+// Ambas listas son una cola de trabajo (se espera que se vacíen a medida
+// que se concilia), no un histórico que crezca sin límite como los cargos
+// — por eso la paginación es client-side sobre lo ya filtrado, sin tocar
+// el backend (a diferencia de ChargesList, donde `status` es un campo
+// derivado y paginar en memoria del lado del cliente sería más caro).
+const PAGE_SIZE = 10;
 
 export function BankReconciliation() {
   const { data: transactions } = useBankTransactions();
@@ -17,10 +26,18 @@ export function BankReconciliation() {
   const matchTransaction = useMatchBankTransaction();
   const [file, setFile] = useState<File | null>(null);
   const [selectedTransactionId, setSelectedTransactionId] = useState<string | null>(null);
+  const [transactionsPage, setTransactionsPage] = useState(1);
+  const [paymentsPage, setPaymentsPage] = useState(1);
 
   const unmatchedTransactions = (transactions ?? []).filter((t) => !t.matchedPaymentId);
   const matchedPaymentIds = new Set((transactions ?? []).map((t) => t.matchedPaymentId).filter(Boolean));
   const unmatchedPayments = (payments ?? []).filter((p) => !p.voidedAt && !matchedPaymentIds.has(p.id));
+
+  const visibleTransactions = unmatchedTransactions.slice(
+    (transactionsPage - 1) * PAGE_SIZE,
+    transactionsPage * PAGE_SIZE,
+  );
+  const visiblePayments = unmatchedPayments.slice((paymentsPage - 1) * PAGE_SIZE, paymentsPage * PAGE_SIZE);
 
   function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     setFile(event.target.files?.[0] ?? null);
@@ -65,23 +82,31 @@ export function BankReconciliation() {
           {unmatchedTransactions.length === 0 ? (
             <p className="text-sm text-muted-foreground">Nada pendiente.</p>
           ) : (
-            <ul className="space-y-2">
-              {unmatchedTransactions.map((t) => (
-                <Card
-                  key={t.id}
-                  className={`flex cursor-pointer items-center justify-between py-2 ${
-                    selectedTransactionId === t.id ? 'border-primary' : ''
-                  }`}
-                  onClick={() => setSelectedTransactionId(t.id)}
-                >
-                  <div>
-                    <p className="text-sm">{t.description}</p>
-                    <p className="text-xs text-muted-foreground">{t.date}</p>
-                  </div>
-                  <span className="text-sm font-medium">${t.amount}</span>
-                </Card>
-              ))}
-            </ul>
+            <>
+              <ul className="space-y-2">
+                {visibleTransactions.map((t) => (
+                  <Card
+                    key={t.id}
+                    className={`flex cursor-pointer items-center justify-between py-2 ${
+                      selectedTransactionId === t.id ? 'border-primary' : ''
+                    }`}
+                    onClick={() => setSelectedTransactionId(t.id)}
+                  >
+                    <div>
+                      <p className="text-sm">{t.description}</p>
+                      <p className="text-xs text-muted-foreground">{t.date}</p>
+                    </div>
+                    <span className="text-sm font-medium">{formatCurrency(t.amount)}</span>
+                  </Card>
+                ))}
+              </ul>
+              <Pagination
+                page={transactionsPage}
+                pageSize={PAGE_SIZE}
+                total={unmatchedTransactions.length}
+                onPageChange={setTransactionsPage}
+              />
+            </>
           )}
         </div>
 
@@ -92,28 +117,36 @@ export function BankReconciliation() {
           {unmatchedPayments.length === 0 ? (
             <p className="text-sm text-muted-foreground">Nada pendiente.</p>
           ) : (
-            <ul className="space-y-2">
-              {unmatchedPayments.map((p) => (
-                <Card key={p.id} className="flex items-center justify-between py-2">
-                  <div>
-                    <p className="text-sm">{p.method}</p>
-                    <p className="text-xs text-muted-foreground">{p.paidAt}</p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">${p.amount}</span>
-                    {selectedTransactionId && (
-                      <Button
-                        variant="secondary"
-                        disabled={matchTransaction.isPending}
-                        onClick={() => handleMatch(p.id)}
-                      >
-                        Vincular
-                      </Button>
-                    )}
-                  </div>
-                </Card>
-              ))}
-            </ul>
+            <>
+              <ul className="space-y-2">
+                {visiblePayments.map((p) => (
+                  <Card key={p.id} className="flex items-center justify-between py-2">
+                    <div>
+                      <p className="text-sm">{p.method}</p>
+                      <p className="text-xs text-muted-foreground">{p.paidAt}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">{formatCurrency(p.amount)}</span>
+                      {selectedTransactionId && (
+                        <Button
+                          variant="secondary"
+                          disabled={matchTransaction.isPending}
+                          onClick={() => handleMatch(p.id)}
+                        >
+                          Vincular
+                        </Button>
+                      )}
+                    </div>
+                  </Card>
+                ))}
+              </ul>
+              <Pagination
+                page={paymentsPage}
+                pageSize={PAGE_SIZE}
+                total={unmatchedPayments.length}
+                onPageChange={setPaymentsPage}
+              />
+            </>
           )}
         </div>
       </div>

@@ -37,7 +37,7 @@ function buildIcsFeed(calendarName: string, events: Event[]): string {
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//EduApp//Calendario//ES',
+    'PRODID:-//Skolaria//Calendario//ES',
     'CALSCALE:GREGORIAN',
     `X-WR-CALNAME:${escapeIcsText(calendarName)}`,
   ];

@@ -28,7 +28,10 @@ async function enrollStudent(input: EnrollStudentInput): Promise<Enrollment> {
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(input),
   });
-  if (!res.ok) throw new Error('No se pudo matricular al estudiante');
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.message ?? 'No se pudo matricular al estudiante');
+  }
   return res.json();
 }
 

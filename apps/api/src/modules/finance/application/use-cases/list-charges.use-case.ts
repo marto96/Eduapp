@@ -55,7 +55,7 @@ export class ListChargesUseCase {
     const enriched = visibleCharges.map((charge) => {
       const paidAmount = paidByCharge.get(charge.id) ?? 0;
       const netAmount = charge.amount - charge.discountAmount;
-      const balance = netAmount - paidAmount;
+      const balance = charge.computeBalance(paidAmount);
       // balance <= 0 cubre tanto "pagado con plata" como "cubierto por
       // completo con una beca/descuento, sin ningún pago registrado" —
       // antes de discountAmount alcanzaba con mirar paidAmount, ya no.

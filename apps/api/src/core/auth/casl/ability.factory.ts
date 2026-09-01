@@ -30,6 +30,7 @@ export class AbilityFactory {
         'Attendance',
         'Grading',
         'Schedule',
+        'VirtualClass',
         'Finance',
         'Hr',
         'Document',
@@ -51,7 +52,11 @@ export class AbilityFactory {
       // docente, así que acá sí puede crear/editar (sin nivel de instancia
       // todavía — ve y marca cualquier sección, no solo las suyas, porque no
       // existe el concepto de "secciones asignadas a un docente" sin horarios).
-      can('manage', ['Attendance', 'Grading']);
+      // 'VirtualClass' SÍ tiene chequeo de instancia, pero vive en el
+      // use-case (SetScheduleVirtualUseCase/CancelClassSessionUseCase
+      // comparan `schedule.teacherId === currentUser.sub`), no acá — CASL
+      // solo autoriza "puede tocar VirtualClass en general".
+      can('manage', ['Attendance', 'Grading', 'VirtualClass']);
     }
 
     if (roles.includes('secretaria')) {
@@ -79,6 +84,7 @@ export class AbilityFactory {
         'Attendance',
         'Grading',
         'Schedule',
+        'VirtualClass',
         'Finance',
         'Document',
         'Announcement',

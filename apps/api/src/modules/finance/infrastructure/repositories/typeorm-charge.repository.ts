@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, In, Repository } from 'typeorm';
 import { ChargeFilter, ChargeRepositoryPort } from '../../application/ports/charge.repository.port';
 import { Charge } from '../../domain/entities/charge.entity';
 import { ChargeOrmEntity } from '../entities/charge.orm-entity';
@@ -18,6 +18,7 @@ export class TypeOrmChargeRepository extends ChargeRepositoryPort {
     const rows = await this.repo.find({
       where: {
         ...(filter?.enrollmentId && { enrollmentId: filter.enrollmentId }),
+        ...(filter?.enrollmentIds && { enrollmentId: In(filter.enrollmentIds) }),
         ...(filter?.concept && { concept: filter.concept }),
       },
       order: { dueDate: 'ASC' },

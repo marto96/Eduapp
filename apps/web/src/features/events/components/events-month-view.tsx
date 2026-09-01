@@ -28,7 +28,7 @@ function isToday(date: Date): boolean {
 }
 
 function formatTime(value: string): string {
-  return new Date(value).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+  return new Date(value).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
 }
 
 /**
@@ -77,7 +77,7 @@ export function EventsMonthView() {
   if (error) return <p className="text-sm text-destructive">No se pudieron cargar los eventos.</p>;
 
   const days = buildMonthGrid(monthDate);
-  const monthLabel = monthDate.toLocaleDateString('es-AR', { month: 'long', year: 'numeric' });
+  const monthLabel = monthDate.toLocaleDateString('es-CO', { month: 'long', year: 'numeric' });
   const selectedEvents = selectedKey ? (eventsByDay.get(selectedKey) ?? []) : [];
 
   return (
@@ -158,7 +158,7 @@ export function EventsMonthView() {
         <Card className="space-y-3">
           <div className="flex items-center justify-between">
             <p className="font-medium capitalize">
-              {new Date(`${selectedKey}T00:00:00`).toLocaleDateString('es-AR', {
+              {new Date(`${selectedKey}T00:00:00`).toLocaleDateString('es-CO', {
                 weekday: 'long',
                 day: 'numeric',
                 month: 'long',

@@ -1,8 +1,9 @@
 import { randomUUID } from 'node:crypto';
-import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { ChargeRepositoryPort } from '../ports/charge.repository.port';
 import { Charge, ChargeConcept } from '../../domain/entities/charge.entity';
 import { EnrollmentRepositoryPort } from '../../../enrollment/application/ports/enrollment.repository.port';
+import { isUniqueViolation } from '../../../../core/database/postgres-error.util';
 
 export interface CreateChargeInput {
   enrollmentId: string;
@@ -12,6 +13,11 @@ export interface CreateChargeInput {
   dueDate: string;
   discountAmount?: number;
 }
+
+const DUPLICATE_MESSAGES: Record<'matricula' | 'pension', string> = {
+  matricula: 'Ya existe una matrícula cargada para esta inscripción',
+  pension: 'Ya existe un cargo de pensión para ese mes en esta inscripción',
+};
 
 @Injectable()
 export class CreateChargeUseCase {
@@ -24,6 +30,20 @@ export class CreateChargeUseCase {
     const enrollment = await this.enrollments.findById(input.enrollmentId);
     if (!enrollment) {
       throw new NotFoundException(`No existe la matrícula "${input.enrollmentId}"`);
+    }
+
+    if (input.concept === 'matricula') {
+      const existing = await this.charges.findAll({ enrollmentId: input.enrollmentId, concept: 'matricula' });
+      if (existing.some((c) => !c.voidedAt)) {
+        throw new ConflictException(DUPLICATE_MESSAGES.matricula);
+      }
+    }
+    if (input.concept === 'pension') {
+      const dueMonth = input.dueDate.slice(0, 7);
+      const existing = await this.charges.findAll({ enrollmentId: input.enrollmentId, concept: 'pension' });
+      if (existing.some((c) => !c.voidedAt && c.dueDate.slice(0, 7) === dueMonth)) {
+        throw new ConflictException(DUPLICATE_MESSAGES.pension);
+      }
     }
 
     let charge: Charge;
@@ -41,7 +61,14 @@ export class CreateChargeUseCase {
       throw new BadRequestException((err as Error).message);
     }
 
-    await this.charges.save(charge);
+    try {
+      await this.charges.save(charge);
+    } catch (err) {
+      if (isUniqueViolation(err) && (input.concept === 'matricula' || input.concept === 'pension')) {
+        throw new ConflictException(DUPLICATE_MESSAGES[input.concept]);
+      }
+      throw err;
+    }
     return charge;
   }
 }

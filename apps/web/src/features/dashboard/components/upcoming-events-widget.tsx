@@ -4,7 +4,7 @@ import { useEvents } from '@/features/events/use-events';
 import { Card } from '@/components/ui/card';
 
 function formatDateTime(value: string): string {
-  return new Date(value).toLocaleString('es-AR', { dateStyle: 'medium', timeStyle: 'short' });
+  return new Date(value).toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' });
 }
 
 export function UpcomingEventsWidget() {

@@ -43,4 +43,8 @@ export class Charge {
   markVoided(): void {
     this.voidedAt = new Date().toISOString();
   }
+
+  computeBalance(paidAmount: number): number {
+    return this.amount - this.discountAmount - paidAmount;
+  }
 }

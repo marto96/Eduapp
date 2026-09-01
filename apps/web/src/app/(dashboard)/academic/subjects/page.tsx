@@ -10,7 +10,6 @@ export default async function SubjectsPage() {
   return (
     <main className="space-y-6 p-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Asignaturas</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Materias que se dictan en la institución.
         </p>

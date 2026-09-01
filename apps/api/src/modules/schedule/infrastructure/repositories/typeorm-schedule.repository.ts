@@ -27,6 +27,11 @@ export class TypeOrmScheduleRepository extends ScheduleRepositoryPort {
     return rows.map((row) => this.toDomain(row));
   }
 
+  async findById(id: string): Promise<Schedule | null> {
+    const row = await this.repo.findOne({ where: { id } });
+    return row ? this.toDomain(row) : null;
+  }
+
   async save(schedule: Schedule): Promise<void> {
     await this.repo.save({
       id: schedule.id,
@@ -37,6 +42,7 @@ export class TypeOrmScheduleRepository extends ScheduleRepositoryPort {
       dayOfWeek: schedule.dayOfWeek,
       startTime: schedule.startTime,
       endTime: schedule.endTime,
+      isVirtual: schedule.isVirtual,
     });
   }
 
@@ -50,6 +56,7 @@ export class TypeOrmScheduleRepository extends ScheduleRepositoryPort {
       row.dayOfWeek,
       row.startTime,
       row.endTime,
+      row.isVirtual,
     );
   }
 }

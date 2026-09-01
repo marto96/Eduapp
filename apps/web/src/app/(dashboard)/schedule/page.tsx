@@ -17,7 +17,7 @@ export default async function SchedulePage() {
       </div>
 
       {canManage && <CreateScheduleForm />}
-      <ScheduleViewToggle />
+      <ScheduleViewToggle currentUserId={user?.id} canManage={canManage} />
     </main>
   );
 }

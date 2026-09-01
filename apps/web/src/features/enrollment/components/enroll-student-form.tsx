@@ -26,7 +26,7 @@ export function EnrollStudentForm() {
   const [password, setPassword] = useState('');
   const [academicYearId, setAcademicYearId] = useState('');
   const [sectionId, setSectionId] = useState('');
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const missingPrereqs = !years?.length || !sections?.length;
   const isPending = enrollStudent.isPending || createUser.isPending;
@@ -34,7 +34,7 @@ export function EnrollStudentForm() {
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     if (!academicYearId || !sectionId) return;
-    setError(false);
+    setError(null);
 
     try {
       const id =
@@ -58,8 +58,8 @@ export function EnrollStudentForm() {
       setLastName('');
       setEmail('');
       setPassword('');
-    } catch {
-      setError(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo matricular al estudiante');
     }
   }
 
@@ -192,12 +192,7 @@ export function EnrollStudentForm() {
           Necesitás al menos un año lectivo y una sección creados.
         </p>
       )}
-      {error && (
-        <p className="text-sm text-destructive">
-          No se pudo matricular (¿el estudiante ya tiene una matrícula activa en ese año, o el
-          email ya existe?).
-        </p>
-      )}
+      {error && <p className="text-sm text-destructive">{error}</p>}
     </form>
   );
 }

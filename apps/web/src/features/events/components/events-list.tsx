@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import type { Event } from '@eduapp/shared-types';
 
 function formatDateTime(value: string): string {
-  return new Date(value).toLocaleString('es-AR', {
+  return new Date(value).toLocaleString('es-CO', {
     dateStyle: 'medium',
     timeStyle: 'short',
   });

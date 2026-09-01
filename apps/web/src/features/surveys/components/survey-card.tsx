@@ -54,7 +54,7 @@ export function SurveyCard({ survey, canManage = false }: SurveyCardProps) {
       <div className="flex items-center justify-between">
         {results?.closesAt && (
           <p className="text-xs text-muted-foreground">
-            {results.isClosed ? 'Cerró el' : 'Cierra el'} {new Date(results.closesAt).toLocaleString('es-AR')}
+            {results.isClosed ? 'Cerró el' : 'Cierra el'} {new Date(results.closesAt).toLocaleString('es-CO')}
           </p>
         )}
         {isVoided && <span className="text-xs uppercase text-destructive">Anulada</span>}

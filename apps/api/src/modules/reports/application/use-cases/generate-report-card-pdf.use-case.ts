@@ -87,7 +87,7 @@ export class GenerateReportCardPdfUseCase {
     }
 
     return this.pdfGenerator.generate({
-      institutionName: tenant?.name ?? 'EduApp',
+      institutionName: tenant?.name ?? 'Skolaria',
       sectionName: section?.name ?? input.sectionId,
       academicYearName: academicYear?.name ?? input.academicYearId,
       students,

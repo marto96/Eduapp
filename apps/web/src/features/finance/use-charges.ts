@@ -41,7 +41,10 @@ async function createCharge(input: CreateChargeInput): Promise<Charge> {
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(input),
   });
-  if (!res.ok) throw new Error('No se pudo crear el cargo');
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.message ?? 'No se pudo crear el cargo');
+  }
   return res.json();
 }
 
@@ -81,7 +84,10 @@ async function editCharge({ id, ...input }: EditChargeInput): Promise<Charge> {
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(input),
   });
-  if (!res.ok) throw new Error('No se pudo editar el cargo');
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.message ?? 'No se pudo editar el cargo');
+  }
   return res.json();
 }
 

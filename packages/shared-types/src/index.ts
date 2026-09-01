@@ -101,6 +101,20 @@ export interface Schedule {
   dayOfWeek: DayOfWeek;
   startTime: string;
   endTime: string;
+  isVirtual: boolean;
+}
+
+export interface ClassCancellation {
+  id: string;
+  scheduleId: string;
+  date: string;
+  cancelledBy: string;
+  reason: string | null;
+}
+
+export interface VirtualRoom {
+  roomName: string;
+  roomUrl: string;
 }
 
 export type ChargeConcept = 'matricula' | 'pension' | 'otro';
@@ -121,6 +135,14 @@ export interface Charge {
   netAmount: number;
   balance: number;
   status: ChargeStatus;
+}
+
+export interface FeeSchedule {
+  id: string;
+  gradeId: string;
+  academicYearId: string;
+  concept: ChargeConcept;
+  amount: number;
 }
 
 export interface Payment {

@@ -3,6 +3,7 @@
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { usePaymentCheckout } from '@/features/finance/use-payment-checkout';
+import { formatCurrency } from '@/lib/currency';
 import type {
   AttendanceRecord,
   AttendanceStatus,
@@ -125,7 +126,7 @@ export function ChildSummaryCard({
             {charges.map((charge) => (
               <li key={charge.id} className="flex items-center justify-between gap-2">
                 <span>
-                  {charge.description} — {charge.paidAmount}/{charge.amount}{' '}
+                  {charge.description} — {formatCurrency(charge.paidAmount)}/{formatCurrency(charge.amount)}{' '}
                   <span className={STATUS_CLASSES[charge.status]}>({charge.status})</span>
                 </span>
                 {(charge.status === 'pendiente' || charge.status === 'parcial') && (

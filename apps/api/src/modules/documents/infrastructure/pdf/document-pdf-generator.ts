@@ -45,7 +45,7 @@ export class DocumentPdfGenerator {
       doc.fontSize(11).text(input.description, { align: 'justify' });
       doc.moveDown(3);
 
-      doc.fontSize(10).text('Este documento fue generado automáticamente por EduApp.', {
+      doc.fontSize(10).text('Este documento fue generado automáticamente por Skolaria.', {
         align: 'center',
       });
 

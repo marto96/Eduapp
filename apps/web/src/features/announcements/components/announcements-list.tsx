@@ -35,7 +35,7 @@ function AnnouncementReadersBadge({ announcementId }: { announcementId: string }
           {readers?.length === 0 && <li>Todavía nadie lo vio.</li>}
           {readers?.map((r) => (
             <li key={r.userId}>
-              {r.fullName} — {new Date(r.readAt).toLocaleString('es-AR')}
+              {r.fullName} — {new Date(r.readAt).toLocaleString('es-CO')}
             </li>
           ))}
         </ul>

@@ -7,5 +7,5 @@ export function PageTitle() {
   const pathname = usePathname();
   const current = NAV_LINKS.find((link) => link.href === pathname);
 
-  return <span className="text-sm font-medium">{current?.label ?? 'EduApp'}</span>;
+  return <span className="text-sm font-medium">{current?.label ?? 'Skolaria'}</span>;
 }

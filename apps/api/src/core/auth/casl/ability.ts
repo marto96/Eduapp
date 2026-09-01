@@ -19,6 +19,7 @@ export type AppSubjects =
   | 'Attendance'
   | 'Grading'
   | 'Schedule'
+  | 'VirtualClass'
   | 'Finance'
   | 'Hr'
   | 'Document'

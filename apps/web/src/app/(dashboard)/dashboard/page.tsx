@@ -25,7 +25,7 @@ export default async function DashboardPage() {
   return (
     <main className="space-y-6 p-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight">Panel</h1>
+
         <p className="mt-1 text-sm text-muted-foreground">Resumen de tu actividad en la plataforma.</p>
       </div>
 

@@ -33,11 +33,11 @@ pnpm dev                    # corre api y web en paralelo (Turborepo)
 - API: http://localhost:3001
 - Web: http://localhost:3000
 
-> El Postgres del `docker-compose.yml` se expone en el **5433** del host (no
+> El Postgres del `docker-compose.yml` se expone en el **5435** del host (no
 > el 5432 default) para no chocar con otro Postgres que pueda estar corriendo
 > en la máquina — dentro de la red de Docker sigue siendo el 5432 de siempre.
-> Ajustá `DATABASE_URL` en tu `.env` acorde si tu máquina no tiene ese
-> conflicto y preferís el 5432.
+> Ajustá `DATABASE_URL` en tu `.env` acorde a lo que tengas libre en tu
+> máquina.
 
 ## Estado actual
 

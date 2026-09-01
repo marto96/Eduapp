@@ -107,4 +107,21 @@ describe('AbilityFactory', () => {
     expect(ability.can('create', 'AcademicYear')).toBe(false);
     expect(ability.can('delete', 'AcademicYear')).toBe(false);
   });
+
+  it('directivo puede manage VirtualClass', () => {
+    const ability = factory.createForUser(payload(['directivo']));
+    expect(ability.can('manage', 'VirtualClass')).toBe(true);
+  });
+
+  it('docente puede manage VirtualClass (el use-case acota a sus propias clases)', () => {
+    const ability = factory.createForUser(payload(['docente']));
+    expect(ability.can('manage', 'VirtualClass')).toBe(true);
+  });
+
+  it('secretaria/estudiante/padre_tutor solo pueden read VirtualClass', () => {
+    expect(factory.createForUser(payload(['secretaria'])).can('read', 'VirtualClass')).toBe(true);
+    expect(factory.createForUser(payload(['secretaria'])).can('manage', 'VirtualClass')).toBe(false);
+    expect(factory.createForUser(payload(['estudiante'])).can('read', 'VirtualClass')).toBe(true);
+    expect(factory.createForUser(payload(['padre_tutor'])).can('read', 'VirtualClass')).toBe(true);
+  });
 });

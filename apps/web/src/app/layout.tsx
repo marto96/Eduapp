@@ -6,7 +6,7 @@ import { getTenantBranding } from '@/lib/server-api';
 import { hexToHslTriple } from '@/lib/color';
 
 export const metadata: Metadata = {
-  title: 'EduApp',
+  title: 'Skolaria',
   description: 'Plataforma educativa multitenant para gestión académica y administrativa.',
   manifest: '/manifest.json',
 };
@@ -36,6 +36,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="es" style={{ '--primary': primaryHsl } as React.CSSProperties}>
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+          rel="stylesheet"
+        />
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body className="min-h-screen font-sans antialiased">

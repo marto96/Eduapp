@@ -38,7 +38,7 @@ export interface TenantBranding {
   logoUrl: string | null;
 }
 
-const DEFAULT_BRANDING: TenantBranding = { name: 'EduApp', primaryColor: '#9184d9', logoUrl: null };
+const DEFAULT_BRANDING: TenantBranding = { name: 'Skolaria', primaryColor: '#9184d9', logoUrl: null };
 
 /**
  * A diferencia de `serverApiFetch`, no depende de la cookie de sesión —

@@ -5,7 +5,13 @@ import { cn } from '@/lib/utils';
 import { SchedulesList } from './schedules-list';
 import { ScheduleGrid } from './schedule-grid';
 
-export function ScheduleViewToggle() {
+export function ScheduleViewToggle({
+  currentUserId,
+  canManage,
+}: {
+  currentUserId?: string;
+  canManage: boolean;
+}) {
   const [view, setView] = useState<'list' | 'grid'>('list');
 
   return (
@@ -27,7 +33,11 @@ export function ScheduleViewToggle() {
           </button>
         ))}
       </div>
-      {view === 'list' ? <SchedulesList /> : <ScheduleGrid />}
+      {view === 'list' ? (
+        <SchedulesList currentUserId={currentUserId} canManage={canManage} />
+      ) : (
+        <ScheduleGrid currentUserId={currentUserId} canManage={canManage} />
+      )}
     </div>
   );
 }

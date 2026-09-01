@@ -7,10 +7,12 @@ services:
       POSTGRES_PASSWORD: eduapp
       POSTGRES_DB: eduapp
     ports:
-      # 5432 del host ya está ocupado por otro Postgres del sistema (ajeno a
-      # este proyecto) — se mapea al 5433 en el host en su lugar. Dentro de
-      # la red de Docker sigue siendo el 5432 de siempre.
-      - "5433:5432"
+      # 5432 y 5433 del host ya están ocupados por otros Postgres del sistema
+      # (ajenos a este proyecto: un postgresql@14 de Homebrew corriendo como
+      # servicio nativo quedó escuchando en 5433, no en 5432 como se pensaba
+      # al principio, y pisaba este mapeo en silencio) — se usa 5435 en su
+      # lugar. Dentro de la red de Docker sigue siendo el 5432 de siempre.
+      - "5435:5432"
     volumes:
       - eduapp_postgres_data:/var/lib/postgresql/data
 

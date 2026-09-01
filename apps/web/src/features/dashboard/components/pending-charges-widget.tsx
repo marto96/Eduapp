@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useCharges } from '@/features/finance/use-charges';
 import { Card } from '@/components/ui/card';
+import { formatCurrency } from '@/lib/currency';
 
 export function PendingChargesWidget() {
   const { data: charges, isLoading } = useCharges();
@@ -14,7 +15,7 @@ export function PendingChargesWidget() {
     <Link href="/finance" className="block">
       <Card className="transition-colors hover:border-primary">
         <p className="text-[10px] uppercase tracking-wide text-primary">Cargos pendientes</p>
-        <p className="mt-1 text-2xl font-medium">{isLoading ? '…' : `$${totalBalance}`}</p>
+        <p className="mt-1 text-2xl font-medium">{isLoading ? '…' : formatCurrency(totalBalance)}</p>
         <p className="text-xs text-muted-foreground">{pending.length} cargo(s)</p>
       </Card>
     </Link>

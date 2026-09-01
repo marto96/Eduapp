@@ -2,6 +2,7 @@ import { Charge, ChargeConcept } from '../../domain/entities/charge.entity';
 
 export interface ChargeFilter {
   enrollmentId?: string;
+  enrollmentIds?: string[];
   concept?: ChargeConcept;
 }
 

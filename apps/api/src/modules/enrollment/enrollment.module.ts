@@ -9,9 +9,10 @@ import { EnrollmentRepositoryPort } from './application/ports/enrollment.reposit
 import { TypeOrmEnrollmentRepository } from './infrastructure/repositories/typeorm-enrollment.repository';
 import { IdentityModule } from '../identity/identity.module';
 import { ScheduleModule } from '../schedule/schedule.module';
+import { OverdueBalanceModule } from '../finance/overdue-balance.module';
 
 @Module({
-  imports: [IdentityModule, ScheduleModule],
+  imports: [IdentityModule, ScheduleModule, OverdueBalanceModule],
   controllers: [EnrollmentsController],
   providers: [
     EnrollStudentUseCase,

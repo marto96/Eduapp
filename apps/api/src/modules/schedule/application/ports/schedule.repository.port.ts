@@ -9,5 +9,6 @@ export interface ScheduleFilter {
 
 export abstract class ScheduleRepositoryPort {
   abstract findAll(filter?: ScheduleFilter): Promise<Schedule[]>;
+  abstract findById(id: string): Promise<Schedule | null>;
   abstract save(schedule: Schedule): Promise<void>;
 }

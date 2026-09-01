@@ -1,6 +1,6 @@
 {
-  "name": "EduApp",
-  "short_name": "EduApp",
+  "name": "Skolaria",
+  "short_name": "Skolaria",
   "description": "Plataforma educativa multitenant",
   "start_url": "/",
   "display": "standalone",

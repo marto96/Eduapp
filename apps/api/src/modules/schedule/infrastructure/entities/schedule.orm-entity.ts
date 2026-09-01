@@ -27,6 +27,9 @@ export class ScheduleOrmEntity {
   @Column({ name: 'end_time' })
   endTime: string;
 
+  @Column({ name: 'is_virtual', default: false })
+  isVirtual: boolean;
+
   @Column({ name: 'created_at', type: 'timestamptz', default: () => 'now()' })
   createdAt: Date;
 

@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { EnrollmentRepositoryPort } from '../ports/enrollment.repository.port';
+import { OverdueBalanceCheckerPort } from '../ports/overdue-balance-checker.port';
 import { Enrollment } from '../../domain/entities/enrollment.entity';
 import { UserRepositoryPort } from '../../../identity/application/ports/user.repository.port';
 
@@ -15,6 +16,7 @@ export class EnrollStudentUseCase {
   constructor(
     @Inject(EnrollmentRepositoryPort) private readonly enrollments: EnrollmentRepositoryPort,
     @Inject(UserRepositoryPort) private readonly users: UserRepositoryPort,
+    @Inject(OverdueBalanceCheckerPort) private readonly overdueBalanceChecker: OverdueBalanceCheckerPort,
   ) {}
 
   async execute(input: EnrollStudentInput): Promise<Enrollment> {
@@ -32,6 +34,17 @@ export class EnrollStudentUseCase {
     );
     if (existingActive) {
       throw new ConflictException('El estudiante ya tiene una matrícula activa en ese año lectivo');
+    }
+
+    // Cubre matrículas de todos los años/estados: la deuda de un año
+    // anterior no desaparece porque esa matrícula ya no esté activa.
+    const priorEnrollmentIds = (await this.enrollments.findAll({ studentId: input.studentId })).map(
+      (e) => e.id,
+    );
+    if (await this.overdueBalanceChecker.hasOverdueBalance(priorEnrollmentIds)) {
+      throw new ConflictException(
+        'El estudiante tiene cartera vencida y no puede matricularse hasta regularizar su situación',
+      );
     }
 
     const enrollment = new Enrollment(

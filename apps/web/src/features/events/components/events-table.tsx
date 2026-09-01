@@ -4,7 +4,7 @@ import { useEvents } from '../use-events';
 import { useSections } from '@/features/academic/use-sections';
 
 function formatDateTime(value: string): string {
-  return new Date(value).toLocaleString('es-AR', {
+  return new Date(value).toLocaleString('es-CO', {
     dateStyle: 'medium',
     timeStyle: 'short',
   });

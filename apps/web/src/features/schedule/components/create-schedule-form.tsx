@@ -1,7 +1,7 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
-import { useCreateSchedule } from '../use-schedules';
+import { useCreateSchedule, useSetScheduleVirtual } from '../use-schedules';
 import { useAcademicYears } from '@/features/academic/use-academic-years';
 import { useSections } from '@/features/academic/use-sections';
 import { useSubjects } from '@/features/academic/use-subjects';
@@ -26,6 +26,7 @@ export function CreateScheduleForm() {
   const { data: subjects } = useSubjects();
   const { data: teachers } = useUsers('docente');
   const createSchedule = useCreateSchedule();
+  const setScheduleVirtual = useSetScheduleVirtual();
 
   const [academicYearId, setAcademicYearId] = useState('');
   const [sectionId, setSectionId] = useState('');
@@ -34,19 +35,27 @@ export function CreateScheduleForm() {
   const [dayOfWeek, setDayOfWeek] = useState<DayOfWeek>('lunes');
   const [startTime, setStartTime] = useState('08:00');
   const [endTime, setEndTime] = useState('09:00');
+  const [isVirtual, setIsVirtual] = useState(false);
 
-  function handleSubmit(event: FormEvent) {
+  async function handleSubmit(event: FormEvent) {
     event.preventDefault();
     if (!academicYearId || !sectionId || !subjectId || !teacherId) return;
-    createSchedule.mutate({
-      academicYearId,
-      sectionId,
-      subjectId,
-      teacherId,
-      dayOfWeek,
-      startTime,
-      endTime,
-    });
+    try {
+      const schedule = await createSchedule.mutateAsync({
+        academicYearId,
+        sectionId,
+        subjectId,
+        teacherId,
+        dayOfWeek,
+        startTime,
+        endTime,
+      });
+      if (isVirtual) {
+        setScheduleVirtual.mutate({ id: schedule.id, isVirtual: true });
+      }
+    } catch {
+      // El bloque createSchedule.isError ya muestra el mensaje al usuario.
+    }
   }
 
   return (
@@ -162,12 +171,27 @@ export function CreateScheduleForm() {
           onChange={(e) => setEndTime(e.target.value)}
         />
       </div>
+      <div className="flex items-center gap-2 pb-2.5">
+        <input
+          id="isVirtual"
+          type="checkbox"
+          checked={isVirtual}
+          onChange={(e) => setIsVirtual(e.target.checked)}
+          className="h-4 w-4"
+        />
+        <Label htmlFor="isVirtual">Clase virtual</Label>
+      </div>
       <Button type="submit" disabled={createSchedule.isPending}>
         {createSchedule.isPending ? 'Creando...' : 'Crear horario'}
       </Button>
       {createSchedule.isError && (
         <p className="w-full text-sm text-destructive">
           No se pudo crear el horario (¿superpone con otro del docente o la sección?).
+        </p>
+      )}
+      {setScheduleVirtual.isError && (
+        <p className="w-full text-sm text-destructive">
+          El horario se creó, pero no se pudo activar la clase virtual.
         </p>
       )}
     </form>

@@ -41,7 +41,7 @@ export default function PlatformLoginPage() {
         <div className="space-y-1">
           <h1 className="text-xl font-semibold">Administración de plataforma</h1>
           <p className="text-sm text-muted-foreground">
-            Acceso exclusivo para superadministradores de EduApp.
+            Acceso exclusivo para superadministradores de Skolaria.
           </p>
         </div>
 

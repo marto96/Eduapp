@@ -1,7 +1,8 @@
 'use client';
 
-import { FormEvent, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { useCreateCharge } from '../use-charges';
+import { useFeeSchedules } from '../use-fee-schedules';
 import { useEnrollments } from '@/features/enrollment/use-enrollments';
 import { useUsers } from '@/features/users/use-users';
 import { useSections } from '@/features/academic/use-sections';
@@ -20,6 +21,7 @@ export function CreateChargeForm() {
   const { data: enrollments } = useEnrollments();
   const { data: students } = useUsers('estudiante');
   const { data: sections } = useSections();
+  const { data: feeSchedules } = useFeeSchedules();
   const createCharge = useCreateCharge();
 
   const [enrollmentId, setEnrollmentId] = useState('');
@@ -35,6 +37,27 @@ export function CreateChargeForm() {
     () => (enrollments ?? []).filter((e) => e.status === 'active'),
     [enrollments],
   );
+
+  // Precarga el monto según la lista de precios del grado del estudiante
+  // seleccionado — pero se puede editar a mano después (no la bloquea).
+  // Se resetea (no solo "si está vacío") cada vez que cambia matrícula o
+  // concepto: si no, un monto tipeado a mano para un estudiante quedaría
+  // pegado al cambiar de selección hacia otro estudiante.
+  useEffect(() => {
+    const enrollment = enrollments?.find((e) => e.id === enrollmentId);
+    const section = sections?.find((s) => s.id === enrollment?.sectionId);
+    if (!enrollment || !section || !feeSchedules) {
+      setAmount('');
+      return;
+    }
+    const match = feeSchedules.find(
+      (fs) =>
+        fs.gradeId === section.gradeId &&
+        fs.academicYearId === enrollment.academicYearId &&
+        fs.concept === concept,
+    );
+    setAmount(match ? String(match.amount) : '');
+  }, [enrollmentId, concept, enrollments, sections, feeSchedules]);
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -137,7 +160,7 @@ export function CreateChargeForm() {
         {createCharge.isPending ? 'Creando...' : 'Crear cargo'}
       </Button>
       {createCharge.isError && (
-        <p className="w-full text-sm text-destructive">No se pudo crear el cargo.</p>
+        <p className="w-full text-sm text-destructive">{createCharge.error.message}</p>
       )}
     </form>
   );

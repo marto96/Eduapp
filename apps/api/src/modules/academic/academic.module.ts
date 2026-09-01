@@ -38,6 +38,6 @@ import { TypeOrmSubjectRepository } from './infrastructure/repositories/typeorm-
     { provide: SectionRepositoryPort, useClass: TypeOrmSectionRepository },
     { provide: SubjectRepositoryPort, useClass: TypeOrmSubjectRepository },
   ],
-  exports: [SubjectRepositoryPort, SectionRepositoryPort, AcademicYearRepositoryPort],
+  exports: [SubjectRepositoryPort, SectionRepositoryPort, AcademicYearRepositoryPort, GradeRepositoryPort],
 })
 export class AcademicModule {}

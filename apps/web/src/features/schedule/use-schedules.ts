@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { DayOfWeek, Schedule } from '@eduapp/shared-types';
+import type { DayOfWeek, Schedule, VirtualRoom } from '@eduapp/shared-types';
 
 export interface ScheduleFilter {
   sectionId?: string;
@@ -51,5 +51,46 @@ export function useCreateSchedule() {
   return useMutation({
     mutationFn: createSchedule,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['schedules'] }),
+  });
+}
+
+export interface SetScheduleVirtualInput {
+  id: string;
+  isVirtual: boolean;
+}
+
+async function setScheduleVirtual({ id, isVirtual }: SetScheduleVirtualInput): Promise<Schedule> {
+  const res = await fetch(`/api/schedule/${id}/virtual`, {
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ isVirtual }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.message ?? 'No se pudo actualizar la clase virtual');
+  }
+  return res.json();
+}
+
+export function useSetScheduleVirtual() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: setScheduleVirtual,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['schedules'] }),
+  });
+}
+
+async function fetchVirtualRoom(scheduleId: string): Promise<VirtualRoom> {
+  const res = await fetch(`/api/schedule/${scheduleId}/virtual-room`);
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.message ?? 'No se pudo obtener la sala');
+  }
+  return res.json();
+}
+
+export function useJoinVirtualClass() {
+  return useMutation({
+    mutationFn: fetchVirtualRoom,
   });
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { usePayments, useVoidPayment } from '../use-payments';
+import { formatCurrency } from '@/lib/currency';
 
 const METHOD_LABELS: Record<string, string> = {
   efectivo: 'Efectivo',
@@ -20,7 +21,7 @@ export function ChargePayments({ chargeId, canManage }: { chargeId: string; canM
       {payments.map((payment) => (
         <li key={payment.id} className="flex items-center justify-between text-xs text-muted-foreground">
           <span className={payment.voidedAt ? 'line-through' : ''}>
-            {METHOD_LABELS[payment.method] ?? payment.method} — ${payment.amount} ({payment.paidAt})
+            {METHOD_LABELS[payment.method] ?? payment.method} — {formatCurrency(payment.amount)} ({payment.paidAt})
             {payment.voidedAt && ' — anulado'}
           </span>
           {canManage && !payment.voidedAt && (

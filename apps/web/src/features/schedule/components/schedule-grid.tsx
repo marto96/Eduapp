@@ -2,10 +2,13 @@
 
 import { useState } from 'react';
 import { useSchedules } from '../use-schedules';
+import { useClassCancellations } from '../use-class-cancellations';
 import { useSections } from '@/features/academic/use-sections';
 import { useSubjects } from '@/features/academic/use-subjects';
 import { useUsers } from '@/features/users/use-users';
 import { Label } from '@/components/ui/label';
+import { VirtualClassControls } from './virtual-class-controls';
+import { todayDayOfWeek, todayLocalDate } from '@/lib/date';
 
 const DAYS = [
   { value: 'lunes', label: 'Lunes' },
@@ -16,15 +19,25 @@ const DAYS = [
   { value: 'sabado', label: 'Sábado' },
 ] as const;
 
-export function ScheduleGrid() {
+export function ScheduleGrid({
+  currentUserId,
+  canManage,
+}: {
+  currentUserId?: string;
+  canManage: boolean;
+}) {
   const { data: schedules } = useSchedules();
   const { data: sections } = useSections();
   const { data: subjects } = useSubjects();
   const { data: teachers } = useUsers('docente');
   const [sectionId, setSectionId] = useState('');
+  const today = todayLocalDate();
+  const { data: cancellations } = useClassCancellations({ from: today, to: today });
+  const todaysDay = todayDayOfWeek();
 
   const subjectNameById = new Map(subjects?.map((s) => [s.id, s.name]));
   const teacherNameById = new Map(teachers?.map((t) => [t.id, t.fullName]));
+  const cancellationByScheduleId = new Map(cancellations?.map((c) => [c.scheduleId, c]));
 
   const sectionSchedules = (schedules ?? []).filter((s) => !sectionId || s.sectionId === sectionId);
   const timeSlots = Array.from(
@@ -80,13 +93,20 @@ export function ScheduleGrid() {
                     return (
                       <td key={day.value} className="border border-border p-2 align-top">
                         {match ? (
-                          <div>
+                          <div className="space-y-1">
                             <p className="font-medium">
                               {subjectNameById.get(match.subjectId) ?? match.subjectId}
                             </p>
                             <p className="text-xs text-muted-foreground">
                               {teacherNameById.get(match.teacherId) ?? match.teacherId}
                             </p>
+                            {match.isVirtual && match.dayOfWeek === todaysDay && (
+                              <VirtualClassControls
+                                schedule={match}
+                                cancellation={cancellationByScheduleId.get(match.id)}
+                                canAct={canManage || match.teacherId === currentUserId}
+                              />
+                            )}
                           </div>
                         ) : (
                           <span className="text-muted-foreground">—</span>

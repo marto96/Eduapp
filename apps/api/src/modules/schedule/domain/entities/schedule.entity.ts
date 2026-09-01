@@ -10,6 +10,7 @@ export class Schedule {
     public readonly dayOfWeek: DayOfWeek,
     public readonly startTime: string,
     public readonly endTime: string,
+    public isVirtual: boolean = false,
   ) {
     if (startTime >= endTime) {
       throw new Error('La hora de inicio debe ser anterior a la hora de fin');
@@ -18,5 +19,9 @@ export class Schedule {
 
   overlaps(other: Schedule): boolean {
     return this.startTime < other.endTime && other.startTime < this.endTime;
+  }
+
+  setVirtual(isVirtual: boolean): void {
+    this.isVirtual = isVirtual;
   }
 }

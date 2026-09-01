@@ -7,6 +7,7 @@ import { CreateLeaveForm } from './create-leave-form';
 import { useUsers } from '@/features/users/use-users';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { formatCurrency } from '@/lib/currency';
 
 const CONTRACT_LABELS: Record<string, string> = {
   planta: 'Planta',
@@ -50,7 +51,7 @@ export function EmployeesList({ canManage }: { canManage: boolean }) {
                 <p className="text-sm text-muted-foreground">
                   {employee.position} — {CONTRACT_LABELS[employee.contractType] ?? employee.contractType}{' '}
                   — ingreso {employee.hireDate}
-                  {employee.salary != null ? ` — $${employee.salary}` : ''}
+                  {employee.salary != null ? ` — ${formatCurrency(employee.salary)}` : ''}
                 </p>
               </div>
               <span className="text-xs uppercase text-muted-foreground">{employee.status}</span>

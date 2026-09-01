@@ -7,7 +7,7 @@ import { useSendMessage, useEditMessage, useDeleteMessage, useUploadAttachment }
 import type { Message } from '@eduapp/shared-types';
 
 function formatDateTime(value: string): string {
-  return new Date(value).toLocaleString('es-AR', { dateStyle: 'short', timeStyle: 'short' });
+  return new Date(value).toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' });
 }
 
 interface MessageThreadProps {

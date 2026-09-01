@@ -57,7 +57,7 @@ export class IssueDocumentUseCase {
         description: input.description,
         issuedAt: input.issuedAt,
         studentName: student?.fullName ?? enrollment.studentId,
-        institutionName: tenant?.name ?? 'EduApp',
+        institutionName: tenant?.name ?? 'Skolaria',
       });
 
       await this.storage.save(

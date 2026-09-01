@@ -13,7 +13,7 @@ export default async function PlatformTenantsLayout({ children }: { children: Re
     <div className="flex min-h-screen">
       <aside className="sticky top-0 flex h-screen w-60 shrink-0 flex-col border-r border-border bg-surface">
         <div className="flex items-center gap-2 border-b border-border px-4 py-4">
-          <span className="truncate text-sm font-medium">EduApp · Plataforma</span>
+          <span className="truncate text-sm font-medium">Skolaria · Plataforma</span>
         </div>
         <div className="flex-1 overflow-y-auto p-3">
           <PlatformNavLinks />

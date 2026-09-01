@@ -1,8 +1,7 @@
 import { redirect } from 'next/navigation';
-import { NavLinks } from '@/components/nav-links';
-import { ThemeToggle } from '@/components/theme-toggle';
+import { Sidebar } from '@/components/sidebar';
 import { PageTitle } from '@/components/page-title';
-import { LogoutButton } from '@/components/logout-button';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { getCurrentUser, getTenantBranding } from '@/lib/server-api';
 import { formatRoles, getInitials } from '@/lib/roles';
 
@@ -12,31 +11,13 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="flex min-h-screen">
-      <aside className="sticky top-0 flex h-screen w-60 shrink-0 flex-col border-r border-border bg-surface">
-        <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-4">
-          {branding.logoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={branding.logoUrl}
-              alt={branding.name}
-              className="h-6 max-w-[7rem] object-contain"
-            />
-          ) : (
-            <span className="truncate text-sm font-medium">{branding.name}</span>
-          )}
-          <ThemeToggle />
-        </div>
-        <div className="flex-1 overflow-y-auto p-3">
-          <NavLinks roles={user.roles} />
-        </div>
-        <div className="border-t border-border p-3">
-          <LogoutButton />
-        </div>
-      </aside>
+      <Sidebar branding={branding} roles={user.roles} />
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex items-center justify-between gap-3 border-b border-border px-6 py-3">
           <PageTitle />
           <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <div className="h-8 w-px bg-border" />
             <div className="text-right">
               <p className="text-sm font-medium leading-tight">{user.fullName}</p>
               <p className="text-xs text-muted-foreground">{formatRoles(user.roles)}</p>
