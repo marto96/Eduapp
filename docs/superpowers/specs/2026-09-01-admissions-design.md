@@ -175,6 +175,52 @@ también (es tarea administrativa diaria, mismo criterio ya aplicado a
 `@Public()` y no pasan por CASL en absoluto — el control de acceso ahí
 es el `trackingCode`/la firma del webhook, no un rol.
 
+## Seguridad (endpoints públicos)
+
+Al ser rutas sin autenticación, son el punto de mayor exposición del
+módulo. Se reutiliza exactamente la infraestructura de seguridad que ya
+protege los otros endpoints públicos existentes (`POST /auth/login`,
+webhook de pagos de `finance`), sin inventar nada nuevo:
+
+- **Rate limiting reforzado.** Ya existe un `ThrottlerGuard` global (20
+  req/min por IP) que corre antes que cualquier guard de auth. Igual que
+  `/auth/login` lo endurece con `@Throttle({ default: { limit: 5, ttl:
+  60_000 } })`, `POST /admissions/applications` y `GET
+  /admissions/applications/status/:trackingCode` llevan su propio
+  `@Throttle` más estricto que el global (propuesto: 5/min para crear
+  solicitud, 10/min para consultar estado) — ambos son blancos directos
+  de abuso (spam de solicitudes falsas, fuerza bruta de códigos).
+- **`trackingCode` no adivinable.** Se genera con un generador
+  criptográficamente aleatorio (no incremental, no basado en timestamp),
+  con suficiente entropía para que ni sumando el throttling sea viable
+  fuerza bruta. Nunca se expone en ningún listado — solo se devuelve una
+  vez, en la respuesta de creación, a quien la creó.
+- **Respuesta de estado minimalista.** `GET
+  /admissions/applications/status/:trackingCode` devuelve únicamente
+  `status` + `gradeName` + `createdAt` — **no** el documento, fecha de
+  nacimiento, dirección ni contacto del acudiente completos, aunque el
+  código sea correcto. Reduce el impacto si un código se filtra
+  (capturas de pantalla compartidas, etc.). Un código inexistente
+  devuelve 404 genérico, sin distinguir "no existe" de "formato
+  inválido" (evita dar pistas para enumerar códigos válidos).
+- **Firma de webhook obligatoria.** El webhook de pago de admisiones
+  reutiliza `verifyMercadoPagoSignature` (la misma función ya usada por
+  `PaymentWebhookController` en `finance`, importada directamente — no
+  se duplica lógica de verificación). Ninguna solicitud pasa a
+  `pendiente_entrevista` sin que la firma sea válida.
+- **Validación estricta de payload.** DTOs con `class-validator` en
+  cada campo (largo máximo de strings, formato de email/teléfono,
+  `IsIn` para tipo de documento) — se apoya en la configuración global
+  ya existente (`whitelist`, `forbidNonWhitelisted`, `transform` en
+  `main.ts`), que ya rechaza cualquier campo no declarado en el DTO.
+- **No duplicar solicitudes en curso.** `POST
+  /admissions/applications` rechaza (409) si ya existe una solicitud en
+  `pendiente_pago` o `pendiente_entrevista` con el mismo
+  `studentDocumentNumber` — evita spam duplicado del mismo aspirante y
+  confusión en el panel de staff (mismo criterio que ya usa
+  `EnrollStudentUseCase` para no permitir dos matrículas activas del
+  mismo estudiante).
+
 ## Frontend
 
 - `/admisiones/solicitar` — formulario público (fuera del grupo de
@@ -195,5 +241,11 @@ Mismo patrón que el resto del código: tests unitarios de casos de uso
 — incluyendo el caso de coincidencia por documento —,
 `RejectAdmissionApplicationUseCase`) con repositorios mockeados; sin
 tests de integración de MercadoPago real (se verifica manualmente,
-mismo criterio que el checkout de cargos existente). Verificación manual
-end-to-end en navegador antes de dar la feature por terminada.
+mismo criterio que el checkout de cargos existente). Incluye
+específicamente los casos de la sección de Seguridad: rechazo por
+documento con solicitud ya en curso (409), y rechazo del webhook con
+firma inválida/ausente (reutilizando el mismo test que ya existe para
+`verifyMercadoPagoSignature`, no reescribiéndolo). Verificación manual
+end-to-end en navegador antes de dar la feature por terminada,
+incluyendo confirmar que el `@Throttle` reforzado efectivamente corta
+tras el límite configurado.
