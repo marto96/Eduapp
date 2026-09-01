@@ -65,6 +65,54 @@ export interface Enrollment {
   status: EnrollmentStatus;
 }
 
+export type AdmissionStatus = 'pendiente_pago' | 'pendiente_entrevista' | 'aceptada' | 'rechazada';
+
+export interface AdmissionApplication {
+  id: string;
+  trackingCode: string;
+  studentFirstName: string;
+  studentLastName: string;
+  studentBirthDate: string;
+  studentDocumentType: DocumentType;
+  studentDocumentNumber: string;
+  studentAddress: string;
+  gradeId: string;
+  academicYearId: string;
+  guardianName: string;
+  guardianEmail: string;
+  guardianPhone: string;
+  status: AdmissionStatus;
+  feeAmount: number;
+  paidAt: string | null;
+  interviewDate: string | null;
+  interviewNotes: string | null;
+  rejectionReason: string | null;
+  matchedUserId: string | null;
+  resultingEnrollmentId: string | null;
+  createdAt: string;
+}
+
+export interface AdmissionStatusResponse {
+  status: AdmissionStatus;
+  gradeName: string;
+  createdAt: string;
+}
+
+export interface AdmissionAcceptResponse {
+  application: AdmissionApplication;
+  matchedUserId: string | null;
+  prefill: {
+    firstName: string;
+    lastName: string;
+    birthDate: string;
+    documentType: DocumentType;
+    documentNumber: string;
+    address: string;
+    gradeId: string;
+    academicYearId: string;
+  };
+}
+
 export type AttendanceStatus = 'presente' | 'ausente' | 'tarde' | 'justificado';
 
 export interface AttendanceRecord {
