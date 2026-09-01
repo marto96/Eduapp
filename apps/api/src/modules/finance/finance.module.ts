@@ -70,6 +70,6 @@ import { AcademicModule } from '../academic/academic.module';
     { provide: RecordApprovedPaymentPort, useClass: TypeOrmRecordApprovedPayment },
     { provide: FeeScheduleRepositoryPort, useClass: TypeOrmFeeScheduleRepository },
   ],
-  exports: [ChargeRepositoryPort, PaymentRepositoryPort],
+  exports: [ChargeRepositoryPort, PaymentRepositoryPort, PaymentGatewayPort, FeeScheduleRepositoryPort],
 })
 export class FinanceModule {}

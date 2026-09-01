@@ -32,6 +32,7 @@ export type AppSubjects =
   | 'Book'
   | 'Loan'
   | 'Report'
+  | 'Admission'
   | 'all';
 
 export type AppAbility = Ability<[AppAction, AppSubjects]>;

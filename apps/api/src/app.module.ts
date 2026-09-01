@@ -16,6 +16,7 @@ import { PlatformModule } from './modules/platform/platform.module';
 import { IdentityModule } from './modules/identity/identity.module';
 import { AcademicModule } from './modules/academic/academic.module';
 import { EnrollmentModule } from './modules/enrollment/enrollment.module';
+import { AdmissionsModule } from './modules/admissions/admissions.module';
 import { AttendanceModule } from './modules/attendance/attendance.module';
 import { GradingModule } from './modules/grading/grading.module';
 import { ScheduleModule } from './modules/schedule/schedule.module';
@@ -56,6 +57,7 @@ import { ReportsModule } from './modules/reports/reports.module';
     IdentityModule,
     AcademicModule,
     EnrollmentModule,
+    AdmissionsModule,
     AttendanceModule,
     GradingModule,
     ScheduleModule,
