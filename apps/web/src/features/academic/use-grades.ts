@@ -12,6 +12,7 @@ async function fetchGrades(): Promise<Grade[]> {
 export interface CreateGradeInput {
   name: string;
   level: string;
+  order: number;
 }
 
 async function createGrade(input: CreateGradeInput): Promise<Grade> {
@@ -32,6 +33,34 @@ export function useCreateGrade() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: createGrade,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['grades'] }),
+  });
+}
+
+export interface EditGradeInput {
+  id: string;
+  name: string;
+  level: string;
+  order: number;
+}
+
+async function editGrade({ id, ...input }: EditGradeInput): Promise<Grade> {
+  const res = await fetch(`/api/academic/grades/${id}`, {
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.message ?? 'No se pudo editar el grado');
+  }
+  return res.json();
+}
+
+export function useEditGrade() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: editGrade,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['grades'] }),
   });
 }

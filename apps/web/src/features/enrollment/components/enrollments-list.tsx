@@ -10,6 +10,14 @@ import { useAcademicYears } from '@/features/academic/use-academic-years';
 import { useSections } from '@/features/academic/use-sections';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { LoadingState } from '@/components/ui/loading-state';
+import type { EnrollmentStatus } from '@eduapp/shared-types';
+
+const STATUS_LABELS: Record<EnrollmentStatus, string> = {
+  active: 'Activa',
+  withdrawn: 'Retirada',
+  completed: 'Completada',
+};
 
 export function EnrollmentsList({ canManage }: { canManage: boolean }) {
   const { data: enrollments, isLoading, error } = useEnrollments();
@@ -19,7 +27,7 @@ export function EnrollmentsList({ canManage }: { canManage: boolean }) {
   const withdrawEnrollment = useWithdrawEnrollment();
   const completeEnrollment = useCompleteEnrollment();
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">Cargando...</p>;
+  if (isLoading) return <LoadingState />;
   if (error) return <p className="text-sm text-destructive">No se pudieron cargar las matrículas.</p>;
   if (!enrollments || enrollments.length === 0) {
     return <p className="text-sm text-muted-foreground">Todavía no hay matrículas.</p>;
@@ -43,7 +51,9 @@ export function EnrollmentsList({ canManage }: { canManage: boolean }) {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-xs uppercase text-muted-foreground">{enrollment.status}</span>
+            <span className="text-xs uppercase text-muted-foreground">
+              {STATUS_LABELS[enrollment.status]}
+            </span>
             {canManage && enrollment.status === 'active' && (
               <>
                 <Button

@@ -3,12 +3,13 @@
 import { useSections } from '../use-sections';
 import { useGrades } from '../use-grades';
 import { Card } from '@/components/ui/card';
+import { LoadingState } from '@/components/ui/loading-state';
 
 export function SectionsList() {
   const { data: sections, isLoading, error } = useSections();
   const { data: grades } = useGrades();
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">Cargando...</p>;
+  if (isLoading) return <LoadingState />;
   if (error) return <p className="text-sm text-destructive">No se pudieron cargar las secciones.</p>;
   if (!sections || sections.length === 0) {
     return <p className="text-sm text-muted-foreground">Todavía no hay secciones.</p>;

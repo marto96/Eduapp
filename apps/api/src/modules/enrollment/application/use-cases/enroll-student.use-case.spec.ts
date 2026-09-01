@@ -5,6 +5,10 @@ import { OverdueBalanceCheckerPort } from '../ports/overdue-balance-checker.port
 import { UserRepositoryPort } from '../../../identity/application/ports/user.repository.port';
 import { User } from '../../../identity/domain/entities/user.entity';
 import { Enrollment } from '../../domain/entities/enrollment.entity';
+import { SectionRepositoryPort } from '../../../academic/application/ports/section.repository.port';
+import { GradeRepositoryPort } from '../../../academic/application/ports/grade.repository.port';
+import { Section } from '../../../academic/domain/entities/section.entity';
+import { Grade } from '../../../academic/domain/entities/grade.entity';
 
 describe('EnrollStudentUseCase', () => {
   const enrollments: jest.Mocked<EnrollmentRepositoryPort> = {
@@ -15,6 +19,7 @@ describe('EnrollStudentUseCase', () => {
   };
   const users: jest.Mocked<UserRepositoryPort> = {
     findByEmail: jest.fn(),
+    findByDocumentNumber: jest.fn(),
     findById: jest.fn(),
     findAll: jest.fn(),
     save: jest.fn(),
@@ -22,13 +27,27 @@ describe('EnrollStudentUseCase', () => {
   const overdueBalanceChecker: jest.Mocked<OverdueBalanceCheckerPort> = {
     hasOverdueBalance: jest.fn(),
   };
+  const sections: jest.Mocked<SectionRepositoryPort> = {
+    findAll: jest.fn(),
+    findById: jest.fn(),
+    save: jest.fn(),
+  };
+  const grades: jest.Mocked<GradeRepositoryPort> = {
+    findAll: jest.fn(),
+    findById: jest.fn(),
+    save: jest.fn(),
+  };
 
-  const useCase = new EnrollStudentUseCase(enrollments, users, overdueBalanceChecker);
+  const useCase = new EnrollStudentUseCase(enrollments, users, overdueBalanceChecker, sections, grades);
 
   const student = () => new User('student-1', 's@s.com', 'hash', 'S', 'T', ['estudiante'], 'active');
   const input = { studentId: 'student-1', sectionId: 'section-1', academicYearId: 'year-2026' };
 
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    sections.findById.mockResolvedValue(new Section('section-1', 'grade-1', 'A'));
+    grades.findById.mockResolvedValue(new Grade('grade-1', 'Séptimo', 'Bachillerato', 7));
+  });
 
   it('rechaza si el usuario no existe', async () => {
     users.findById.mockResolvedValue(null);
@@ -52,6 +71,15 @@ describe('EnrollStudentUseCase', () => {
 
     await expect(useCase.execute(input)).rejects.toThrow(ConflictException);
     expect(overdueBalanceChecker.hasOverdueBalance).not.toHaveBeenCalled();
+  });
+
+  it('rechaza si la sección no existe', async () => {
+    users.findById.mockResolvedValue(student());
+    enrollments.findActiveByStudentAndYear.mockResolvedValue(null);
+    sections.findById.mockResolvedValue(null);
+
+    await expect(useCase.execute(input)).rejects.toThrow(NotFoundException);
+    expect(enrollments.save).not.toHaveBeenCalled();
   });
 
   it('rechaza con el mensaje de cartera vencida si el estudiante tiene deuda', async () => {
@@ -95,5 +123,43 @@ describe('EnrollStudentUseCase', () => {
 
     expect(enrollments.findAll).toHaveBeenCalledWith({ studentId: 'student-1' });
     expect(overdueBalanceChecker.hasOverdueBalance).toHaveBeenCalledWith(['e-2024', 'e-2025']);
+  });
+
+  it('rechaza matricular a un estudiante en un grado inferior a uno que ya cursó', async () => {
+    users.findById.mockResolvedValue(student());
+    enrollments.findActiveByStudentAndYear.mockResolvedValue(null);
+    enrollments.findAll.mockResolvedValue([
+      new Enrollment('e-prev', 'student-1', 'section-old', 'year-2025', 'withdrawn'),
+    ]);
+    overdueBalanceChecker.hasOverdueBalance.mockResolvedValue(false);
+    // Sección/grado objetivo (input): "Séptimo" (order 7, mock por defecto).
+    // Sección/grado previo: "Octavo" (order 8) — mayor al objetivo.
+    sections.findById.mockImplementation(async (id) =>
+      id === 'section-1' ? new Section('section-1', 'grade-7', 'A') : new Section('section-old', 'grade-8', 'B'),
+    );
+    grades.findById.mockImplementation(async (id) =>
+      id === 'grade-7' ? new Grade('grade-7', 'Séptimo', 'Bachillerato', 7) : new Grade('grade-8', 'Octavo', 'Bachillerato', 8),
+    );
+
+    await expect(useCase.execute(input)).rejects.toThrow(
+      'No se puede matricular al estudiante en un grado anterior a uno que ya cursó',
+    );
+    expect(enrollments.save).not.toHaveBeenCalled();
+  });
+
+  it('permite repetir el mismo grado que ya cursó', async () => {
+    users.findById.mockResolvedValue(student());
+    enrollments.findActiveByStudentAndYear.mockResolvedValue(null);
+    enrollments.findAll.mockResolvedValue([
+      new Enrollment('e-prev', 'student-1', 'section-old', 'year-2025', 'withdrawn'),
+    ]);
+    overdueBalanceChecker.hasOverdueBalance.mockResolvedValue(false);
+    sections.findById.mockResolvedValue(new Section('section-1', 'grade-7', 'A'));
+    grades.findById.mockResolvedValue(new Grade('grade-7', 'Séptimo', 'Bachillerato', 7));
+
+    const result = await useCase.execute(input);
+
+    expect(result.status).toBe('active');
+    expect(enrollments.save).toHaveBeenCalledTimes(1);
   });
 });

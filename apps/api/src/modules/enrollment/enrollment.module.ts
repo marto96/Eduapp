@@ -10,9 +10,10 @@ import { TypeOrmEnrollmentRepository } from './infrastructure/repositories/typeo
 import { IdentityModule } from '../identity/identity.module';
 import { ScheduleModule } from '../schedule/schedule.module';
 import { OverdueBalanceModule } from '../finance/overdue-balance.module';
+import { AcademicModule } from '../academic/academic.module';
 
 @Module({
-  imports: [IdentityModule, ScheduleModule, OverdueBalanceModule],
+  imports: [IdentityModule, ScheduleModule, OverdueBalanceModule, AcademicModule],
   controllers: [EnrollmentsController],
   providers: [
     EnrollStudentUseCase,

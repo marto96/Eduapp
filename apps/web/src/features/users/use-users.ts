@@ -10,12 +10,18 @@ async function fetchUsers(role?: string): Promise<TenantUser[]> {
   return res.json();
 }
 
+export type DocumentType = 'RC' | 'TI' | 'CC' | 'CE' | 'PA';
+
 export interface CreateUserInput {
   email: string;
   password: string;
   firstName: string;
   lastName: string;
   roles: string[];
+  birthDate?: string;
+  documentType?: DocumentType;
+  documentNumber?: string;
+  address?: string;
 }
 
 async function createUser(input: CreateUserInput): Promise<TenantUser> {
@@ -24,7 +30,10 @@ async function createUser(input: CreateUserInput): Promise<TenantUser> {
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(input),
   });
-  if (!res.ok) throw new Error('No se pudo crear el usuario');
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.message ?? 'No se pudo crear el usuario');
+  }
   return res.json();
 }
 

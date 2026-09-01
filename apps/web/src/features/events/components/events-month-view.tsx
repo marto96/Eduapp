@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { Event } from '@eduapp/shared-types';
+import { LoadingState } from '@/components/ui/loading-state';
 
 const WEEKDAY_LABELS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 const MAX_VISIBLE_PER_DAY = 3;
@@ -73,7 +74,7 @@ export function EventsMonthView() {
     return map;
   }, [events]);
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">Cargando...</p>;
+  if (isLoading) return <LoadingState />;
   if (error) return <p className="text-sm text-destructive">No se pudieron cargar los eventos.</p>;
 
   const days = buildMonthGrid(monthDate);

@@ -10,6 +10,7 @@ import type {
   Book,
   Charge,
   Enrollment,
+  EnrollmentStatus,
   Evaluation,
   GradeScore,
   IssuedDocument,
@@ -21,6 +22,12 @@ const ATTENDANCE_LABELS: Record<AttendanceStatus, string> = {
   ausente: 'Ausente',
   tarde: 'Tarde',
   justificado: 'Justificado',
+};
+
+const ENROLLMENT_STATUS_LABELS: Record<EnrollmentStatus, string> = {
+  active: 'Activa',
+  withdrawn: 'Retirada',
+  completed: 'Completada',
 };
 
 const DOCUMENT_TYPE_LABELS: Record<string, string> = {
@@ -77,7 +84,9 @@ export function ChildSummaryCard({
             {sectionName ?? enrollment.sectionId}
           </p>
         </div>
-        <span className="text-xs uppercase text-muted-foreground">{enrollment.status}</span>
+        <span className="text-xs uppercase text-muted-foreground">
+          {ENROLLMENT_STATUS_LABELS[enrollment.status]}
+        </span>
       </div>
 
       <div>

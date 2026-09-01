@@ -5,6 +5,7 @@ import { useBooks } from '../use-books';
 import { useUsers } from '@/features/users/use-users';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { LoadingState } from '@/components/ui/loading-state';
 
 export function LoansList({ canManage = false }: { canManage?: boolean }) {
   const { data: loans, isLoading, error } = useLoans();
@@ -12,7 +13,7 @@ export function LoansList({ canManage = false }: { canManage?: boolean }) {
   const { data: students } = useUsers('estudiante');
   const returnLoan = useReturnLoan();
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">Cargando...</p>;
+  if (isLoading) return <LoadingState />;
   if (error) return <p className="text-sm text-destructive">No se pudieron cargar los préstamos.</p>;
   if (!loans || loans.length === 0) {
     return <p className="text-sm text-muted-foreground">Todavía no hay préstamos.</p>;

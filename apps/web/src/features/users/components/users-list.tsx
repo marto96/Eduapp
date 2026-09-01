@@ -3,13 +3,14 @@
 import { useState } from 'react';
 import { useUsers, useResetUserPassword } from '../use-users';
 import { Card } from '@/components/ui/card';
+import { LoadingState } from '@/components/ui/loading-state';
 
 export function UsersList({ canManage = false }: { canManage?: boolean }) {
   const { data: users, isLoading, error } = useUsers();
   const resetPassword = useResetUserPassword();
   const [revealed, setRevealed] = useState<{ userId: string; password: string } | null>(null);
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">Cargando...</p>;
+  if (isLoading) return <LoadingState />;
   if (error) return <p className="text-sm text-destructive">No se pudieron cargar los usuarios.</p>;
   if (!users || users.length === 0) {
     return <p className="text-sm text-muted-foreground">Todavía no hay usuarios.</p>;

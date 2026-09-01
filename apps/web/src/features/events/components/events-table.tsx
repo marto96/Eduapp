@@ -2,6 +2,7 @@
 
 import { useEvents } from '../use-events';
 import { useSections } from '@/features/academic/use-sections';
+import { LoadingState } from '@/components/ui/loading-state';
 
 function formatDateTime(value: string): string {
   return new Date(value).toLocaleString('es-CO', {
@@ -14,7 +15,7 @@ export function EventsTable() {
   const { data: events, isLoading, error } = useEvents();
   const { data: sections } = useSections();
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">Cargando...</p>;
+  if (isLoading) return <LoadingState />;
   if (error) return <p className="text-sm text-destructive">No se pudieron cargar los eventos.</p>;
   if (!events || events.length === 0) {
     return <p className="text-sm text-muted-foreground">Todavía no hay eventos programados.</p>;

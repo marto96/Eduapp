@@ -5,6 +5,7 @@ import { useAcademicYears } from '@/features/academic/use-academic-years';
 import { useSections } from '@/features/academic/use-sections';
 import { useSubjects } from '@/features/academic/use-subjects';
 import { Card } from '@/components/ui/card';
+import { LoadingState } from '@/components/ui/loading-state';
 
 export function EvaluationsList() {
   const { data: evaluations, isLoading, error } = useEvaluations();
@@ -12,7 +13,7 @@ export function EvaluationsList() {
   const { data: sections } = useSections();
   const { data: subjects } = useSubjects();
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">Cargando...</p>;
+  if (isLoading) return <LoadingState />;
   if (error) return <p className="text-sm text-destructive">No se pudieron cargar las evaluaciones.</p>;
   if (!evaluations || evaluations.length === 0) {
     return <p className="text-sm text-muted-foreground">Todavía no hay evaluaciones.</p>;

@@ -6,6 +6,7 @@ import { AVAILABLE_MODULES } from '../modules';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { LoadingState } from '@/components/ui/loading-state';
 
 export function EditTenantForm({ tenantId }: { tenantId: string }) {
   const { data: tenant, isLoading, error } = usePlatformTenant(tenantId);
@@ -43,7 +44,7 @@ export function EditTenantForm({ tenantId }: { tenantId: string }) {
     });
   }
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">Cargando...</p>;
+  if (isLoading) return <LoadingState />;
   if (error || !tenant) {
     return <p className="text-sm text-destructive">No se pudo cargar la institución.</p>;
   }

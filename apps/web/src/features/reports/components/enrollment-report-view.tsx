@@ -4,6 +4,7 @@ import { useSections } from '@/features/academic/use-sections';
 import { useAcademicYears } from '@/features/academic/use-academic-years';
 import { useEnrollmentReport } from '../use-reports';
 import { Card } from '@/components/ui/card';
+import { LoadingState } from '@/components/ui/loading-state';
 
 export function EnrollmentReportView() {
   const { data: sections } = useSections();
@@ -12,7 +13,7 @@ export function EnrollmentReportView() {
 
   const sectionNameById = new Map(sections?.map((s) => [s.id, s.name]));
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">Cargando...</p>;
+  if (isLoading) return <LoadingState />;
   if (error) return <p className="text-sm text-destructive">No se pudo cargar el reporte.</p>;
   if (!rows || rows.length === 0) {
     return <p className="text-sm text-muted-foreground">Sin matrículas todavía.</p>;

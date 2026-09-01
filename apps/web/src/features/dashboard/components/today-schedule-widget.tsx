@@ -5,6 +5,7 @@ import { useSections } from '@/features/academic/use-sections';
 import { useSubjects } from '@/features/academic/use-subjects';
 import { getTodayDayOfWeek } from '../day-of-week';
 import { Card } from '@/components/ui/card';
+import { LoadingState } from '@/components/ui/loading-state';
 
 export function TodayScheduleWidget({ teacherId }: { teacherId: string }) {
   const today = getTodayDayOfWeek();
@@ -23,7 +24,7 @@ export function TodayScheduleWidget({ teacherId }: { teacherId: string }) {
     <Card className="lg:col-span-2">
       <p className="text-[10px] uppercase tracking-wide text-primary">Horario de hoy</p>
       {!today && <p className="mt-2 text-sm text-muted-foreground">Sin clases hoy.</p>}
-      {today && isLoading && <p className="mt-2 text-sm text-muted-foreground">Cargando...</p>}
+      {today && isLoading && <LoadingState className="mt-2" />}
       {today && !isLoading && todaysClasses.length === 0 && (
         <p className="mt-2 text-sm text-muted-foreground">Sin clases hoy.</p>
       )}

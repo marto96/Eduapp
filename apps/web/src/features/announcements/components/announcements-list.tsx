@@ -14,6 +14,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import type { Announcement } from '@eduapp/shared-types';
+import { LoadingState } from '@/components/ui/loading-state';
 
 const CATEGORY_LABELS: Record<string, string> = {
   comunicado: 'Comunicado',
@@ -61,7 +62,7 @@ export function AnnouncementsList({ canManage = false }: { canManage?: boolean }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [announcements?.map((a) => a.id).join(',')]);
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">Cargando...</p>;
+  if (isLoading) return <LoadingState />;
   if (error) return <p className="text-sm text-destructive">No se pudieron cargar los comunicados.</p>;
   if (!announcements || announcements.length === 0) {
     return <p className="text-sm text-muted-foreground">Todavía no hay comunicados publicados.</p>;

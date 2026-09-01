@@ -12,6 +12,7 @@ import { useLoans } from '@/features/library/use-loans';
 import { useBooks } from '@/features/library/use-books';
 import { usePortalAttendance, usePortalScores } from '../use-portal-data';
 import { ChildSummaryCard } from './child-summary-card';
+import { LoadingState } from '@/components/ui/loading-state';
 
 export function PortalView({ isGuardian }: { isGuardian: boolean }) {
   const { data: enrollments, isLoading, error } = useEnrollments();
@@ -27,7 +28,7 @@ export function PortalView({ isGuardian }: { isGuardian: boolean }) {
   const { data: loans } = useLoans();
   const { data: books } = useBooks();
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">Cargando...</p>;
+  if (isLoading) return <LoadingState />;
   if (error) return <p className="text-sm text-destructive">No se pudo cargar la información.</p>;
   if (!enrollments || enrollments.length === 0) {
     return (

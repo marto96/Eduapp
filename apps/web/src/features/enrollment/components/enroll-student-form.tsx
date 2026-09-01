@@ -2,14 +2,25 @@
 
 import { FormEvent, useState } from 'react';
 import { useEnrollStudent } from '../use-enrollments';
-import { useCreateUser, useUsers } from '@/features/users/use-users';
+import { useCreateUser, useUsers, type DocumentType } from '@/features/users/use-users';
 import { useAcademicYears } from '@/features/academic/use-academic-years';
 import { useSections } from '@/features/academic/use-sections';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Dialog } from '@/components/ui/dialog';
 
 type StudentMode = 'existing' | 'new';
+
+const DOCUMENT_TYPE_OPTIONS: { value: DocumentType; label: string }[] = [
+  { value: 'RC', label: 'Registro Civil' },
+  { value: 'TI', label: 'Tarjeta de Identidad' },
+  { value: 'CC', label: 'Cédula de Ciudadanía' },
+  { value: 'CE', label: 'Cédula de Extranjería' },
+  { value: 'PA', label: 'Pasaporte' },
+];
+
+const today = new Date().toISOString().slice(0, 10);
 
 export function EnrollStudentForm() {
   const { data: students } = useUsers('estudiante');
@@ -19,11 +30,16 @@ export function EnrollStudentForm() {
   const createUser = useCreateUser();
 
   const [mode, setMode] = useState<StudentMode>('existing');
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [studentId, setStudentId] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [birthDate, setBirthDate] = useState('');
+  const [documentType, setDocumentType] = useState<DocumentType | ''>('');
+  const [documentNumber, setDocumentNumber] = useState('');
+  const [address, setAddress] = useState('');
   const [academicYearId, setAcademicYearId] = useState('');
   const [sectionId, setSectionId] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -31,40 +47,57 @@ export function EnrollStudentForm() {
   const missingPrereqs = !years?.length || !sections?.length;
   const isPending = enrollStudent.isPending || createUser.isPending;
 
-  async function handleSubmit(event: FormEvent) {
+  function resetNewStudentFields() {
+    setFirstName('');
+    setLastName('');
+    setEmail('');
+    setPassword('');
+    setBirthDate('');
+    setDocumentType('');
+    setDocumentNumber('');
+    setAddress('');
+  }
+
+  async function handleSubmitExisting(event: FormEvent) {
     event.preventDefault();
-    if (!academicYearId || !sectionId) return;
+    if (!studentId || !academicYearId || !sectionId) return;
+    setError(null);
+    try {
+      await enrollStudent.mutateAsync({ studentId, sectionId, academicYearId });
+      setStudentId('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo matricular al estudiante');
+    }
+  }
+
+  async function handleSubmitNew(event: FormEvent) {
+    event.preventDefault();
+    if (!academicYearId || !sectionId || !documentType) return;
     setError(null);
 
     try {
-      const id =
-        mode === 'existing'
-          ? studentId
-          : (
-              await createUser.mutateAsync({
-                email,
-                password,
-                firstName,
-                lastName,
-                roles: ['estudiante'],
-              })
-            ).id;
+      const created = await createUser.mutateAsync({
+        email,
+        password,
+        firstName,
+        lastName,
+        roles: ['estudiante'],
+        birthDate,
+        documentType,
+        documentNumber,
+        address,
+      });
 
-      if (!id) return;
-
-      await enrollStudent.mutateAsync({ studentId: id, sectionId, academicYearId });
-      setStudentId('');
-      setFirstName('');
-      setLastName('');
-      setEmail('');
-      setPassword('');
+      await enrollStudent.mutateAsync({ studentId: created.id, sectionId, academicYearId });
+      resetNewStudentFields();
+      setDialogOpen(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo matricular al estudiante');
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3">
+    <div className="space-y-3">
       <div className="flex gap-4 text-sm">
         <label className="flex items-center gap-1.5">
           <input
@@ -75,13 +108,20 @@ export function EnrollStudentForm() {
           Estudiante existente
         </label>
         <label className="flex items-center gap-1.5">
-          <input type="radio" checked={mode === 'new'} onChange={() => setMode('new')} />
+          <input
+            type="radio"
+            checked={mode === 'new'}
+            onChange={() => {
+              setMode('new');
+              setDialogOpen(true);
+            }}
+          />
           Estudiante nuevo
         </label>
       </div>
 
-      <div className="flex flex-wrap items-end gap-3">
-        {mode === 'existing' ? (
+      {mode === 'existing' ? (
+        <form onSubmit={handleSubmitExisting} className="flex flex-wrap items-end gap-3">
           <div className="space-y-1.5">
             <Label htmlFor="studentId">Estudiante</Label>
             <select
@@ -101,30 +141,90 @@ export function EnrollStudentForm() {
               ))}
             </select>
           </div>
-        ) : (
-          <>
+          <div className="space-y-1.5">
+            <Label htmlFor="academicYearId">Año lectivo</Label>
+            <select
+              id="academicYearId"
+              required
+              value={academicYearId}
+              onChange={(e) => setAcademicYearId(e.target.value)}
+              className="flex h-10 w-40 rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
+            >
+              <option value="" disabled>
+                Seleccioná un año
+              </option>
+              {years?.map((year) => (
+                <option key={year.id} value={year.id}>
+                  {year.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="sectionId">Sección</Label>
+            <select
+              id="sectionId"
+              required
+              value={sectionId}
+              onChange={(e) => setSectionId(e.target.value)}
+              className="flex h-10 w-40 rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
+            >
+              <option value="" disabled>
+                Seleccioná una sección
+              </option>
+              {sections?.map((section) => (
+                <option key={section.id} value={section.id}>
+                  {section.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <Button type="submit" disabled={isPending || missingPrereqs}>
+            {isPending ? 'Matriculando...' : 'Matricular'}
+          </Button>
+        </form>
+      ) : (
+        <Button type="button" onClick={() => setDialogOpen(true)} disabled={missingPrereqs}>
+          Matricular estudiante nuevo
+        </Button>
+      )}
+
+      {missingPrereqs && (
+        <p className="text-sm text-muted-foreground">
+          Necesitás al menos un año lectivo y una sección creados.
+        </p>
+      )}
+      {mode === 'existing' && error && <p className="text-sm text-destructive">{error}</p>}
+
+      <Dialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        title="Matricular estudiante nuevo"
+      >
+        <form onSubmit={handleSubmitNew} className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label htmlFor="firstName">Nombre</Label>
+              <Label htmlFor="new-firstName">Nombre</Label>
               <Input
-                id="firstName"
+                id="new-firstName"
                 required
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="lastName">Apellido</Label>
+              <Label htmlFor="new-lastName">Apellido</Label>
               <Input
-                id="lastName"
+                id="new-lastName"
                 required
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="new-email">Email</Label>
               <Input
-                id="email"
+                id="new-email"
                 type="email"
                 required
                 value={email}
@@ -132,9 +232,9 @@ export function EnrollStudentForm() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="password">Contraseña</Label>
+              <Label htmlFor="new-password">Contraseña</Label>
               <Input
-                id="password"
+                id="new-password"
                 type="password"
                 required
                 minLength={8}
@@ -142,57 +242,106 @@ export function EnrollStudentForm() {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
-          </>
-        )}
-        <div className="space-y-1.5">
-          <Label htmlFor="academicYearId">Año lectivo</Label>
-          <select
-            id="academicYearId"
-            required
-            value={academicYearId}
-            onChange={(e) => setAcademicYearId(e.target.value)}
-            className="flex h-10 w-40 rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
-          >
-            <option value="" disabled>
-              Seleccioná un año
-            </option>
-            {years?.map((year) => (
-              <option key={year.id} value={year.id}>
-                {year.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="sectionId">Sección</Label>
-          <select
-            id="sectionId"
-            required
-            value={sectionId}
-            onChange={(e) => setSectionId(e.target.value)}
-            className="flex h-10 w-40 rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
-          >
-            <option value="" disabled>
-              Seleccioná una sección
-            </option>
-            {sections?.map((section) => (
-              <option key={section.id} value={section.id}>
-                {section.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <Button type="submit" disabled={isPending || missingPrereqs}>
-          {isPending ? 'Matriculando...' : 'Matricular'}
-        </Button>
-      </div>
-
-      {missingPrereqs && (
-        <p className="text-sm text-muted-foreground">
-          Necesitás al menos un año lectivo y una sección creados.
-        </p>
-      )}
-      {error && <p className="text-sm text-destructive">{error}</p>}
-    </form>
+            <div className="space-y-1.5">
+              <Label htmlFor="new-birthDate">Fecha de nacimiento</Label>
+              <Input
+                id="new-birthDate"
+                type="date"
+                required
+                max={today}
+                value={birthDate}
+                onChange={(e) => setBirthDate(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="new-documentType">Tipo de documento</Label>
+              <select
+                id="new-documentType"
+                required
+                value={documentType}
+                onChange={(e) => setDocumentType(e.target.value as DocumentType)}
+                className="flex h-10 w-full rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
+              >
+                <option value="" disabled>
+                  Seleccioná un tipo
+                </option>
+                {DOCUMENT_TYPE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="new-documentNumber">Número de documento</Label>
+              <Input
+                id="new-documentNumber"
+                required
+                minLength={3}
+                value={documentNumber}
+                onChange={(e) => setDocumentNumber(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="new-address">Dirección</Label>
+              <Input
+                id="new-address"
+                required
+                minLength={3}
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="new-academicYearId">Año lectivo</Label>
+              <select
+                id="new-academicYearId"
+                required
+                value={academicYearId}
+                onChange={(e) => setAcademicYearId(e.target.value)}
+                className="flex h-10 w-full rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
+              >
+                <option value="" disabled>
+                  Seleccioná un año
+                </option>
+                {years?.map((year) => (
+                  <option key={year.id} value={year.id}>
+                    {year.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="new-sectionId">Sección</Label>
+              <select
+                id="new-sectionId"
+                required
+                value={sectionId}
+                onChange={(e) => setSectionId(e.target.value)}
+                className="flex h-10 w-full rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
+              >
+                <option value="" disabled>
+                  Seleccioná una sección
+                </option>
+                {sections?.map((section) => (
+                  <option key={section.id} value={section.id}>
+                    {section.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          {error && <p className="text-sm text-destructive">{error}</p>}
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="ghost" onClick={() => setDialogOpen(false)}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={isPending}>
+              {isPending ? 'Matriculando...' : 'Matricular'}
+            </Button>
+          </div>
+        </form>
+      </Dialog>
+    </div>
   );
 }

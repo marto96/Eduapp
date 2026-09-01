@@ -12,6 +12,7 @@ import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import type { Survey } from '@eduapp/shared-types';
+import { LoadingState } from '@/components/ui/loading-state';
 
 interface SurveyCardProps {
   survey: Survey;
@@ -60,7 +61,7 @@ export function SurveyCard({ survey, canManage = false }: SurveyCardProps) {
         {isVoided && <span className="text-xs uppercase text-destructive">Anulada</span>}
       </div>
 
-      {isLoading && <p className="text-sm text-muted-foreground">Cargando...</p>}
+      {isLoading && <LoadingState />}
 
       {results && canVote && (
         <div className="space-y-4">

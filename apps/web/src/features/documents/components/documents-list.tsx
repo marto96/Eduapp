@@ -6,6 +6,7 @@ import { useUsers } from '@/features/users/use-users';
 import { useSections } from '@/features/academic/use-sections';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { LoadingState } from '@/components/ui/loading-state';
 
 const TYPE_LABELS: Record<string, string> = {
   constancia_matricula: 'Constancia de matrícula',
@@ -21,7 +22,7 @@ export function DocumentsList({ canManage }: { canManage: boolean }) {
   const { data: sections } = useSections();
   const voidDocument = useVoidDocument();
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">Cargando...</p>;
+  if (isLoading) return <LoadingState />;
   if (error) return <p className="text-sm text-destructive">No se pudieron cargar los documentos.</p>;
   if (!documents || documents.length === 0) {
     return <p className="text-sm text-muted-foreground">Todavía no hay documentos emitidos.</p>;

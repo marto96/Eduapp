@@ -11,6 +11,9 @@ export type UserRole =
   | 'estudiante'
   | 'padre_tutor';
 
+/** Tipos de documento de identidad vigentes en Colombia (Registraduría Nacional). */
+export type DocumentType = 'RC' | 'TI' | 'CC' | 'CE' | 'PA';
+
 const MAX_FAILED_LOGIN_ATTEMPTS = 5;
 const LOCKOUT_MINUTES = 15;
 
@@ -25,6 +28,10 @@ export class User {
     public status: 'active' | 'invited' | 'suspended',
     private failedLoginAttempts: number = 0,
     private lockedUntil: Date | null = null,
+    public birthDate: string | null = null,
+    public documentType: DocumentType | null = null,
+    public documentNumber: string | null = null,
+    public address: string | null = null,
   ) {}
 
   get fullName(): string {

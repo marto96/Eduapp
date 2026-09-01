@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import type { Event } from '@eduapp/shared-types';
+import { LoadingState } from '@/components/ui/loading-state';
 
 function formatDateTime(value: string): string {
   return new Date(value).toLocaleString('es-CO', {
@@ -33,7 +34,7 @@ export function EventsList({ canManage = false }: { canManage?: boolean }) {
   const [endsAt, setEndsAt] = useState('');
   const [sectionId, setSectionId] = useState('');
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">Cargando...</p>;
+  if (isLoading) return <LoadingState />;
   if (error) return <p className="text-sm text-destructive">No se pudieron cargar los eventos.</p>;
   if (!events || events.length === 0) {
     return <p className="text-sm text-muted-foreground">Todavía no hay eventos programados.</p>;

@@ -2,11 +2,12 @@
 
 import { useAcademicYears } from '../use-academic-years';
 import { Card } from '@/components/ui/card';
+import { LoadingState } from '@/components/ui/loading-state';
 
 export function AcademicYearsList() {
   const { data: years, isLoading, error } = useAcademicYears();
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">Cargando...</p>;
+  if (isLoading) return <LoadingState />;
   if (error) return <p className="text-sm text-destructive">No se pudieron cargar los años lectivos.</p>;
   if (!years || years.length === 0) {
     return <p className="text-sm text-muted-foreground">Todavía no hay años lectivos.</p>;

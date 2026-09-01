@@ -10,12 +10,13 @@ export function CreateGradeForm() {
   const createGrade = useCreateGrade();
   const [name, setName] = useState('');
   const [level, setLevel] = useState('');
+  const [order, setOrder] = useState('');
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
     createGrade.mutate(
-      { name, level },
-      { onSuccess: () => { setName(''); setLevel(''); } },
+      { name, level, order: Number(order) },
+      { onSuccess: () => { setName(''); setLevel(''); setOrder(''); } },
     );
   }
 
@@ -39,6 +40,19 @@ export function CreateGradeForm() {
           required
           value={level}
           onChange={(e) => setLevel(e.target.value)}
+        />
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="order">Orden</Label>
+        <Input
+          id="order"
+          type="number"
+          min={0}
+          placeholder="1"
+          className="w-20"
+          required
+          value={order}
+          onChange={(e) => setOrder(e.target.value)}
         />
       </div>
       <Button type="submit" disabled={createGrade.isPending}>

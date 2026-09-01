@@ -8,6 +8,7 @@ import { User } from '../../domain/entities/user.entity';
 describe('AuthenticateUserUseCase', () => {
   const users: jest.Mocked<UserRepositoryPort> = {
     findByEmail: jest.fn(),
+    findByDocumentNumber: jest.fn(),
     findById: jest.fn(),
     findAll: jest.fn(),
     save: jest.fn(),

@@ -2,11 +2,12 @@
 
 import { useSubjects } from '../use-subjects';
 import { Card } from '@/components/ui/card';
+import { LoadingState } from '@/components/ui/loading-state';
 
 export function SubjectsList() {
   const { data: subjects, isLoading, error } = useSubjects();
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">Cargando...</p>;
+  if (isLoading) return <LoadingState />;
   if (error) return <p className="text-sm text-destructive">No se pudieron cargar las asignaturas.</p>;
   if (!subjects || subjects.length === 0) {
     return <p className="text-sm text-muted-foreground">Todavía no hay asignaturas.</p>;

@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Pagination } from '@/components/ui/pagination';
 import { formatCurrency } from '@/lib/currency';
 import type { Charge, ChargeStatus } from '@eduapp/shared-types';
+import { LoadingState } from '@/components/ui/loading-state';
 
 const PAGE_SIZE = 20;
 
@@ -52,7 +53,7 @@ export function ChargesList({ canManage }: { canManage: boolean }) {
   const [dueDate, setDueDate] = useState('');
   const [discountAmount, setDiscountAmount] = useState('');
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">Cargando...</p>;
+  if (isLoading) return <LoadingState />;
   if (error) return <p className="text-sm text-destructive">No se pudieron cargar los cargos.</p>;
   if (!charges || charges.length === 0) {
     return <p className="text-sm text-muted-foreground">Todavía no hay cargos.</p>;

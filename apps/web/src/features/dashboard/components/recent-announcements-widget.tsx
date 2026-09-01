@@ -2,6 +2,7 @@
 
 import { useAnnouncements } from '@/features/announcements/use-announcements';
 import { Card } from '@/components/ui/card';
+import { LoadingState } from '@/components/ui/loading-state';
 
 export function RecentAnnouncementsWidget() {
   const { data: announcements, isLoading } = useAnnouncements();
@@ -14,7 +15,7 @@ export function RecentAnnouncementsWidget() {
   return (
     <Card className="lg:col-span-2">
       <p className="text-[10px] uppercase tracking-wide text-primary">Comunicados recientes</p>
-      {isLoading && <p className="mt-2 text-sm text-muted-foreground">Cargando...</p>}
+      {isLoading && <LoadingState className="mt-2" />}
       {!isLoading && recent.length === 0 && (
         <p className="mt-2 text-sm text-muted-foreground">No hay comunicados todavía.</p>
       )}

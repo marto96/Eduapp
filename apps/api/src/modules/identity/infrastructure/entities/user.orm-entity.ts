@@ -38,4 +38,16 @@ export class UserOrmEntity {
 
   @Column({ name: 'locked_until', type: 'timestamptz', nullable: true })
   lockedUntil: Date | null;
+
+  @Column({ name: 'birth_date', type: 'date', nullable: true })
+  birthDate: string | null;
+
+  @Column({ name: 'document_type', type: 'varchar', nullable: true })
+  documentType: string | null;
+
+  @Column({ name: 'document_number', type: 'varchar', nullable: true })
+  documentNumber: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  address: string | null;
 }

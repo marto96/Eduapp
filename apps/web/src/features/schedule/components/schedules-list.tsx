@@ -8,6 +8,7 @@ import { useUsers } from '@/features/users/use-users';
 import { Card } from '@/components/ui/card';
 import { VirtualClassControls } from './virtual-class-controls';
 import { todayDayOfWeek, todayLocalDate } from '@/lib/date';
+import { LoadingState } from '@/components/ui/loading-state';
 
 const DAY_LABELS: Record<string, string> = {
   lunes: 'Lunes',
@@ -32,7 +33,7 @@ export function SchedulesList({
   const today = todayLocalDate();
   const { data: cancellations } = useClassCancellations({ from: today, to: today });
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">Cargando...</p>;
+  if (isLoading) return <LoadingState />;
   if (error) return <p className="text-sm text-destructive">No se pudieron cargar los horarios.</p>;
   if (!schedules || schedules.length === 0) {
     return <p className="text-sm text-muted-foreground">Todavía no hay horarios.</p>;

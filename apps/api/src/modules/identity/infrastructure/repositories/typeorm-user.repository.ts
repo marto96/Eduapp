@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
 import { UserFilter, UserRepositoryPort } from '../../application/ports/user.repository.port';
-import { User, UserRole } from '../../domain/entities/user.entity';
+import { DocumentType, User, UserRole } from '../../domain/entities/user.entity';
 import { UserOrmEntity } from '../entities/user.orm-entity';
 import { TENANT_DATA_SOURCE } from '../../../../core/database/tenant-datasource.provider';
 
@@ -22,6 +22,11 @@ export class TypeOrmUserRepository extends UserRepositoryPort {
 
   async findByEmail(email: string): Promise<User | null> {
     const row = await this.repo.findOne({ where: { email } });
+    return row ? this.toDomain(row) : null;
+  }
+
+  async findByDocumentNumber(documentNumber: string): Promise<User | null> {
+    const row = await this.repo.findOne({ where: { documentNumber } });
     return row ? this.toDomain(row) : null;
   }
 
@@ -50,6 +55,10 @@ export class TypeOrmUserRepository extends UserRepositoryPort {
       status: user.status,
       failedLoginAttempts: user.getFailedLoginAttempts(),
       lockedUntil: user.getLockedUntil(),
+      birthDate: user.birthDate,
+      documentType: user.documentType,
+      documentNumber: user.documentNumber,
+      address: user.address,
     });
   }
 
@@ -64,6 +73,10 @@ export class TypeOrmUserRepository extends UserRepositoryPort {
       row.status,
       row.failedLoginAttempts,
       row.lockedUntil,
+      row.birthDate,
+      row.documentType as DocumentType | null,
+      row.documentNumber,
+      row.address,
     );
   }
 }

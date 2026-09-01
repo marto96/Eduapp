@@ -1,8 +1,9 @@
 import { randomUUID } from 'node:crypto';
-import { ConflictException, Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, Inject, Injectable } from '@nestjs/common';
 import { UserRepositoryPort } from '../ports/user.repository.port';
 import { PasswordHasherPort } from '../../../../core/security/password-hasher.port';
-import { User, UserRole } from '../../domain/entities/user.entity';
+import { DocumentType, User, UserRole } from '../../domain/entities/user.entity';
+import { isUniqueViolation } from '../../../../core/database/postgres-error.util';
 
 export interface CreateUserInput {
   email: string;
@@ -10,6 +11,10 @@ export interface CreateUserInput {
   firstName: string;
   lastName: string;
   roles: UserRole[];
+  birthDate?: string;
+  documentType?: DocumentType;
+  documentNumber?: string;
+  address?: string;
 }
 
 @Injectable()
@@ -25,6 +30,19 @@ export class CreateUserUseCase {
       throw new ConflictException(`Ya existe un usuario con email "${input.email}"`);
     }
 
+    if (input.documentNumber) {
+      const existingByDocument = await this.users.findByDocumentNumber(input.documentNumber);
+      if (existingByDocument) {
+        throw new ConflictException(
+          `Ya existe un usuario con número de documento "${input.documentNumber}"`,
+        );
+      }
+    }
+
+    if (input.birthDate && input.birthDate > new Date().toISOString().slice(0, 10)) {
+      throw new BadRequestException('La fecha de nacimiento no puede ser futura');
+    }
+
     const passwordHash = await this.hasher.hash(input.password);
     const user = new User(
       randomUUID(),
@@ -34,9 +52,24 @@ export class CreateUserUseCase {
       input.lastName,
       input.roles,
       'active',
+      0,
+      null,
+      input.birthDate ?? null,
+      input.documentType ?? null,
+      input.documentNumber ?? null,
+      input.address ?? null,
     );
 
-    await this.users.save(user);
+    try {
+      await this.users.save(user);
+    } catch (err) {
+      if (isUniqueViolation(err) && input.documentNumber) {
+        throw new ConflictException(
+          `Ya existe un usuario con número de documento "${input.documentNumber}"`,
+        );
+      }
+      throw err;
+    }
     return user;
   }
 }

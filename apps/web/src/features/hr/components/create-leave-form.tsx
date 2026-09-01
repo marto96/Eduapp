@@ -5,6 +5,7 @@ import { useCreateLeave } from '../use-leaves';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
 import type { LeaveType } from '@eduapp/shared-types';
 
 const TYPES: { value: LeaveType; label: string }[] = [
@@ -78,6 +79,7 @@ export function CreateLeaveForm({ employeeId, onDone }: { employeeId: string; on
         />
       </div>
       <Button type="submit" disabled={createLeave.isPending}>
+        {createLeave.isPending && <Spinner className="mr-2 h-4 w-4" />}
         {createLeave.isPending ? 'Cargando...' : 'Cargar licencia'}
       </Button>
       <Button type="button" variant="ghost" onClick={onDone}>

@@ -11,6 +11,7 @@ export interface UserFilter {
  */
 export abstract class UserRepositoryPort {
   abstract findByEmail(email: string): Promise<User | null>;
+  abstract findByDocumentNumber(documentNumber: string): Promise<User | null>;
   abstract findById(id: string): Promise<User | null>;
   abstract findAll(filter?: UserFilter): Promise<User[]>;
   abstract save(user: User): Promise<void>;

@@ -7,6 +7,7 @@ import { CreateAcademicYearUseCase } from './application/use-cases/create-academ
 import { ListAcademicYearsUseCase } from './application/use-cases/list-academic-years.use-case';
 import { GetAcademicYearUseCase } from './application/use-cases/get-academic-year.use-case';
 import { CreateGradeUseCase } from './application/use-cases/create-grade.use-case';
+import { EditGradeUseCase } from './application/use-cases/edit-grade.use-case';
 import { ListGradesUseCase } from './application/use-cases/list-grades.use-case';
 import { CreateSectionUseCase } from './application/use-cases/create-section.use-case';
 import { ListSectionsUseCase } from './application/use-cases/list-sections.use-case';
@@ -28,6 +29,7 @@ import { TypeOrmSubjectRepository } from './infrastructure/repositories/typeorm-
     ListAcademicYearsUseCase,
     GetAcademicYearUseCase,
     CreateGradeUseCase,
+    EditGradeUseCase,
     ListGradesUseCase,
     CreateSectionUseCase,
     ListSectionsUseCase,

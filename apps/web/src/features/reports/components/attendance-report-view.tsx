@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { LoadingState } from '@/components/ui/loading-state';
 
 export function AttendanceReportView() {
   const { data: sections } = useSections();
@@ -53,7 +54,7 @@ export function AttendanceReportView() {
         <Button type="submit">Ver reporte</Button>
       </form>
 
-      {isLoading && <p className="text-sm text-muted-foreground">Cargando...</p>}
+      {isLoading && <LoadingState />}
       {error && <p className="text-sm text-destructive">No se pudo cargar el reporte.</p>}
       {rows?.map((row) => (
         <Card key={row.sectionId} className="space-y-1 py-3">

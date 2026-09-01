@@ -19,6 +19,11 @@ export class TypeOrmSectionRepository extends SectionRepositoryPort {
     return rows.map((row) => new Section(row.id, row.gradeId, row.name));
   }
 
+  async findById(id: string): Promise<Section | null> {
+    const row = await this.repo.findOne({ where: { id } });
+    return row ? new Section(row.id, row.gradeId, row.name) : null;
+  }
+
   async save(section: Section): Promise<void> {
     await this.repo.save({ id: section.id, gradeId: section.gradeId, name: section.name });
   }

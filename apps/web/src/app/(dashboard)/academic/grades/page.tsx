@@ -16,7 +16,7 @@ export default async function GradesPage() {
       </div>
 
       {canManage && <CreateGradeForm />}
-      <GradesList />
+      <GradesList canManage={canManage} />
     </main>
   );
 }

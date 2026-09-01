@@ -8,6 +8,7 @@ import { useUsers } from '@/features/users/use-users';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { formatCurrency } from '@/lib/currency';
+import { LoadingState } from '@/components/ui/loading-state';
 
 const CONTRACT_LABELS: Record<string, string> = {
   planta: 'Planta',
@@ -30,7 +31,7 @@ export function EmployeesList({ canManage }: { canManage: boolean }) {
   const terminateEmployee = useTerminateEmployee();
   const cancelLeave = useCancelLeave();
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">Cargando...</p>;
+  if (isLoading) return <LoadingState />;
   if (error) return <p className="text-sm text-destructive">No se pudieron cargar los legajos.</p>;
   if (!employees || employees.length === 0) {
     return <p className="text-sm text-muted-foreground">Todavía no hay legajos cargados.</p>;

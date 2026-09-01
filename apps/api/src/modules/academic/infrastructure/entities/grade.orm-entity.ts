@@ -11,6 +11,9 @@ export class GradeOrmEntity {
   @Column()
   level: string;
 
+  @Column({ type: 'int', default: 0 })
+  order: number;
+
   @Column({ name: 'created_at', type: 'timestamptz', default: () => 'now()' })
   createdAt: Date;
 

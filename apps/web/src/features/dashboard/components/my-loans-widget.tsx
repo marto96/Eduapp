@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useLoans } from '@/features/library/use-loans';
 import { useBooks } from '@/features/library/use-books';
 import { Card } from '@/components/ui/card';
+import { LoadingState } from '@/components/ui/loading-state';
 
 export function MyLoansWidget() {
   const { data: loans, isLoading } = useLoans();
@@ -16,7 +17,7 @@ export function MyLoansWidget() {
     <Link href="/library" className="block">
       <Card className="transition-colors hover:border-primary">
         <p className="text-[10px] uppercase tracking-wide text-primary">Préstamos activos</p>
-        {isLoading && <p className="mt-2 text-sm text-muted-foreground">Cargando...</p>}
+        {isLoading && <LoadingState className="mt-2" />}
         {!isLoading && active.length === 0 && (
           <p className="mt-2 text-sm text-muted-foreground">Sin préstamos activos.</p>
         )}

@@ -32,6 +32,7 @@ export interface Grade {
   id: string;
   name: string;
   level: string;
+  order: number;
 }
 
 export interface Section {
@@ -54,12 +55,14 @@ export interface TenantUser {
   status: 'active' | 'invited' | 'suspended';
 }
 
+export type EnrollmentStatus = 'active' | 'withdrawn' | 'completed';
+
 export interface Enrollment {
   id: string;
   studentId: string;
   sectionId: string;
   academicYearId: string;
-  status: 'active' | 'withdrawn' | 'completed';
+  status: EnrollmentStatus;
 }
 
 export type AttendanceStatus = 'presente' | 'ausente' | 'tarde' | 'justificado';

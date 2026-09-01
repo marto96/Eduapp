@@ -28,7 +28,7 @@ describe('CreateFeeScheduleUseCase', () => {
   const useCase = new CreateFeeScheduleUseCase(feeSchedules, grades, academicYears);
 
   const input = { gradeId: 'grade-1', academicYearId: 'year-2027', concept: 'pension' as const, amount: 150000 };
-  const grade = () => new Grade('grade-1', '3ro', 'primaria');
+  const grade = () => new Grade('grade-1', '3ro', 'primaria', 3);
   const year = () => new AcademicYear('year-2027', '2027', new Date('2027-03-01'), new Date('2027-12-15'), 'active');
 
   beforeEach(() => jest.clearAllMocks());

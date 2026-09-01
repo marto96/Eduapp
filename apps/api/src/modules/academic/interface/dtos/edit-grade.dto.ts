@@ -1,6 +1,6 @@
 import { IsInt, IsString, Min, MinLength } from 'class-validator';
 
-export class CreateGradeDto {
+export class EditGradeDto {
   @IsString()
   @MinLength(1)
   name: string;
