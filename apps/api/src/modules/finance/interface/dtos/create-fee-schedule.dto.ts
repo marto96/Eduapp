@@ -1,7 +1,7 @@
 import { IsIn, IsNumber, IsUUID, Min } from 'class-validator';
 import { ChargeConcept } from '../../domain/entities/charge.entity';
 
-const KNOWN_CONCEPTS: ChargeConcept[] = ['matricula', 'pension', 'otro'];
+const KNOWN_CONCEPTS: ChargeConcept[] = ['matricula', 'pension', 'solicitud_admision', 'otro'];
 
 export class CreateFeeScheduleDto {
   @IsUUID()

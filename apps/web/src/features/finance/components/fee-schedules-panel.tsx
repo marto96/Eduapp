@@ -14,6 +14,7 @@ import type { ChargeConcept } from '@eduapp/shared-types';
 const CONCEPTS: { value: ChargeConcept; label: string }[] = [
   { value: 'matricula', label: 'Matrícula' },
   { value: 'pension', label: 'Pensión' },
+  { value: 'solicitud_admision', label: 'Solicitud de admisión' },
   { value: 'otro', label: 'Otro' },
 ];
 
