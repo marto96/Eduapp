@@ -16,6 +16,7 @@ const TENANT_MODULES = [
   'identity',
   'academic',
   'enrollment',
+  'admissions',
   'attendance',
   'grading',
   'schedule',
