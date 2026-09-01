@@ -19,6 +19,7 @@ import {
   ListChecks,
   Library,
   PieChart,
+  UserPlus,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -45,6 +46,7 @@ export const NAV_LINKS: NavLink[] = [
   { href: '/academic/subjects', label: 'Asignaturas', icon: BookOpen, roles: ADMIN },
   { href: '/schedule', label: 'Horarios', icon: Clock, roles: ADMIN_SECRETARIA_DOCENTE },
   { href: '/enrollment', label: 'Matrícula', icon: ClipboardList, roles: ADMIN_SECRETARIA_DOCENTE },
+  { href: '/admissions', label: 'Admisiones', icon: UserPlus, roles: ADMIN_SECRETARIA },
   { href: '/attendance', label: 'Asistencia', icon: CheckSquare, roles: ADMIN_DOCENTE },
   { href: '/grading', label: 'Calificaciones', icon: BarChart3, roles: ADMIN_DOCENTE },
   { href: '/finance', label: 'Finanzas', icon: Wallet, roles: ADMIN_SECRETARIA },
