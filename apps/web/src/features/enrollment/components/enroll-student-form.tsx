@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { useEnrollStudent } from '../use-enrollments';
 import { useCreateUser, useUsers } from '@/features/users/use-users';
 import { useAcademicYears } from '@/features/academic/use-academic-years';
@@ -38,13 +38,15 @@ const today = new Date().toISOString().slice(0, 10);
  * Los datos de la solicitud de admisión (nombre, documento, dirección — PII
  * de un menor) nunca viajan por la URL: `admission-applications-list.tsx`
  * los deja en `sessionStorage` antes de navegar acá. Se leen una sola vez,
- * sincrónicamente (antes de los `useState` que los usan como valor
- * inicial), y se borran de inmediato — no deben quedar en storage después
- * de usarse. `typeof window === 'undefined'` cubre el paso de render en
- * servidor que Next.js hace incluso para client components.
+ * dentro de un `useEffect` (nunca en el cuerpo del componente — este client
+ * component igual se renderiza en el servidor durante el paso inicial de
+ * Next.js, donde `sessionStorage` no existe; leerlo sincrónicamente ahí
+ * desincroniza el HTML del servidor del primer render del cliente, un
+ * hydration mismatch), y se borran de inmediato — no deben quedar en
+ * storage después de usarse.
  */
 function readAdmissionPrefill(admissionId?: string): AdmissionPrefill | undefined {
-  if (!admissionId || typeof window === 'undefined') return undefined;
+  if (!admissionId) return undefined;
   const key = `admission-prefill-${admissionId}`;
   try {
     const raw = sessionStorage.getItem(key);
@@ -70,22 +72,44 @@ export function EnrollStudentForm({
   const createUser = useCreateUser();
   const linkEnrollment = useLinkAdmissionEnrollment();
 
-  const prefill = readAdmissionPrefill(admissionId);
-
-  const [mode, setMode] = useState<StudentMode>(matchedUserId ? 'existing' : prefill ? 'new' : 'existing');
-  const [dialogOpen, setDialogOpen] = useState(!matchedUserId && !!prefill);
-  const [studentId, setStudentId] = useState(matchedUserId ?? '');
-  const [firstName, setFirstName] = useState(prefill?.firstName ?? '');
-  const [lastName, setLastName] = useState(prefill?.lastName ?? '');
+  const [mode, setMode] = useState<StudentMode>('existing');
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [studentId, setStudentId] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [birthDate, setBirthDate] = useState(prefill?.birthDate ?? '');
-  const [documentType, setDocumentType] = useState<IdentityDocumentType | ''>(prefill?.documentType ?? '');
-  const [documentNumber, setDocumentNumber] = useState(prefill?.documentNumber ?? '');
-  const [address, setAddress] = useState(prefill?.address ?? '');
-  const [academicYearId, setAcademicYearId] = useState(prefill?.academicYearId ?? '');
+  const [birthDate, setBirthDate] = useState('');
+  const [documentType, setDocumentType] = useState<IdentityDocumentType | ''>('');
+  const [documentNumber, setDocumentNumber] = useState('');
+  const [address, setAddress] = useState('');
+  const [academicYearId, setAcademicYearId] = useState('');
   const [sectionId, setSectionId] = useState('');
   const [error, setError] = useState<string | null>(null);
+
+  // Corre una sola vez tras montar en el cliente — ver el comentario de
+  // `readAdmissionPrefill` sobre por qué esto no puede ser una
+  // inicialización síncrona de useState.
+  useEffect(() => {
+    if (matchedUserId) {
+      setMode('existing');
+      setStudentId(matchedUserId);
+      return;
+    }
+    const prefill = readAdmissionPrefill(admissionId);
+    if (prefill) {
+      setMode('new');
+      setDialogOpen(true);
+      setFirstName(prefill.firstName);
+      setLastName(prefill.lastName);
+      setBirthDate(prefill.birthDate);
+      setDocumentType(prefill.documentType);
+      setDocumentNumber(prefill.documentNumber);
+      setAddress(prefill.address);
+      setAcademicYearId(prefill.academicYearId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [admissionId, matchedUserId]);
 
   const missingPrereqs = !years?.length || !sections?.length;
   const isPending = enrollStudent.isPending || createUser.isPending;
