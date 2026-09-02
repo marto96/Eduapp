@@ -80,4 +80,16 @@ describe('AcceptAdmissionApplicationUseCase', () => {
     expect(result.matchedUserId).toBe('user-99');
     expect(result.application.matchedUserId).toBe('user-99');
   });
+
+  it('coincidencia de documento con un usuario que no es estudiante (ej. padre_tutor): matchedUserId null', async () => {
+    applications.findById.mockResolvedValue(build('pendiente_entrevista'));
+    users.findByDocumentNumber.mockResolvedValue(
+      new User('user-50', 'padre@test.com', 'hash', 'Juan', 'Pérez', ['padre_tutor'], 'active'),
+    );
+
+    const result = await useCase.execute('app-1');
+
+    expect(result.matchedUserId).toBeNull();
+    expect(result.application.matchedUserId).toBeNull();
+  });
 });

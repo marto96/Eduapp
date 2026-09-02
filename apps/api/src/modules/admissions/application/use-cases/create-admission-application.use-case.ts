@@ -10,6 +10,7 @@ import { AdmissionApplication } from '../../domain/entities/admission-applicatio
 import { AdmissionPaymentAttempt } from '../../domain/entities/admission-payment-attempt.entity';
 import { DocumentType } from '../../../identity/domain/entities/user.entity';
 import { generateTrackingCode } from '../services/generate-tracking-code';
+import { isUniqueViolation } from '../../../../core/database/postgres-error.util';
 
 export interface CreateAdmissionApplicationInput {
   studentFirstName: string;
@@ -92,13 +93,23 @@ export class CreateAdmissionApplicationUseCase {
       null,
       new Date().toISOString(),
     );
-    await this.applications.save(application);
+    try {
+      await this.applications.save(application);
+    } catch (err) {
+      if (isUniqueViolation(err)) {
+        throw new ConflictException('Ya existe una solicitud en curso para ese número de documento');
+      }
+      throw err;
+    }
 
     const attemptId = randomUUID();
     const { preferenceId, checkoutUrl } = await this.gateway.createCheckoutPreference({
       externalReference: attemptId,
       payerEmail: input.guardianEmail,
       item: { title: `Solicitud de admisión — ${grade.name}`, amount: feeSchedule.amount },
+      webhookPath: 'admissions/webhooks/payment',
+      successPath: `admisiones/estado?code=${application.trackingCode}`,
+      failurePath: `admisiones/estado?code=${application.trackingCode}`,
     });
 
     const attempt = new AdmissionPaymentAttempt(

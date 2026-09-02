@@ -53,6 +53,9 @@ export class CreatePaymentCheckoutUseCase {
       externalReference: attemptId,
       payerEmail: guardian?.email ?? '',
       item: { title: charge.description, amount: balance },
+      webhookPath: 'finance/payments/webhook',
+      successPath: 'portal/payment-success',
+      failurePath: 'portal/payment-failure',
     });
 
     const attempt = new PaymentAttempt(

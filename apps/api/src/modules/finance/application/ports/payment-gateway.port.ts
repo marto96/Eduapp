@@ -7,6 +7,12 @@ export interface CreateCheckoutInput {
   externalReference: string;
   payerEmail: string;
   item: CheckoutItem;
+  /** Path (sin barra inicial) del webhook que MercadoPago debe notificar — ej. 'finance/payments/webhook'. Cada caller es dueño de su propio webhook, este gateway no debe asumir cuál. */
+  webhookPath: string;
+  /** Path (sin barra inicial, puede incluir querystring) al que redirigir tras un pago exitoso o pendiente. */
+  successPath: string;
+  /** Path (sin barra inicial) al que redirigir tras un pago fallido. */
+  failurePath: string;
 }
 
 export interface CheckoutPreference {

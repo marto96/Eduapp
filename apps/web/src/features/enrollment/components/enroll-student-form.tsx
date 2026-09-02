@@ -34,14 +34,34 @@ const DOCUMENT_TYPE_OPTIONS: { value: IdentityDocumentType; label: string }[] = 
 
 const today = new Date().toISOString().slice(0, 10);
 
+/**
+ * Los datos de la solicitud de admisión (nombre, documento, dirección — PII
+ * de un menor) nunca viajan por la URL: `admission-applications-list.tsx`
+ * los deja en `sessionStorage` antes de navegar acá. Se leen una sola vez,
+ * sincrónicamente (antes de los `useState` que los usan como valor
+ * inicial), y se borran de inmediato — no deben quedar en storage después
+ * de usarse. `typeof window === 'undefined'` cubre el paso de render en
+ * servidor que Next.js hace incluso para client components.
+ */
+function readAdmissionPrefill(admissionId?: string): AdmissionPrefill | undefined {
+  if (!admissionId || typeof window === 'undefined') return undefined;
+  const key = `admission-prefill-${admissionId}`;
+  try {
+    const raw = sessionStorage.getItem(key);
+    if (!raw) return undefined;
+    sessionStorage.removeItem(key);
+    return JSON.parse(raw) as AdmissionPrefill;
+  } catch {
+    return undefined;
+  }
+}
+
 export function EnrollStudentForm({
   admissionId,
   matchedUserId,
-  prefill,
 }: {
   admissionId?: string;
   matchedUserId?: string;
-  prefill?: AdmissionPrefill;
 }) {
   const { data: students } = useUsers('estudiante');
   const { data: years } = useAcademicYears();
@@ -49,6 +69,8 @@ export function EnrollStudentForm({
   const enrollStudent = useEnrollStudent();
   const createUser = useCreateUser();
   const linkEnrollment = useLinkAdmissionEnrollment();
+
+  const prefill = readAdmissionPrefill(admissionId);
 
   const [mode, setMode] = useState<StudentMode>(matchedUserId ? 'existing' : prefill ? 'new' : 'existing');
   const [dialogOpen, setDialogOpen] = useState(!matchedUserId && !!prefill);

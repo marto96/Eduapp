@@ -31,6 +31,9 @@ export function AdmissionApplicationForm() {
   const [guardianName, setGuardianName] = useState('');
   const [guardianEmail, setGuardianEmail] = useState('');
   const [guardianPhone, setGuardianPhone] = useState('');
+  const [submitted, setSubmitted] = useState<{ trackingCode: string; checkoutUrl: string } | null>(
+    null,
+  );
 
   useEffect(() => {
     fetch('/api/public/grades')
@@ -56,10 +59,33 @@ export function AdmissionApplicationForm() {
         guardianPhone,
       },
       {
-        onSuccess: ({ checkoutUrl }) => {
-          window.location.href = checkoutUrl;
-        },
+        onSuccess: (result) => setSubmitted(result),
       },
+    );
+  }
+
+  if (submitted) {
+    return (
+      <div className="space-y-4 text-center">
+        <p className="text-sm text-muted-foreground">Tu código de seguimiento es:</p>
+        <p className="text-2xl font-semibold tracking-wide">{submitted.trackingCode}</p>
+        <p className="text-sm text-muted-foreground">
+          Guardalo — es la única forma de consultar el estado de tu solicitud en{' '}
+          <a href="/admisiones/estado" className="underline">
+            /admisiones/estado
+          </a>
+          .
+        </p>
+        <Button
+          type="button"
+          onClick={() => {
+            window.location.href = submitted.checkoutUrl;
+          }}
+          className="w-full"
+        >
+          Continuar al pago
+        </Button>
+      </div>
     );
   }
 

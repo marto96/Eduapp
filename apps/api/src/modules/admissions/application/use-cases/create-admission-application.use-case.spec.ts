@@ -133,6 +133,9 @@ describe('CreateAdmissionApplicationUseCase', () => {
       externalReference: expect.any(String),
       payerEmail: 'maria@test.com',
       item: { title: 'Solicitud de admisión — Sexto', amount: 150000 },
+      webhookPath: 'admissions/webhooks/payment',
+      successPath: `admisiones/estado?code=${result.trackingCode}`,
+      failurePath: `admisiones/estado?code=${result.trackingCode}`,
     });
   });
 });

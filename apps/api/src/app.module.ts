@@ -78,20 +78,24 @@ export class AppModule implements NestModule {
     // También se excluye /uploads/*: una petición de imagen (<img src="...">)
     // llega con el host del propio servidor API, no con el subdominio de
     // ningún tenant, y este middleware rechazaría el request con 404 si no
-    // se excluye. Mismo motivo para el webhook de pagos: lo llama
-    // MercadoPago directo, no nuestro frontend — resuelve tenant aparte,
-    // ver PaymentWebhookTenantMiddleware.
+    // se excluye. Mismo motivo para el webhook de pagos de finance y el de
+    // admisiones: los llama MercadoPago directo, no nuestro frontend —
+    // resuelven tenant aparte, ver PaymentWebhookTenantMiddleware.
     consumer
       .apply(TenantResolutionMiddleware)
       .exclude(
         { path: 'platform/(.*)', method: RequestMethod.ALL },
         { path: 'uploads/(.*)', method: RequestMethod.ALL },
         { path: 'finance/payments/webhook', method: RequestMethod.POST },
+        { path: 'admissions/webhooks/payment', method: RequestMethod.POST },
       )
       .forRoutes('*');
 
     consumer
       .apply(PaymentWebhookTenantMiddleware)
-      .forRoutes({ path: 'finance/payments/webhook', method: RequestMethod.POST });
+      .forRoutes(
+        { path: 'finance/payments/webhook', method: RequestMethod.POST },
+        { path: 'admissions/webhooks/payment', method: RequestMethod.POST },
+      );
   }
 }

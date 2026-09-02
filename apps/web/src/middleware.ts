@@ -182,6 +182,7 @@ export const config = {
     '/documents/:path*',
     '/portal/:path*',
     '/announcements/:path*',
+    '/admissions/:path*',
     '/calendar/:path*',
     '/messages/:path*',
     '/surveys/:path*',

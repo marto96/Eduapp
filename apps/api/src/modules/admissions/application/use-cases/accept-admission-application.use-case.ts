@@ -36,12 +36,13 @@ export class AcceptAdmissionApplicationUseCase {
     }
 
     const matchedUser = await this.users.findByDocumentNumber(application.studentDocumentNumber);
-    application.accept(matchedUser?.id ?? null);
+    const matchedStudentId = matchedUser?.hasRole('estudiante') ? matchedUser.id : null;
+    application.accept(matchedStudentId);
     await this.applications.save(application);
 
     return {
       application,
-      matchedUserId: matchedUser?.id ?? null,
+      matchedUserId: matchedStudentId,
       prefill: {
         firstName: application.studentFirstName,
         lastName: application.studentLastName,

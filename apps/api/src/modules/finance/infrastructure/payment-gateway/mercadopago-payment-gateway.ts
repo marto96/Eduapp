@@ -49,11 +49,11 @@ export class MercadoPagoPaymentGateway extends PaymentGatewayPort {
         ],
         payer: { email: input.payerEmail },
         external_reference: input.externalReference,
-        notification_url: `${apiPublicUrl}/finance/payments/webhook?tenant=${subdomain}`,
+        notification_url: `${apiPublicUrl}/${input.webhookPath}?tenant=${subdomain}`,
         back_urls: {
-          success: `${webUrl}/portal/payment-success`,
-          failure: `${webUrl}/portal/payment-failure`,
-          pending: `${webUrl}/portal/payment-success`,
+          success: `${webUrl}/${input.successPath}`,
+          failure: `${webUrl}/${input.failurePath}`,
+          pending: `${webUrl}/${input.successPath}`,
         },
       },
     });

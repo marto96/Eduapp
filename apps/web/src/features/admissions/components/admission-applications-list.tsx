@@ -48,14 +48,22 @@ export function AdmissionApplicationsList() {
   }
 
   async function handleAccept(id: string) {
-    const result = await acceptApplication.mutateAsync(id);
-    // El estudiante nuevo/de regreso se termina de matricular desde la
-    // página de Matrícula, pre-cargada con los datos de esta solicitud —
-    // se pasan todos los campos de `prefill` por query param porque la
-    // navegación cruza de un client component a una Server Component page.
-    const params = new URLSearchParams({ admissionId: id, ...result.prefill });
-    if (result.matchedUserId) params.set('matchedUserId', result.matchedUserId);
-    router.push(`/enrollment?${params.toString()}`);
+    try {
+      const result = await acceptApplication.mutateAsync(id);
+      // El estudiante nuevo/de regreso se termina de matricular desde la
+      // página de Matrícula, pre-cargada con los datos de esta solicitud.
+      // Esos datos son PII del menor (nombre, documento, dirección) — no
+      // deben viajar por la URL (historial del navegador, header Referer,
+      // logs de acceso): se guardan en sessionStorage y solo el id de la
+      // solicitud (y el matchedUserId, que no es sensible) cruza por query
+      // param hacia la Server Component page.
+      sessionStorage.setItem(`admission-prefill-${id}`, JSON.stringify(result.prefill));
+      const params = new URLSearchParams({ admissionId: id });
+      if (result.matchedUserId) params.set('matchedUserId', result.matchedUserId);
+      router.push(`/enrollment?${params.toString()}`);
+    } catch {
+      // El error ya se muestra vía el toast global (ver app/providers.tsx).
+    }
   }
 
   function saveReject(id: string) {
