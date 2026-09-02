@@ -1,11 +1,14 @@
-import { Body, Controller, Headers, HttpCode, Post, UnauthorizedException } from '@nestjs/common';
+import { Body, Controller, HttpCode, Post, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Public } from '../../../../core/auth/public.decorator';
 import {
   HandlePaymentWebhookUseCase,
   PaymentWebhookInput,
 } from '../../application/use-cases/handle-payment-webhook.use-case';
-import { verifyMercadoPagoSignature } from '../../infrastructure/payment-gateway/verify-mercadopago-signature';
+import {
+  verifyWompiSignature,
+  WompiWebhookEnvelope,
+} from '../../infrastructure/payment-gateway/verify-wompi-signature';
 
 @Controller('finance/payments')
 @Public()
@@ -17,20 +20,12 @@ export class PaymentWebhookController {
 
   @Post('webhook')
   @HttpCode(200)
-  async webhook(
-    @Body() body: PaymentWebhookInput,
-    @Headers('x-signature') xSignature: string | undefined,
-    @Headers('x-request-id') xRequestId: string | undefined,
-  ) {
-    if (body.data?.id) {
-      const valid = verifyMercadoPagoSignature({
-        secret: this.config.get<string>('MERCADOPAGO_WEBHOOK_SECRET'),
-        xSignature,
-        xRequestId,
-        dataId: body.data.id,
-      });
-      if (!valid) throw new UnauthorizedException('Firma de webhook inválida');
-    }
+  async webhook(@Body() body: PaymentWebhookInput & WompiWebhookEnvelope) {
+    const valid = verifyWompiSignature({
+      secret: this.config.get<string>('WOMPI_EVENTS_SECRET'),
+      body,
+    });
+    if (!valid) throw new UnauthorizedException('Firma de webhook inválida');
 
     await this.handleWebhook.execute(body);
     return { ok: true };

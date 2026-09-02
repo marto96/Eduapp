@@ -78,7 +78,7 @@ describe('CreateAdmissionApplicationUseCase', () => {
     );
     gateway.createCheckoutPreference.mockResolvedValue({
       preferenceId: 'pref-1',
-      checkoutUrl: 'https://mercadopago.test/checkout/pref-1',
+      checkoutUrl: 'https://checkout.wompi.co/p/?reference=pref-1',
     });
   });
 
@@ -119,7 +119,7 @@ describe('CreateAdmissionApplicationUseCase', () => {
   it('crea la solicitud, arma el checkout, y devuelve trackingCode + checkoutUrl', async () => {
     const result = await useCase.execute(input);
 
-    expect(result.checkoutUrl).toBe('https://mercadopago.test/checkout/pref-1');
+    expect(result.checkoutUrl).toBe('https://checkout.wompi.co/p/?reference=pref-1');
     expect(result.trackingCode).toMatch(/^SOL-/);
     expect(applications.save).toHaveBeenCalledTimes(1);
     expect(attempts.save).toHaveBeenCalledTimes(1);

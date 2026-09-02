@@ -1,6 +1,10 @@
 import { AdmissionStatusLookup } from './admission-status-lookup';
 
-export default function AdmissionStatusPage() {
+export default function AdmissionStatusPage({
+  searchParams,
+}: {
+  searchParams: { code?: string };
+}) {
   return (
     <main className="flex min-h-screen items-center justify-center px-4 py-12">
       <div className="w-full max-w-sm space-y-6 rounded-lg border border-border p-8">
@@ -10,7 +14,7 @@ export default function AdmissionStatusPage() {
             Ingresá el código de seguimiento que recibiste al enviar tu solicitud.
           </p>
         </div>
-        <AdmissionStatusLookup />
+        <AdmissionStatusLookup initialCode={searchParams.code} />
       </div>
     </main>
   );

@@ -32,7 +32,7 @@ import { TypeOrmBankTransactionRepository } from './infrastructure/repositories/
 import { TypeOrmPaymentAttemptRepository } from './infrastructure/repositories/typeorm-payment-attempt.repository';
 import { TypeOrmRecordApprovedPayment } from './infrastructure/repositories/typeorm-record-approved-payment';
 import { TypeOrmFeeScheduleRepository } from './infrastructure/repositories/typeorm-fee-schedule.repository';
-import { MercadoPagoPaymentGateway } from './infrastructure/payment-gateway/mercadopago-payment-gateway';
+import { WompiPaymentGateway } from './infrastructure/payment-gateway/wompi-payment-gateway';
 import { EnrollmentModule } from '../enrollment/enrollment.module';
 import { IdentityModule } from '../identity/identity.module';
 import { AcademicModule } from '../academic/academic.module';
@@ -66,7 +66,7 @@ import { AcademicModule } from '../academic/academic.module';
     { provide: PaymentRepositoryPort, useClass: TypeOrmPaymentRepository },
     { provide: BankTransactionRepositoryPort, useClass: TypeOrmBankTransactionRepository },
     { provide: PaymentAttemptRepositoryPort, useClass: TypeOrmPaymentAttemptRepository },
-    { provide: PaymentGatewayPort, useClass: MercadoPagoPaymentGateway },
+    { provide: PaymentGatewayPort, useClass: WompiPaymentGateway },
     { provide: RecordApprovedPaymentPort, useClass: TypeOrmRecordApprovedPayment },
     { provide: FeeScheduleRepositoryPort, useClass: TypeOrmFeeScheduleRepository },
   ],

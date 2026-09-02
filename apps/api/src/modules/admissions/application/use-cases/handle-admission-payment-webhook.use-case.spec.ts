@@ -36,32 +36,32 @@ describe('HandleAdmissionPaymentWebhookUseCase', () => {
 
   beforeEach(() => jest.clearAllMocks());
 
-  it('ignora notificaciones que no son de tipo payment', async () => {
-    await useCase.execute({ type: 'other', data: { id: 'pay-1' } });
+  it('ignora notificaciones que no son de tipo transaction.updated', async () => {
+    await useCase.execute({ event: 'transaction.created', data: { transaction: { id: 'txn-1' } } });
     expect(gateway.getPaymentInfo).not.toHaveBeenCalled();
   });
 
   it('ignora si el intento no existe (webhook de otro pago)', async () => {
     gateway.getPaymentInfo.mockResolvedValue({
       status: 'approved',
-      paymentMethodId: 'visa',
+      paymentMethodId: 'CARD',
       externalReference: 'att-desconocido',
     });
     attempts.findById.mockResolvedValue(null);
 
-    await useCase.execute({ type: 'payment', data: { id: 'pay-1' } });
+    await useCase.execute({ event: 'transaction.updated', data: { transaction: { id: 'txn-1' } } });
     expect(applications.save).not.toHaveBeenCalled();
   });
 
   it('no hace nada si el intento ya estaba approved (idempotencia)', async () => {
     gateway.getPaymentInfo.mockResolvedValue({
       status: 'approved',
-      paymentMethodId: 'visa',
+      paymentMethodId: 'CARD',
       externalReference: 'att-1',
     });
     attempts.findById.mockResolvedValue(buildAttempt('approved'));
 
-    await useCase.execute({ type: 'payment', data: { id: 'pay-1' } });
+    await useCase.execute({ event: 'transaction.updated', data: { transaction: { id: 'txn-1' } } });
     expect(applications.save).not.toHaveBeenCalled();
     expect(attempts.save).not.toHaveBeenCalled();
   });
@@ -69,13 +69,13 @@ describe('HandleAdmissionPaymentWebhookUseCase', () => {
   it('con pago approved: marca el intento approved y la solicitud pendiente_entrevista', async () => {
     gateway.getPaymentInfo.mockResolvedValue({
       status: 'approved',
-      paymentMethodId: 'visa',
+      paymentMethodId: 'CARD',
       externalReference: 'att-1',
     });
     attempts.findById.mockResolvedValue(buildAttempt('pending'));
     applications.findById.mockResolvedValue(buildApplication());
 
-    await useCase.execute({ type: 'payment', data: { id: 'pay-1' } });
+    await useCase.execute({ event: 'transaction.updated', data: { transaction: { id: 'txn-1' } } });
 
     expect(attempts.save).toHaveBeenCalledWith(expect.objectContaining({ status: 'approved' }));
     expect(applications.save).toHaveBeenCalledWith(
@@ -86,12 +86,12 @@ describe('HandleAdmissionPaymentWebhookUseCase', () => {
   it('con pago rejected: marca el intento rejected y no toca la solicitud', async () => {
     gateway.getPaymentInfo.mockResolvedValue({
       status: 'rejected',
-      paymentMethodId: 'visa',
+      paymentMethodId: 'CARD',
       externalReference: 'att-1',
     });
     attempts.findById.mockResolvedValue(buildAttempt('pending'));
 
-    await useCase.execute({ type: 'payment', data: { id: 'pay-1' } });
+    await useCase.execute({ event: 'transaction.updated', data: { transaction: { id: 'txn-1' } } });
 
     expect(attempts.save).toHaveBeenCalledWith(expect.objectContaining({ status: 'rejected' }));
     expect(applications.save).not.toHaveBeenCalled();

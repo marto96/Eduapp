@@ -4,14 +4,14 @@ import { AdmissionPaymentAttemptRepositoryPort } from '../ports/admission-paymen
 import { PaymentGatewayPort } from '../../../finance/application/ports/payment-gateway.port';
 
 export interface AdmissionPaymentWebhookInput {
-  type?: string;
-  data?: { id?: string };
+  event?: string;
+  data?: { transaction?: { id?: string } };
 }
 
 /**
  * Mismo criterio que `HandlePaymentWebhookUseCase` de `finance`: el webhook
  * solo notifica que "algo pasó" — hay que consultar el estado real, y es
- * idempotente porque MercadoPago puede reintentar la notificación.
+ * idempotente porque Wompi puede reintentar la notificación.
  */
 @Injectable()
 export class HandleAdmissionPaymentWebhookUseCase {
@@ -24,9 +24,10 @@ export class HandleAdmissionPaymentWebhookUseCase {
   ) {}
 
   async execute(input: AdmissionPaymentWebhookInput): Promise<void> {
-    if (input.type !== 'payment' || !input.data?.id) return;
+    const transactionId = input.data?.transaction?.id;
+    if (input.event !== 'transaction.updated' || !transactionId) return;
 
-    const info = await this.gateway.getPaymentInfo(input.data.id);
+    const info = await this.gateway.getPaymentInfo(transactionId);
     if (!info.externalReference) return;
 
     const attempt = await this.attempts.findById(info.externalReference);

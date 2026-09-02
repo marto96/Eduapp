@@ -30,13 +30,20 @@ export const envValidationSchema = Joi.object({
   // varios subdominios reales, setear CORS_ORIGINS explícito con todos.
   CORS_ORIGINS: Joi.string().default(''),
 
-  MERCADOPAGO_ACCESS_TOKEN: Joi.string().default('TEST-0000000000000000-000000-00000000000000000000000000000000-000000000'),
-  MERCADOPAGO_PUBLIC_KEY: Joi.string().default(''),
-  // Opcional en dev/test (verify-mercadopago-signature.ts deja pasar sin
-  // chequeo si no está seteado) — pero requerido en producción: sin esto,
-  // el webhook de pagos (`@Public()`) aceptaría cualquier POST sin firma
-  // como notificación legítima de MercadoPago.
-  MERCADOPAGO_WEBHOOK_SECRET: Joi.string()
+  // Llave pública de Wompi (prefijo pub_test_/pub_prod_) — se usa tanto
+  // para armar la URL de checkout como para consultar el estado de una
+  // transacción (`Authorization: Bearer <public-key>`, no hace falta la
+  // llave privada para ninguno de los dos). El ambiente (sandbox vs.
+  // producción) se deriva de este mismo prefijo, ver WompiPaymentGateway.
+  WOMPI_PUBLIC_KEY: Joi.string().default('pub_test_0000000000000000000000000000'),
+  // Firma la integridad del checkout (monto/referencia/moneda) — sin esto
+  // cualquiera podría armar una URL de pago con un monto distinto al real.
+  WOMPI_INTEGRITY_SECRET: Joi.string().default('test_integrity_0000000000000000'),
+  // Opcional en dev/test (verify-wompi-signature.ts deja pasar sin chequeo
+  // si no está seteado) — pero requerido en producción: sin esto, el
+  // webhook de pagos (`@Public()`) aceptaría cualquier POST sin firma como
+  // notificación legítima de Wompi.
+  WOMPI_EVENTS_SECRET: Joi.string()
     .allow('')
     .default('')
     .when('NODE_ENV', { is: 'production', then: Joi.string().required() }),

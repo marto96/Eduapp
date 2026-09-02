@@ -6,22 +6,24 @@ import { PaymentGatewayPort } from '../ports/payment-gateway.port';
 import { Payment, PaymentMethod } from '../../domain/entities/payment.entity';
 
 export interface PaymentWebhookInput {
-  type?: string;
-  data?: { id?: string };
+  event?: string;
+  data?: { transaction?: { id?: string } };
 }
 
-function mapPaymentMethod(gatewayPaymentMethodId: string): PaymentMethod {
-  if (['rapipago', 'pagofacil', 'redlink'].includes(gatewayPaymentMethodId)) return 'efectivo';
-  if (['account_money', 'pse', 'debin_transfer'].includes(gatewayPaymentMethodId)) return 'transferencia';
-  if (['visa', 'master', 'amex', 'debvisa', 'debmaster'].includes(gatewayPaymentMethodId)) return 'tarjeta';
+function mapPaymentMethod(wompiPaymentMethodType: string): PaymentMethod {
+  if (['BANCOLOMBIA_COLLECT'].includes(wompiPaymentMethodType)) return 'efectivo';
+  if (['PSE', 'BANCOLOMBIA_TRANSFER', 'NEQUI', 'DAVIPLATA'].includes(wompiPaymentMethodType)) {
+    return 'transferencia';
+  }
+  if (['CARD'].includes(wompiPaymentMethodType)) return 'tarjeta';
   return 'otro';
 }
 
 /**
- * Los webhooks de MercadoPago son solo una notificación ("algo pasó con
- * el pago X") — hay que consultar la API para saber el estado real. Es
- * idempotente: un webhook puede reintentarse, así que solo crea el
- * `Payment` si el intento todavía no fue marcado `approved`.
+ * Los webhooks de Wompi son solo una notificación ("algo pasó con el pago
+ * X") — hay que consultar la API para saber el estado real. Es idempotente:
+ * un webhook puede reintentarse, así que solo crea el `Payment` si el
+ * intento todavía no fue marcado `approved`.
  */
 @Injectable()
 export class HandlePaymentWebhookUseCase {
@@ -34,9 +36,10 @@ export class HandlePaymentWebhookUseCase {
   ) {}
 
   async execute(input: PaymentWebhookInput): Promise<void> {
-    if (input.type !== 'payment' || !input.data?.id) return;
+    const transactionId = input.data?.transaction?.id;
+    if (input.event !== 'transaction.updated' || !transactionId) return;
 
-    const info = await this.gateway.getPaymentInfo(input.data.id);
+    const info = await this.gateway.getPaymentInfo(transactionId);
     if (!info.externalReference) return;
 
     const attempt = await this.attempts.findById(info.externalReference);
@@ -54,7 +57,7 @@ export class HandlePaymentWebhookUseCase {
         attempt.amount,
         mapPaymentMethod(info.paymentMethodId),
         new Date().toISOString().slice(0, 10),
-        `mercadopago:${input.data.id}`,
+        `wompi:${transactionId}`,
       );
       attempt.approve();
       await this.recordApprovedPayment.execute(payment, attempt);

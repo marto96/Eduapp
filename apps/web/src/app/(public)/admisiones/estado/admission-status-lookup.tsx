@@ -14,9 +14,12 @@ const STATUS_LABELS: Record<string, string> = {
   rechazada: 'Rechazada',
 };
 
-export function AdmissionStatusLookup() {
-  const [code, setCode] = useState('');
-  const [submittedCode, setSubmittedCode] = useState('');
+export function AdmissionStatusLookup({ initialCode }: { initialCode?: string }) {
+  // Wompi redirige acá con `?code=<trackingCode>` tras el pago (ver
+  // `successPath`/`failurePath` en CreateAdmissionApplicationUseCase) — sin
+  // esto, quien acaba de pagar tenía que volver a tipear su propio código.
+  const [code, setCode] = useState(initialCode?.toUpperCase() ?? '');
+  const [submittedCode, setSubmittedCode] = useState(initialCode?.toUpperCase() ?? '');
   const { data, isLoading, isError } = useAdmissionStatus(submittedCode);
 
   function handleSubmit(event: FormEvent) {

@@ -11,16 +11,16 @@ function baseEnv(overrides: Record<string, string> = {}): Record<string, string>
   };
 }
 
-describe('envValidationSchema — MERCADOPAGO_WEBHOOK_SECRET', () => {
+describe('envValidationSchema — WOMPI_EVENTS_SECRET', () => {
   it('falla en producción si no está configurado', () => {
     const { error } = envValidationSchema.validate(baseEnv({ NODE_ENV: 'production' }));
 
-    expect(error?.message).toMatch(/MERCADOPAGO_WEBHOOK_SECRET/);
+    expect(error?.message).toMatch(/WOMPI_EVENTS_SECRET/);
   });
 
   it('pasa en producción si está configurado', () => {
     const { error } = envValidationSchema.validate(
-      baseEnv({ NODE_ENV: 'production', MERCADOPAGO_WEBHOOK_SECRET: 'real-secret' }),
+      baseEnv({ NODE_ENV: 'production', WOMPI_EVENTS_SECRET: 'real-secret' }),
     );
 
     expect(error).toBeUndefined();
