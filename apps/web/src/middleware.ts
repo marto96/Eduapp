@@ -69,9 +69,21 @@ const SESSION_EXPIRED_HEADER = 'x-session-expired';
  * un logout con sesión ya vencida quedaría bloqueado antes de poder borrar
  * las cookies. `/api/platform/*` es la sesión de superadmin, cookie
  * distinta (`platform_access_token`), este middleware no la toca.
+ * `/api/public/*` y `/api/admissions/applications*` (crear solicitud +
+ * consultar estado) son rutas BFF sin sesión a propósito — un aspirante
+ * anónimo nunca tiene `access_token`/`refresh_token`, así que sin este
+ * bypass este middleware las devolvía siempre 401 antes de que llegaran a
+ * su route handler, dejando el formulario público de admisión inservible.
+ * `/api/admissions/management/*` (el panel de staff) NO se agrega acá:
+ * esas rutas sí requieren sesión, el bypass es solo para el tramo público.
  */
 function isBypassedApiRoute(pathname: string): boolean {
-  return pathname.startsWith('/api/auth/') || pathname.startsWith('/api/platform/');
+  return (
+    pathname.startsWith('/api/auth/') ||
+    pathname.startsWith('/api/platform/') ||
+    pathname.startsWith('/api/public/') ||
+    pathname.startsWith('/api/admissions/applications')
+  );
 }
 
 /**

@@ -67,13 +67,21 @@ export interface Enrollment {
 
 export type AdmissionStatus = 'pendiente_pago' | 'pendiente_entrevista' | 'aceptada' | 'rechazada';
 
+/**
+ * Tipo de documento de identidad (Registraduría Nacional de Colombia) —
+ * distinto de `DocumentType` de más abajo, que identifica documentos
+ * *emitidos* por el colegio (constancias, certificados). Mismo nombre que
+ * ya usa el backend en `identity/domain/entities/user.entity.ts`.
+ */
+export type IdentityDocumentType = 'RC' | 'TI' | 'CC' | 'CE' | 'PA';
+
 export interface AdmissionApplication {
   id: string;
   trackingCode: string;
   studentFirstName: string;
   studentLastName: string;
   studentBirthDate: string;
-  studentDocumentType: DocumentType;
+  studentDocumentType: IdentityDocumentType;
   studentDocumentNumber: string;
   studentAddress: string;
   gradeId: string;
@@ -105,7 +113,7 @@ export interface AdmissionAcceptResponse {
     firstName: string;
     lastName: string;
     birthDate: string;
-    documentType: DocumentType;
+    documentType: IdentityDocumentType;
     documentNumber: string;
     address: string;
     gradeId: string;

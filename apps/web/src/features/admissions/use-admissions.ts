@@ -6,14 +6,14 @@ import type {
   AdmissionApplication,
   AdmissionStatus,
   AdmissionStatusResponse,
-  DocumentType,
+  IdentityDocumentType,
 } from '@eduapp/shared-types';
 
 export interface CreateAdmissionApplicationInput {
   studentFirstName: string;
   studentLastName: string;
   studentBirthDate: string;
-  studentDocumentType: DocumentType;
+  studentDocumentType: IdentityDocumentType;
   studentDocumentNumber: string;
   studentAddress: string;
   gradeId: string;

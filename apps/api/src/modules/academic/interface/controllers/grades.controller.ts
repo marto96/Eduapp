@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
 import { CheckPolicies } from '../../../../core/auth/casl/policies.decorator';
+import { Public } from '../../../../core/auth/public.decorator';
 import { CreateGradeUseCase } from '../../application/use-cases/create-grade.use-case';
 import { EditGradeUseCase } from '../../application/use-cases/edit-grade.use-case';
 import { ListGradesUseCase } from '../../application/use-cases/list-grades.use-case';
@@ -27,6 +28,7 @@ export class GradesController {
   }
 
   @Get()
+  @Public()
   async list() {
     return this.listGrades.execute();
   }
