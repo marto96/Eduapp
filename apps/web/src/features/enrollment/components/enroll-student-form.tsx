@@ -2,9 +2,11 @@
 
 import { FormEvent, useState } from 'react';
 import { useEnrollStudent } from '../use-enrollments';
-import { useCreateUser, useUsers, type DocumentType } from '@/features/users/use-users';
+import { useCreateUser, useUsers } from '@/features/users/use-users';
 import { useAcademicYears } from '@/features/academic/use-academic-years';
 import { useSections } from '@/features/academic/use-sections';
+import { useLinkAdmissionEnrollment } from '@/features/admissions/use-admissions';
+import type { IdentityDocumentType } from '@eduapp/shared-types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,7 +14,17 @@ import { Dialog } from '@/components/ui/dialog';
 
 type StudentMode = 'existing' | 'new';
 
-const DOCUMENT_TYPE_OPTIONS: { value: DocumentType; label: string }[] = [
+interface AdmissionPrefill {
+  firstName: string;
+  lastName: string;
+  birthDate: string;
+  documentType: IdentityDocumentType | '';
+  documentNumber: string;
+  address: string;
+  academicYearId: string;
+}
+
+const DOCUMENT_TYPE_OPTIONS: { value: IdentityDocumentType; label: string }[] = [
   { value: 'RC', label: 'Registro Civil' },
   { value: 'TI', label: 'Tarjeta de Identidad' },
   { value: 'CC', label: 'Cédula de Ciudadanía' },
@@ -22,25 +34,34 @@ const DOCUMENT_TYPE_OPTIONS: { value: DocumentType; label: string }[] = [
 
 const today = new Date().toISOString().slice(0, 10);
 
-export function EnrollStudentForm() {
+export function EnrollStudentForm({
+  admissionId,
+  matchedUserId,
+  prefill,
+}: {
+  admissionId?: string;
+  matchedUserId?: string;
+  prefill?: AdmissionPrefill;
+}) {
   const { data: students } = useUsers('estudiante');
   const { data: years } = useAcademicYears();
   const { data: sections } = useSections();
   const enrollStudent = useEnrollStudent();
   const createUser = useCreateUser();
+  const linkEnrollment = useLinkAdmissionEnrollment();
 
-  const [mode, setMode] = useState<StudentMode>('existing');
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [studentId, setStudentId] = useState('');
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+  const [mode, setMode] = useState<StudentMode>(matchedUserId ? 'existing' : prefill ? 'new' : 'existing');
+  const [dialogOpen, setDialogOpen] = useState(!matchedUserId && !!prefill);
+  const [studentId, setStudentId] = useState(matchedUserId ?? '');
+  const [firstName, setFirstName] = useState(prefill?.firstName ?? '');
+  const [lastName, setLastName] = useState(prefill?.lastName ?? '');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [birthDate, setBirthDate] = useState('');
-  const [documentType, setDocumentType] = useState<DocumentType | ''>('');
-  const [documentNumber, setDocumentNumber] = useState('');
-  const [address, setAddress] = useState('');
-  const [academicYearId, setAcademicYearId] = useState('');
+  const [birthDate, setBirthDate] = useState(prefill?.birthDate ?? '');
+  const [documentType, setDocumentType] = useState<IdentityDocumentType | ''>(prefill?.documentType ?? '');
+  const [documentNumber, setDocumentNumber] = useState(prefill?.documentNumber ?? '');
+  const [address, setAddress] = useState(prefill?.address ?? '');
+  const [academicYearId, setAcademicYearId] = useState(prefill?.academicYearId ?? '');
   const [sectionId, setSectionId] = useState('');
   const [error, setError] = useState<string | null>(null);
 
@@ -63,7 +84,10 @@ export function EnrollStudentForm() {
     if (!studentId || !academicYearId || !sectionId) return;
     setError(null);
     try {
-      await enrollStudent.mutateAsync({ studentId, sectionId, academicYearId });
+      const enrollment = await enrollStudent.mutateAsync({ studentId, sectionId, academicYearId });
+      if (admissionId) {
+        await linkEnrollment.mutateAsync({ id: admissionId, enrollmentId: enrollment.id });
+      }
       setStudentId('');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo matricular al estudiante');
@@ -88,7 +112,10 @@ export function EnrollStudentForm() {
         address,
       });
 
-      await enrollStudent.mutateAsync({ studentId: created.id, sectionId, academicYearId });
+      const enrollment = await enrollStudent.mutateAsync({ studentId: created.id, sectionId, academicYearId });
+      if (admissionId) {
+        await linkEnrollment.mutateAsync({ id: admissionId, enrollmentId: enrollment.id });
+      }
       resetNewStudentFields();
       setDialogOpen(false);
     } catch (err) {
@@ -259,7 +286,7 @@ export function EnrollStudentForm() {
                 id="new-documentType"
                 required
                 value={documentType}
-                onChange={(e) => setDocumentType(e.target.value as DocumentType)}
+                onChange={(e) => setDocumentType(e.target.value as IdentityDocumentType)}
                 className="flex h-10 w-full rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
               >
                 <option value="" disabled>
