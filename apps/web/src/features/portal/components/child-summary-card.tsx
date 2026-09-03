@@ -12,6 +12,7 @@ import type {
   Enrollment,
   EnrollmentStatus,
   Evaluation,
+  GradeCategory,
   GradeScore,
   IssuedDocument,
   Loan,
@@ -43,6 +44,12 @@ const STATUS_CLASSES: Record<string, string> = {
   pagado: 'text-muted-foreground',
 };
 
+const CATEGORY_LABELS: Record<GradeCategory, string> = {
+  actividad: 'Actividad',
+  evaluacion_bimestral: 'Evaluación bimestral',
+  disciplina: 'Disciplina',
+};
+
 export function ChildSummaryCard({
   enrollment,
   studentName,
@@ -52,6 +59,7 @@ export function ChildSummaryCard({
   scores,
   evaluations,
   subjectNameById,
+  periodNameById,
   charges,
   documents,
   loans,
@@ -65,6 +73,7 @@ export function ChildSummaryCard({
   scores: GradeScore[];
   evaluations: Evaluation[];
   subjectNameById: Map<string, string>;
+  periodNameById: Map<string, string>;
   charges: Charge[];
   documents: IssuedDocument[];
   loans: Loan[];
@@ -115,7 +124,7 @@ export function ChildSummaryCard({
               return (
                 <li key={score.id}>
                   {evaluation
-                    ? `${subjectNameById.get(evaluation.subjectId) ?? evaluation.subjectId} — ${evaluation.period} (${evaluation.type})`
+                    ? `${subjectNameById.get(evaluation.subjectId) ?? evaluation.subjectId} — ${periodNameById.get(evaluation.periodId) ?? evaluation.periodId} (${CATEGORY_LABELS[evaluation.category]})`
                     : score.evaluationId}
                   : {score.score}
                   {evaluation ? `/${evaluation.maxScore}` : ''}

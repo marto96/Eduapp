@@ -6,14 +6,23 @@ import { useScores, useRecordScores } from '../use-scores';
 import { useEnrollments } from '@/features/enrollment/use-enrollments';
 import { useUsers } from '@/features/users/use-users';
 import { useSubjects } from '@/features/academic/use-subjects';
+import { usePeriods } from '@/features/academic/use-periods';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
+import type { GradeCategory } from '@eduapp/shared-types';
+
+const CATEGORY_LABELS: Record<GradeCategory, string> = {
+  actividad: 'Actividad',
+  evaluacion_bimestral: 'Evaluación bimestral',
+  disciplina: 'Disciplina',
+};
 
 export function RecordScoresForm({ readOnly = false }: { readOnly?: boolean }) {
   const { data: evaluations } = useEvaluations();
   const { data: subjects } = useSubjects();
+  const { data: periods } = usePeriods();
   const { data: students } = useUsers('estudiante');
   const [evaluationId, setEvaluationId] = useState('');
   const [scoreByEnrollment, setScoreByEnrollment] = useState<Record<string, string>>({});
@@ -28,6 +37,7 @@ export function RecordScoresForm({ readOnly = false }: { readOnly?: boolean }) {
   const { data: existingScores } = useScores(evaluationId, ready);
 
   const subjectNameById = useMemo(() => new Map(subjects?.map((s) => [s.id, s.name])), [subjects]);
+  const periodNameById = useMemo(() => new Map(periods?.map((p) => [p.id, p.name])), [periods]);
   const studentNameById = useMemo(
     () => new Map(students?.map((s) => [s.id, s.fullName])),
     [students],
@@ -74,7 +84,8 @@ export function RecordScoresForm({ readOnly = false }: { readOnly?: boolean }) {
           </option>
           {evaluations?.map((e) => (
             <option key={e.id} value={e.id}>
-              {subjectNameById.get(e.subjectId) ?? e.subjectId} — {e.period} ({e.type})
+              {subjectNameById.get(e.subjectId) ?? e.subjectId} —{' '}
+              {periodNameById.get(e.periodId) ?? e.periodId} ({CATEGORY_LABELS[e.category]})
             </option>
           ))}
         </select>

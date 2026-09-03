@@ -5,6 +5,7 @@ import { useUsers } from '@/features/users/use-users';
 import { useSections } from '@/features/academic/use-sections';
 import { useAcademicYears } from '@/features/academic/use-academic-years';
 import { useSubjects } from '@/features/academic/use-subjects';
+import { usePeriods } from '@/features/academic/use-periods';
 import { useEvaluations } from '@/features/grading/use-evaluations';
 import { useCharges } from '@/features/finance/use-charges';
 import { useDocuments } from '@/features/documents/use-documents';
@@ -20,6 +21,7 @@ export function PortalView({ isGuardian }: { isGuardian: boolean }) {
   const { data: sections } = useSections();
   const { data: years } = useAcademicYears();
   const { data: subjects } = useSubjects();
+  const { data: periods } = usePeriods();
   const { data: evaluations } = useEvaluations();
   const { data: attendance } = usePortalAttendance();
   const { data: scores } = usePortalScores();
@@ -42,6 +44,7 @@ export function PortalView({ isGuardian }: { isGuardian: boolean }) {
   const sectionNameById = new Map(sections?.map((s) => [s.id, s.name]));
   const yearNameById = new Map(years?.map((y) => [y.id, y.name]));
   const subjectNameById = new Map(subjects?.map((s) => [s.id, s.name]));
+  const periodNameById = new Map(periods?.map((p) => [p.id, p.name]));
   const bookById = new Map(books?.map((b) => [b.id, b]));
 
   return (
@@ -57,6 +60,7 @@ export function PortalView({ isGuardian }: { isGuardian: boolean }) {
           scores={(scores ?? []).filter((s) => s.enrollmentId === enrollment.id)}
           evaluations={evaluations ?? []}
           subjectNameById={subjectNameById}
+          periodNameById={periodNameById}
           charges={(charges ?? []).filter((c) => c.enrollmentId === enrollment.id)}
           documents={(documents ?? []).filter((d) => d.enrollmentId === enrollment.id)}
           loans={(loans ?? []).filter((l) => l.studentId === enrollment.studentId)}
