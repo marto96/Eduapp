@@ -5,16 +5,16 @@ import { useCreateEvaluation } from '../use-evaluations';
 import { useAcademicYears } from '@/features/academic/use-academic-years';
 import { useSections } from '@/features/academic/use-sections';
 import { useSubjects } from '@/features/academic/use-subjects';
+import { usePeriods } from '@/features/academic/use-periods';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import type { EvaluationType } from '@eduapp/shared-types';
+import type { GradeCategory } from '@eduapp/shared-types';
 
-const TYPES: { value: EvaluationType; label: string }[] = [
-  { value: 'examen', label: 'Examen' },
-  { value: 'tarea', label: 'Tarea' },
-  { value: 'proyecto', label: 'Proyecto' },
-  { value: 'otro', label: 'Otro' },
+const CATEGORIES: { value: GradeCategory; label: string }[] = [
+  { value: 'actividad', label: 'Actividad' },
+  { value: 'evaluacion_bimestral', label: 'Evaluación bimestral' },
+  { value: 'disciplina', label: 'Disciplina' },
 ];
 
 export function CreateEvaluationForm() {
@@ -26,23 +26,27 @@ export function CreateEvaluationForm() {
   const [academicYearId, setAcademicYearId] = useState('');
   const [sectionId, setSectionId] = useState('');
   const [subjectId, setSubjectId] = useState('');
-  const [period, setPeriod] = useState('');
-  const [type, setType] = useState<EvaluationType>('examen');
+  const [periodId, setPeriodId] = useState('');
+  const [category, setCategory] = useState<GradeCategory>('actividad');
+  const [label, setLabel] = useState('');
   const [maxScore, setMaxScore] = useState('10');
+
+  const { data: periods } = usePeriods(academicYearId ? { academicYearId } : undefined);
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    if (!academicYearId || !sectionId || !subjectId) return;
+    if (!academicYearId || !sectionId || !subjectId || !periodId) return;
     createEvaluation.mutate(
       {
         academicYearId,
         sectionId,
         subjectId,
-        period,
-        type,
+        periodId,
+        category,
         maxScore: Number(maxScore),
+        label: label.trim() || undefined,
       },
-      { onSuccess: () => setPeriod('') },
+      { onSuccess: () => setLabel('') },
     );
   }
 
@@ -54,7 +58,10 @@ export function CreateEvaluationForm() {
           id="academicYearId"
           required
           value={academicYearId}
-          onChange={(e) => setAcademicYearId(e.target.value)}
+          onChange={(e) => {
+            setAcademicYearId(e.target.value);
+            setPeriodId('');
+          }}
           className="flex h-10 w-36 rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
         >
           <option value="" disabled>
@@ -106,29 +113,49 @@ export function CreateEvaluationForm() {
         </select>
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="period">Período</Label>
-        <Input
-          id="period"
-          placeholder="Trimestre 1"
-          required
-          value={period}
-          onChange={(e) => setPeriod(e.target.value)}
-        />
-      </div>
-      <div className="space-y-1.5">
-        <Label htmlFor="type">Tipo</Label>
+        <Label htmlFor="periodId">Período</Label>
         <select
-          id="type"
-          value={type}
-          onChange={(e) => setType(e.target.value as EvaluationType)}
-          className="flex h-10 w-32 rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
+          id="periodId"
+          required
+          value={periodId}
+          onChange={(e) => setPeriodId(e.target.value)}
+          disabled={!academicYearId}
+          className="flex h-10 w-36 rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary disabled:opacity-60"
         >
-          {TYPES.map((t) => (
-            <option key={t.value} value={t.value}>
-              {t.label}
+          <option value="" disabled>
+            Período
+          </option>
+          {periods?.map((period) => (
+            <option key={period.id} value={period.id}>
+              {period.name}
             </option>
           ))}
         </select>
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="category">Categoría</Label>
+        <select
+          id="category"
+          value={category}
+          onChange={(e) => setCategory(e.target.value as GradeCategory)}
+          className="flex h-10 w-44 rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
+        >
+          {CATEGORIES.map((c) => (
+            <option key={c.value} value={c.value}>
+              {c.label}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="space-y-1.5">
+        <Label htmlFor="label">Etiqueta (opcional)</Label>
+        <Input
+          id="label"
+          placeholder="Taller 1"
+          value={label}
+          onChange={(e) => setLabel(e.target.value)}
+          className="w-32"
+        />
       </div>
       <div className="space-y-1.5">
         <Label htmlFor="maxScore">Nota máxima</Label>

@@ -1,12 +1,14 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { Evaluation, EvaluationType } from '@eduapp/shared-types';
+import type { Evaluation, GradeCategory } from '@eduapp/shared-types';
 
 export interface EvaluationFilter {
   sectionId?: string;
   academicYearId?: string;
   subjectId?: string;
+  periodId?: string;
+  category?: GradeCategory;
 }
 
 async function fetchEvaluations(filter?: EvaluationFilter): Promise<Evaluation[]> {
@@ -22,9 +24,10 @@ export interface CreateEvaluationInput {
   subjectId: string;
   sectionId: string;
   academicYearId: string;
-  period: string;
-  type: EvaluationType;
+  periodId: string;
+  category: GradeCategory;
   maxScore?: number;
+  label?: string;
 }
 
 async function createEvaluation(input: CreateEvaluationInput): Promise<Evaluation> {
