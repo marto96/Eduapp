@@ -30,6 +30,9 @@ export class TypeOrmAttendanceRecordRepository extends AttendanceRecordRepositor
     if (filter?.enrollmentId) {
       query.andWhere('ar.enrollment_id = :enrollmentId', filter);
     }
+    if (filter?.scheduleId) {
+      query.andWhere('ar.schedule_id = :scheduleId', filter);
+    }
     if (filter?.date) {
       query.andWhere('ar.date = :date', filter);
     }
@@ -41,12 +44,18 @@ export class TypeOrmAttendanceRecordRepository extends AttendanceRecordRepositor
   async upsertMany(records: AttendanceRecord[]): Promise<void> {
     if (records.length === 0) return;
     await this.repo.upsert(
-      records.map((r) => ({ id: r.id, enrollmentId: r.enrollmentId, date: r.date, status: r.status })),
-      { conflictPaths: ['enrollmentId', 'date'], skipUpdateIfNoValuesChanged: true },
+      records.map((r) => ({
+        id: r.id,
+        enrollmentId: r.enrollmentId,
+        scheduleId: r.scheduleId,
+        date: r.date,
+        status: r.status,
+      })),
+      { conflictPaths: ['enrollmentId', 'scheduleId', 'date'], skipUpdateIfNoValuesChanged: true },
     );
   }
 
   private toDomain(row: AttendanceRecordOrmEntity): AttendanceRecord {
-    return new AttendanceRecord(row.id, row.enrollmentId, row.date, row.status);
+    return new AttendanceRecord(row.id, row.enrollmentId, row.scheduleId, row.date, row.status);
   }
 }

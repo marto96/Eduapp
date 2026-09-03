@@ -9,6 +9,9 @@ export class AttendanceRecordOrmEntity {
   @Column({ name: 'enrollment_id' })
   enrollmentId: string;
 
+  @Column({ name: 'schedule_id', type: 'uuid', nullable: true })
+  scheduleId: string | null;
+
   @Column({ type: 'date' })
   date: string;
 
