@@ -421,3 +421,12 @@ export interface GradeWeightConfig {
   evaluacionBimestralWeight: number;
   disciplinaWeight: number;
 }
+
+export interface GradebookStudentRow {
+  enrollmentId: string;
+  studentId: string;
+  fullName: string;
+  documentNumber: string | null;
+  sectionId: string;
+  sectionName: string;
+}
