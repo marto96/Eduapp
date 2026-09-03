@@ -413,3 +413,12 @@ export interface PlatformTenant {
   primaryColor: string | null;
   logoUrl: string | null;
 }
+
+export type GradeCategory = 'actividad' | 'evaluacion_bimestral' | 'disciplina';
+
+export interface GradeWeightConfig {
+  id: string;
+  actividadWeight: number;
+  evaluacionBimestralWeight: number;
+  disciplinaWeight: number;
+}
