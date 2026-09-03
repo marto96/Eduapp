@@ -47,6 +47,16 @@ export interface Subject {
   area: string;
 }
 
+export interface Period {
+  id: string;
+  academicYearId: string;
+  name: string;
+  order: number;
+  weight: number;
+  startDate: string;
+  endDate: string;
+}
+
 export interface TenantUser {
   id: string;
   email: string;
