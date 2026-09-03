@@ -1,6 +1,7 @@
 import { CreateEvaluationForm } from '@/features/grading/components/create-evaluation-form';
 import { EvaluationsList } from '@/features/grading/components/evaluations-list';
 import { RecordScoresForm } from '@/features/grading/components/record-scores-form';
+import { GradebookPanel } from '@/features/grading/components/gradebook-panel';
 import { getCurrentUser } from '@/lib/server-api';
 import { canManageGrading } from '@/lib/permissions';
 
@@ -16,6 +17,11 @@ export default async function GradingPage() {
           Evaluaciones y notas por sección y asignatura.
         </p>
       </div>
+
+      <section className="space-y-3">
+        <h2 className="text-lg font-medium">Boletín por estudiante</h2>
+        <GradebookPanel />
+      </section>
 
       <section className="space-y-3">
         <h2 className="text-lg font-medium">Evaluaciones</h2>
