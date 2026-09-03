@@ -14,7 +14,11 @@ export default async function AttendancePage() {
         </p>
       </div>
 
-      <TakeAttendanceForm readOnly={!canRecord} />
+      <TakeAttendanceForm
+        readOnly={!canRecord}
+        currentUserId={user!.id}
+        isDocente={(user?.roles ?? []).includes('docente')}
+      />
     </main>
   );
 }

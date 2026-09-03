@@ -4,8 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { AttendanceRecord, AttendanceStatus } from '@eduapp/shared-types';
 
 export interface AttendanceFilter {
-  sectionId: string;
-  academicYearId: string;
+  scheduleId: string;
   date: string;
 }
 
@@ -17,8 +16,7 @@ async function fetchAttendance(filter: AttendanceFilter): Promise<AttendanceReco
 }
 
 export interface RecordAttendanceInput {
-  sectionId: string;
-  academicYearId: string;
+  scheduleId: string;
   date: string;
   records: { enrollmentId: string; status: AttendanceStatus }[];
 }

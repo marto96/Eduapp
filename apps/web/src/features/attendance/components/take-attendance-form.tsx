@@ -5,7 +5,7 @@ import { useAttendance, useRecordAttendance } from '../use-attendance';
 import { useEnrollments } from '@/features/enrollment/use-enrollments';
 import { useUsers } from '@/features/users/use-users';
 import { useAcademicYears } from '@/features/academic/use-academic-years';
-import { useSections } from '@/features/academic/use-sections';
+import { useSchedules } from '@/features/schedule/use-schedules';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -20,24 +20,38 @@ const STATUSES: { value: AttendanceStatus; label: string }[] = [
   { value: 'justificado', label: 'Justificado' },
 ];
 
-export function TakeAttendanceForm({ readOnly = false }: { readOnly?: boolean }) {
+export function TakeAttendanceForm({
+  readOnly = false,
+  currentUserId,
+  isDocente,
+}: {
+  readOnly?: boolean;
+  currentUserId: string;
+  isDocente: boolean;
+}) {
   const { data: years } = useAcademicYears();
-  const { data: sections } = useSections();
   const { data: students } = useUsers('estudiante');
 
   const [academicYearId, setAcademicYearId] = useState('');
-  const [sectionId, setSectionId] = useState('');
+  const [scheduleId, setScheduleId] = useState('');
   const [date, setDate] = useState(todayLocalDate());
   const [statusByEnrollment, setStatusByEnrollment] = useState<Record<string, AttendanceStatus>>(
     {},
   );
 
-  const ready = Boolean(academicYearId && sectionId && date);
+  const { data: schedules } = useSchedules(
+    academicYearId
+      ? { academicYearId, ...(isDocente ? { teacherId: currentUserId } : {}) }
+      : undefined,
+  );
+
+  const selectedSchedule = schedules?.find((s) => s.id === scheduleId);
+  const ready = Boolean(academicYearId && scheduleId && date && selectedSchedule);
 
   const { data: enrollments } = useEnrollments(
-    ready ? { sectionId, academicYearId } : undefined,
+    ready ? { sectionId: selectedSchedule!.sectionId, academicYearId } : undefined,
   );
-  const { data: existingRecords } = useAttendance({ sectionId, academicYearId, date }, ready);
+  const { data: existingRecords } = useAttendance({ scheduleId, date }, ready);
   const recordAttendance = useRecordAttendance();
 
   const studentNameById = useMemo(
@@ -64,8 +78,7 @@ export function TakeAttendanceForm({ readOnly = false }: { readOnly?: boolean })
 
   function handleSubmit() {
     recordAttendance.mutate({
-      sectionId,
-      academicYearId,
+      scheduleId,
       date,
       records: activeEnrollments.map((e) => ({
         enrollmentId: e.id,
@@ -82,7 +95,10 @@ export function TakeAttendanceForm({ readOnly = false }: { readOnly?: boolean })
           <select
             id="academicYearId"
             value={academicYearId}
-            onChange={(e) => setAcademicYearId(e.target.value)}
+            onChange={(e) => {
+              setAcademicYearId(e.target.value);
+              setScheduleId('');
+            }}
             className="flex h-10 w-40 rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
           >
             <option value="" disabled>
@@ -96,19 +112,20 @@ export function TakeAttendanceForm({ readOnly = false }: { readOnly?: boolean })
           </select>
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="sectionId">Sección</Label>
+          <Label htmlFor="scheduleId">Horario</Label>
           <select
-            id="sectionId"
-            value={sectionId}
-            onChange={(e) => setSectionId(e.target.value)}
-            className="flex h-10 w-40 rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
+            id="scheduleId"
+            value={scheduleId}
+            onChange={(e) => setScheduleId(e.target.value)}
+            disabled={!academicYearId}
+            className="flex h-10 w-56 rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary disabled:opacity-60"
           >
             <option value="" disabled>
-              Seleccioná una sección
+              Seleccioná una clase
             </option>
-            {sections?.map((section) => (
-              <option key={section.id} value={section.id}>
-                {section.name}
+            {schedules?.map((schedule) => (
+              <option key={schedule.id} value={schedule.id}>
+                {schedule.dayOfWeek} {schedule.startTime}–{schedule.endTime}
               </option>
             ))}
           </select>
