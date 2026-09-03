@@ -141,16 +141,15 @@ export interface AttendanceRecord {
   status: AttendanceStatus;
 }
 
-export type EvaluationType = 'examen' | 'tarea' | 'proyecto' | 'otro';
-
 export interface Evaluation {
   id: string;
   subjectId: string;
   sectionId: string;
   academicYearId: string;
-  period: string;
-  type: EvaluationType;
+  periodId: string;
+  category: GradeCategory;
   maxScore: number;
+  label: string | null;
 }
 
 export interface GradeScore {

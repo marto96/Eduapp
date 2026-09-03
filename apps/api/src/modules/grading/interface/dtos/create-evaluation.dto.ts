@@ -1,7 +1,7 @@
-import { IsIn, IsNumber, IsOptional, IsString, IsUUID, Max, Min, MinLength } from 'class-validator';
-import { EvaluationType } from '../../domain/entities/evaluation.entity';
+import { IsIn, IsNumber, IsOptional, IsString, IsUUID, Max, MaxLength, Min } from 'class-validator';
+import { GradeCategory } from '../../domain/entities/grade-weight-config.entity';
 
-const KNOWN_TYPES: EvaluationType[] = ['examen', 'tarea', 'proyecto', 'otro'];
+const KNOWN_CATEGORIES: GradeCategory[] = ['actividad', 'evaluacion_bimestral', 'disciplina'];
 
 export class CreateEvaluationDto {
   @IsUUID()
@@ -13,16 +13,20 @@ export class CreateEvaluationDto {
   @IsUUID()
   academicYearId: string;
 
-  @IsString()
-  @MinLength(1)
-  period: string;
+  @IsUUID()
+  periodId: string;
 
-  @IsIn(KNOWN_TYPES)
-  type: EvaluationType;
+  @IsIn(KNOWN_CATEGORIES)
+  category: GradeCategory;
 
   @IsOptional()
   @IsNumber()
   @Min(1)
   @Max(1000)
   maxScore?: number;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(60)
+  label?: string;
 }

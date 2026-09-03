@@ -75,8 +75,14 @@ export class GenerateReportCardPdfUseCase {
           if (!evaluation) return null;
           return {
             subjectName: subjectNameById.get(evaluation.subjectId) ?? evaluation.subjectId,
-            period: evaluation.period,
-            type: evaluation.type,
+            // TODO(grading-gradebook plan, fuera de alcance de Task 8): esto
+            // muestra el id crudo del período y la categoría en vez de un
+            // nombre legible — Evaluation ya no tiene `period`/`type` como
+            // texto libre (ver Task 8). Haría falta inyectar
+            // PeriodRepositoryPort acá para resolver `periodId` a
+            // `Period.name`, y mapear `category` a una etiqueta en español.
+            period: evaluation.periodId,
+            type: evaluation.category,
             score: score.score,
             maxScore: evaluation.maxScore,
           };

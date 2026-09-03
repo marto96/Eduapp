@@ -1,4 +1,4 @@
-export type EvaluationType = 'examen' | 'tarea' | 'proyecto' | 'otro';
+import { GradeCategory } from './grade-weight-config.entity';
 
 export class Evaluation {
   constructor(
@@ -6,8 +6,9 @@ export class Evaluation {
     public readonly subjectId: string,
     public readonly sectionId: string,
     public readonly academicYearId: string,
-    public period: string,
-    public type: EvaluationType,
-    public maxScore: number,
+    public readonly periodId: string,
+    public readonly category: GradeCategory,
+    public readonly maxScore: number,
+    public readonly label: string | null,
   ) {}
 }

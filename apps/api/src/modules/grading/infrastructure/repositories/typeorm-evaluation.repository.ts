@@ -23,6 +23,8 @@ export class TypeOrmEvaluationRepository extends EvaluationRepositoryPort {
         ...(filter?.sectionId && { sectionId: filter.sectionId }),
         ...(filter?.academicYearId && { academicYearId: filter.academicYearId }),
         ...(filter?.subjectId && { subjectId: filter.subjectId }),
+        ...(filter?.periodId && { periodId: filter.periodId }),
+        ...(filter?.category && { category: filter.category }),
       },
       order: { createdAt: 'DESC' },
     });
@@ -40,9 +42,10 @@ export class TypeOrmEvaluationRepository extends EvaluationRepositoryPort {
       subjectId: evaluation.subjectId,
       sectionId: evaluation.sectionId,
       academicYearId: evaluation.academicYearId,
-      period: evaluation.period,
-      type: evaluation.type,
+      periodId: evaluation.periodId,
+      category: evaluation.category,
       maxScore: evaluation.maxScore,
+      label: evaluation.label,
     });
   }
 
@@ -52,9 +55,10 @@ export class TypeOrmEvaluationRepository extends EvaluationRepositoryPort {
       row.subjectId,
       row.sectionId,
       row.academicYearId,
-      row.period,
-      row.type,
+      row.periodId,
+      row.category,
       row.maxScore,
+      row.label,
     );
   }
 }

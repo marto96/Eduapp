@@ -1,5 +1,5 @@
 import { Column, DeleteDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { EvaluationType } from '../../domain/entities/evaluation.entity';
+import { GradeCategory } from '../../domain/entities/grade-weight-config.entity';
 
 @Entity({ name: 'evaluations' })
 export class EvaluationOrmEntity {
@@ -15,11 +15,18 @@ export class EvaluationOrmEntity {
   @Column({ name: 'academic_year_id' })
   academicYearId: string;
 
-  @Column()
-  period: string;
+  @Column({ name: 'period_id' })
+  periodId: string;
 
   @Column()
-  type: EvaluationType;
+  category: GradeCategory;
+
+  // 'varchar' explícito: sin el type, TypeORM no infiere una columna
+  // nullable desde un tipo unión `string | null` (mismo bug ya corregido
+  // en payment.orm-entity.ts / leave.orm-entity.ts — DataTypeNotSupportedError
+  // al migrar).
+  @Column({ type: 'varchar', nullable: true })
+  label: string | null;
 
   // 'real' (no 'numeric'): pg devuelve columnas numeric como string por
   // defecto para no perder precisión — acá no la necesitamos y sí un
