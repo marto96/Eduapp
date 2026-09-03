@@ -461,3 +461,29 @@ export interface GradebookResponse {
   periods: GradebookPeriodColumn[];
   subjects: GradebookSubjectRow[];
 }
+
+export interface GradebookCategoryItem {
+  evaluationId: string;
+  category: GradeCategory;
+  label: string | null;
+  maxScore: number;
+  rawScore: number | null;
+  normalized: number | null;
+}
+
+export interface GradebookCategoryBreakdown {
+  category: GradeCategory;
+  weight: number;
+  average: number | null;
+  items: GradebookCategoryItem[];
+}
+
+export interface SubjectPeriodDetailResponse {
+  subjectId: string;
+  subjectName: string;
+  periodId: string;
+  periodName: string;
+  grade: number | null;
+  isPartial: boolean;
+  categories: GradebookCategoryBreakdown[];
+}
