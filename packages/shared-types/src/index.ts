@@ -487,3 +487,14 @@ export interface SubjectPeriodDetailResponse {
   isPartial: boolean;
   categories: GradebookCategoryBreakdown[];
 }
+
+export interface CreateGradeInput {
+  subjectId: string;
+  sectionId: string;
+  periodId: string;
+  category: GradeCategory;
+  evaluationId?: string;
+  label?: string;
+  maxScore?: number;
+  score: number;
+}
