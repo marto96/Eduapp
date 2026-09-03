@@ -11,6 +11,10 @@ export class ListAttendanceQueryDto {
 
   @IsOptional()
   @IsUUID()
+  scheduleId?: string;
+
+  @IsOptional()
+  @IsUUID()
   enrollmentId?: string;
 
   @IsOptional()

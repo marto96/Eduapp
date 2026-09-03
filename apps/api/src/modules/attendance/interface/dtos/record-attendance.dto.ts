@@ -14,10 +14,7 @@ class AttendanceEntryDto {
 
 export class RecordAttendanceDto {
   @IsUUID()
-  sectionId: string;
-
-  @IsUUID()
-  academicYearId: string;
+  scheduleId: string;
 
   @IsDateString()
   date: string;

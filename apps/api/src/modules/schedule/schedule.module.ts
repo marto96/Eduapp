@@ -29,6 +29,6 @@ import { IdentityModule } from '../identity/identity.module';
     { provide: ScheduleRepositoryPort, useClass: TypeOrmScheduleRepository },
     { provide: ClassCancellationRepositoryPort, useClass: TypeOrmClassCancellationRepository },
   ],
-  exports: [TeacherSectionsService],
+  exports: [TeacherSectionsService, ScheduleRepositoryPort, ClassCancellationRepositoryPort],
 })
 export class ScheduleModule {}

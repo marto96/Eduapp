@@ -5,9 +5,10 @@ import { ListAttendanceUseCase } from './application/use-cases/list-attendance.u
 import { AttendanceRecordRepositoryPort } from './application/ports/attendance-record.repository.port';
 import { TypeOrmAttendanceRecordRepository } from './infrastructure/repositories/typeorm-attendance-record.repository';
 import { EnrollmentModule } from '../enrollment/enrollment.module';
+import { ScheduleModule } from '../schedule/schedule.module';
 
 @Module({
-  imports: [EnrollmentModule],
+  imports: [EnrollmentModule, ScheduleModule],
   controllers: [AttendanceController],
   providers: [
     RecordAttendanceUseCase,

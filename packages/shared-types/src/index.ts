@@ -126,6 +126,7 @@ export type AttendanceStatus = 'presente' | 'ausente' | 'tarde' | 'justificado';
 export interface AttendanceRecord {
   id: string;
   enrollmentId: string;
+  scheduleId: string | null;
   date: string;
   status: AttendanceStatus;
 }
