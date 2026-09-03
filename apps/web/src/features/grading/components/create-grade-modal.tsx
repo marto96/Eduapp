@@ -43,7 +43,7 @@ export function CreateGradeModal({
   }, [open, initialCategory]);
 
   const { data: candidateEvaluations } = useEvaluations(
-    subjectId && periodId ? { subjectId, periodId, category } : undefined,
+    subjectId && periodId && sectionId ? { subjectId, sectionId, periodId, category } : undefined,
   );
 
   const createGrade = useCreateGrade();
