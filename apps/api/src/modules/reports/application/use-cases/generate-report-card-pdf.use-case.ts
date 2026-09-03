@@ -5,7 +5,9 @@ import { GradeScoreRepositoryPort } from '../../../grading/application/ports/gra
 import { SubjectRepositoryPort } from '../../../academic/application/ports/subject.repository.port';
 import { SectionRepositoryPort } from '../../../academic/application/ports/section.repository.port';
 import { AcademicYearRepositoryPort } from '../../../academic/application/ports/academic-year.repository.port';
+import { PeriodRepositoryPort } from '../../../academic/application/ports/period.repository.port';
 import { UserRepositoryPort } from '../../../identity/application/ports/user.repository.port';
+import { GradeCategory } from '../../../grading/domain/entities/grade-weight-config.entity';
 import { TenantRegistryService } from '../../../../core/tenant/tenant-registry.service';
 import { getCurrentTenant } from '../../../../core/tenant/tenant-context';
 import { ReportCardPdfGenerator, ReportCardStudent } from '../../infrastructure/pdf/report-card-pdf-generator';
@@ -15,6 +17,12 @@ export interface GenerateReportCardPdfInput {
   academicYearId: string;
   studentIds?: string[];
 }
+
+const CATEGORY_LABELS: Record<GradeCategory, string> = {
+  actividad: 'Actividad',
+  evaluacion_bimestral: 'Evaluación bimestral',
+  disciplina: 'Disciplina',
+};
 
 /**
  * A diferencia de los documentos emitidos (registro histórico, PDF
@@ -30,6 +38,7 @@ export class GenerateReportCardPdfUseCase {
     @Inject(SubjectRepositoryPort) private readonly subjects: SubjectRepositoryPort,
     @Inject(SectionRepositoryPort) private readonly sections: SectionRepositoryPort,
     @Inject(AcademicYearRepositoryPort) private readonly academicYears: AcademicYearRepositoryPort,
+    @Inject(PeriodRepositoryPort) private readonly periods: PeriodRepositoryPort,
     @Inject(UserRepositoryPort) private readonly users: UserRepositoryPort,
     private readonly pdfGenerator: ReportCardPdfGenerator,
     private readonly tenantRegistry: TenantRegistryService,
@@ -57,6 +66,9 @@ export class GenerateReportCardPdfUseCase {
     const allSubjects = await this.subjects.findAll();
     const subjectNameById = new Map(allSubjects.map((s) => [s.id, s.name]));
 
+    const allPeriods = await this.periods.findAll({ academicYearId: input.academicYearId });
+    const periodNameById = new Map(allPeriods.map((p) => [p.id, p.name]));
+
     const allSections = await this.sections.findAll();
     const section = allSections.find((s) => s.id === input.sectionId);
     const academicYear = await this.academicYears.findById(input.academicYearId);
@@ -75,14 +87,8 @@ export class GenerateReportCardPdfUseCase {
           if (!evaluation) return null;
           return {
             subjectName: subjectNameById.get(evaluation.subjectId) ?? evaluation.subjectId,
-            // TODO(grading-gradebook plan, fuera de alcance de Task 8): esto
-            // muestra el id crudo del período y la categoría en vez de un
-            // nombre legible — Evaluation ya no tiene `period`/`type` como
-            // texto libre (ver Task 8). Haría falta inyectar
-            // PeriodRepositoryPort acá para resolver `periodId` a
-            // `Period.name`, y mapear `category` a una etiqueta en español.
-            period: evaluation.periodId,
-            type: evaluation.category,
+            period: periodNameById.get(evaluation.periodId) ?? evaluation.periodId,
+            type: CATEGORY_LABELS[evaluation.category],
             score: score.score,
             maxScore: evaluation.maxScore,
           };
