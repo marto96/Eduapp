@@ -430,3 +430,34 @@ export interface GradebookStudentRow {
   sectionId: string;
   sectionName: string;
 }
+
+export interface GradebookPeriodColumn {
+  id: string;
+  name: string;
+  order: number;
+  weight: number;
+}
+
+export interface GradebookPeriodCell {
+  periodId: string;
+  grade: number | null;
+  isPartial: boolean;
+  absences: number;
+}
+
+export interface GradebookSubjectRow {
+  subjectId: string;
+  subjectName: string;
+  periods: GradebookPeriodCell[];
+  accumulatedGrade: number;
+  accumulatedAbsences: number;
+}
+
+export interface GradebookResponse {
+  enrollmentId: string;
+  studentName: string;
+  sectionName: string;
+  academicYearName: string;
+  periods: GradebookPeriodColumn[];
+  subjects: GradebookSubjectRow[];
+}
