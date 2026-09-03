@@ -1,5 +1,6 @@
 import { AcademicYearsList } from '@/features/academic/components/academic-years-list';
 import { CreateAcademicYearForm } from '@/features/academic/components/create-academic-year-form';
+import { PeriodsPanel } from '@/features/academic/components/periods-panel';
 import { getCurrentUser } from '@/lib/server-api';
 import { canManageAcademic } from '@/lib/permissions';
 
@@ -17,6 +18,7 @@ export default async function AcademicYearsPage() {
 
       {canManage && <CreateAcademicYearForm />}
       <AcademicYearsList />
+      <PeriodsPanel canManage={canManage} />
     </main>
   );
 }
