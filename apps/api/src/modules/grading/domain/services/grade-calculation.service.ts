@@ -66,7 +66,9 @@ export class GradeCalculationService {
   }
 
   static computeAccumulatedGrade(periodGrades: PeriodGradeInput[]): number {
-    return periodGrades.reduce((sum, p) => sum + p.weight * (p.grade ?? 0), 0);
+    const totalWeight = periodGrades.reduce((sum, p) => sum + p.weight, 0);
+    if (totalWeight === 0) return 0;
+    return periodGrades.reduce((sum, p) => sum + p.weight * (p.grade ?? 0), 0) / totalWeight;
   }
 
   static computeAccumulatedAbsences(periodAbsences: number[]): number {

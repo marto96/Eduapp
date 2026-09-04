@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { BadRequestException, ForbiddenException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { EnrollmentRepositoryPort } from '../../../enrollment/application/ports/enrollment.repository.port';
 import { EnrollmentAccessService } from '../../../enrollment/application/services/enrollment-access.service';
+import { PeriodRepositoryPort } from '../../../academic/application/ports/period.repository.port';
 import { EvaluationRepositoryPort } from '../ports/evaluation.repository.port';
 import { GradeScoreRepositoryPort } from '../ports/grade-score.repository.port';
 import { Evaluation } from '../../domain/entities/evaluation.entity';
@@ -26,6 +27,7 @@ export class CreateGradeUseCase {
     @Inject(EnrollmentRepositoryPort) private readonly enrollments: EnrollmentRepositoryPort,
     @Inject(EvaluationRepositoryPort) private readonly evaluations: EvaluationRepositoryPort,
     @Inject(GradeScoreRepositoryPort) private readonly scores: GradeScoreRepositoryPort,
+    @Inject(PeriodRepositoryPort) private readonly periods: PeriodRepositoryPort,
     private readonly enrollmentAccess: EnrollmentAccessService,
   ) {}
 
@@ -44,9 +46,14 @@ export class CreateGradeUseCase {
       throw new BadRequestException('La sección no corresponde a la sección real de esa matrícula');
     }
 
-    let evaluation: Evaluation;
+    const period = await this.periods.findById(input.periodId);
+    if (!period || period.academicYearId !== enrollment.academicYearId) {
+      throw new NotFoundException(`No existe el periodo "${input.periodId}" para ese año lectivo`);
+    }
+
+    let existing: Evaluation | null = null;
     if (input.evaluationId) {
-      const existing = await this.evaluations.findById(input.evaluationId);
+      existing = await this.evaluations.findById(input.evaluationId);
       if (!existing) {
         throw new NotFoundException(`No existe la evaluación "${input.evaluationId}"`);
       }
@@ -58,6 +65,15 @@ export class CreateGradeUseCase {
       ) {
         throw new BadRequestException('Esa evaluación no corresponde a esta materia/periodo/categoría');
       }
+    }
+
+    const effectiveMaxScore = existing ? existing.maxScore : input.maxScore ?? 10;
+    if (input.score < 0 || input.score > effectiveMaxScore) {
+      throw new BadRequestException(`La nota ${input.score} está fuera de rango (0-${effectiveMaxScore})`);
+    }
+
+    let evaluation: Evaluation;
+    if (existing) {
       evaluation = existing;
     } else {
       evaluation = new Evaluation(
@@ -71,10 +87,6 @@ export class CreateGradeUseCase {
         input.label ?? null,
       );
       await this.evaluations.save(evaluation);
-    }
-
-    if (input.score < 0 || input.score > evaluation.maxScore) {
-      throw new BadRequestException(`La nota ${input.score} está fuera de rango (0-${evaluation.maxScore})`);
     }
 
     const gradeScore = new GradeScore(randomUUID(), evaluation.id, enrollmentId, input.score);

@@ -106,6 +106,25 @@ describe('GradeCalculationService', () => {
 
       expect(result).toBeCloseTo(1.8825, 4);
     });
+
+    it('divide por la suma real de los pesos cuando los periodos no suman 100% (ej. tres periodos al 33% cada uno)', () => {
+      const result = GradeCalculationService.computeAccumulatedGrade([
+        { weight: 0.33, grade: 4 },
+        { weight: 0.33, grade: 3 },
+        { weight: 0.33, grade: null },
+      ]);
+
+      // Promedio ponderado correcto de los dos periodos calificados según
+      // sus propios pesos: (4*0.33 + 3*0.33 + 0*0.33) / (0.33*3) = 2.31 / 0.99 = 2.3333...
+      // La fórmula vieja (sin dividir por la suma de pesos) daría 2.31 —
+      // ~1% menos, exactamente el bug descripto (los pesos suman 99%, no 100%).
+      expect(result).toBeCloseTo(2.3333, 3);
+    });
+
+    it('devuelve 0 si la suma de los pesos es 0 (evita dividir por cero)', () => {
+      const result = GradeCalculationService.computeAccumulatedGrade([]);
+      expect(result).toBe(0);
+    });
   });
 
   describe('computeAccumulatedAbsences', () => {

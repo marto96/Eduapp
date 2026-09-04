@@ -111,8 +111,10 @@ describe('GetGradebookUseCase', () => {
     expect(biologia.periods[0].absences).toBe(1);
     expect(biologia.periods[1].grade).toBeNull(); // sin evaluaciones en p2
     expect(biologia.periods[1].absences).toBe(0);
-    // Acumulada: (4*0.25 + 0*0.25) = 1
-    expect(biologia.accumulatedGrade).toBeCloseTo(1, 5);
+    // Acumulada: (4*0.25 + 0*0.25) / (0.25+0.25) = 1 / 0.5 = 2 — se normaliza
+    // por la suma de los pesos de los periodos configurados (año todavía
+    // sin los 4 periodos completos), no por 1 (fix #7).
+    expect(biologia.accumulatedGrade).toBeCloseTo(2, 5);
     expect(biologia.accumulatedAbsences).toBe(1);
   });
 });
