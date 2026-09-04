@@ -25,13 +25,7 @@ export class CreateAcademicYearUseCase {
 
     let year: AcademicYear;
     try {
-      year = new AcademicYear(
-        randomUUID(),
-        input.name,
-        new Date(input.startDate),
-        new Date(input.endDate),
-        'active',
-      );
+      year = new AcademicYear(randomUUID(), input.name, input.startDate, input.endDate, 'active');
     } catch (err) {
       throw new BadRequestException((err as Error).message);
     }

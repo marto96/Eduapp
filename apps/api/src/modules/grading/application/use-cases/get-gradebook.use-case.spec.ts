@@ -65,7 +65,7 @@ describe('GetGradebookUseCase', () => {
     users.findById.mockResolvedValue({ id: 'student-1', fullName: 'Juan Pérez' } as never);
     sections.findById.mockResolvedValue(new Section('section-1', 'grade-1', 'Sexto Uno'));
     academicYears.findById.mockResolvedValue(
-      new AcademicYear('year-1', '2026', new Date('2026-01-01'), new Date('2026-12-01'), 'active'),
+      new AcademicYear('year-1', '2026', '2026-01-01', '2026-12-01', 'active'),
     );
     periods.findAll.mockResolvedValue([
       new Period('p1', 'year-1', 'Primer periodo', 1, 0.25, '2026-01-20', '2026-03-20'),

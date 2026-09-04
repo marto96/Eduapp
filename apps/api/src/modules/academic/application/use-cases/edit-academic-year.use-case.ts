@@ -21,7 +21,7 @@ export class EditAcademicYearUseCase {
       throw new NotFoundException(`No existe el año lectivo "${id}"`);
     }
 
-    if (year.startDate.toISOString().slice(0, 10) <= todayLocalDate()) {
+    if (year.startDate <= todayLocalDate()) {
       throw new BadRequestException(
         'No se puede editar un año lectivo que ya empezó o está en curso',
       );
@@ -32,15 +32,12 @@ export class EditAcademicYearUseCase {
       throw new BadRequestException(`Ya existe un año lectivo llamado "${input.name}"`);
     }
 
-    const newStartDate = new Date(input.startDate);
-    const newEndDate = new Date(input.endDate);
-
-    if (siblings.some((y) => datesOverlap(newStartDate, newEndDate, y.startDate, y.endDate))) {
+    if (siblings.some((y) => datesOverlap(input.startDate, input.endDate, y.startDate, y.endDate))) {
       throw new BadRequestException('El rango de fechas se superpone con otro año lectivo existente');
     }
 
     try {
-      year.edit(input.name, newStartDate, newEndDate);
+      year.edit(input.name, input.startDate, input.endDate);
     } catch (err) {
       throw new BadRequestException((err as Error).message);
     }

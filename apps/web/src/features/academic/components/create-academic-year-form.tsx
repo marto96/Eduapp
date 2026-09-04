@@ -28,8 +28,12 @@ export function CreateAcademicYearForm() {
           id="name"
           placeholder="2026"
           required
+          inputMode="numeric"
+          pattern="\d{4}"
+          maxLength={4}
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e) => setName(e.target.value.replace(/\D/g, '').slice(0, 4))}
+          className="w-24"
         />
       </div>
       <div className="space-y-1.5">

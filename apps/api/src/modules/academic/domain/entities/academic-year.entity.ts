@@ -2,8 +2,8 @@ export class AcademicYear {
   constructor(
     public readonly id: string,
     public name: string,
-    public startDate: Date,
-    public endDate: Date,
+    public startDate: string,
+    public endDate: string,
     public status: 'active' | 'closed',
   ) {
     if (startDate >= endDate) {
@@ -11,7 +11,7 @@ export class AcademicYear {
     }
   }
 
-  edit(name: string, startDate: Date, endDate: Date): void {
+  edit(name: string, startDate: string, endDate: string): void {
     if (startDate >= endDate) {
       throw new Error('La fecha de inicio debe ser anterior a la fecha de fin');
     }

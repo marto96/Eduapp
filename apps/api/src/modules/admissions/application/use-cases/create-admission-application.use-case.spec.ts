@@ -71,7 +71,7 @@ describe('CreateAdmissionApplicationUseCase', () => {
     jest.clearAllMocks();
     grades.findById.mockResolvedValue(new Grade('grade-1', 'Sexto', 'Bachillerato', 7));
     academicYears.findAll.mockResolvedValue([
-      new AcademicYear('year-2026', '2026', new Date('2026-01-01'), new Date('2026-12-15'), 'active'),
+      new AcademicYear('year-2026', '2026', '2026-01-01', '2026-12-15', 'active'),
     ]);
     applications.findPendingByDocumentNumber.mockResolvedValue(null);
     feeSchedules.findOne.mockResolvedValue(
@@ -92,7 +92,7 @@ describe('CreateAdmissionApplicationUseCase', () => {
 
   it('rechaza si no hay un año lectivo activo', async () => {
     academicYears.findAll.mockResolvedValue([
-      new AcademicYear('year-2025', '2025', new Date('2025-01-01'), new Date('2025-12-15'), 'closed'),
+      new AcademicYear('year-2025', '2025', '2025-01-01', '2025-12-15', 'closed'),
     ]);
 
     await expect(useCase.execute(input)).rejects.toThrow(NotFoundException);

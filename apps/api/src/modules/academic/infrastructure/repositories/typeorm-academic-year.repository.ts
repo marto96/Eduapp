@@ -28,8 +28,8 @@ export class TypeOrmAcademicYearRepository extends AcademicYearRepositoryPort {
     await this.repo.save({
       id: year.id,
       name: year.name,
-      startDate: year.startDate.toISOString().slice(0, 10),
-      endDate: year.endDate.toISOString().slice(0, 10),
+      startDate: year.startDate,
+      endDate: year.endDate,
       status: year.status,
     });
   }
@@ -39,12 +39,6 @@ export class TypeOrmAcademicYearRepository extends AcademicYearRepositoryPort {
   }
 
   private toDomain(row: AcademicYearOrmEntity): AcademicYear {
-    return new AcademicYear(
-      row.id,
-      row.name,
-      new Date(row.startDate),
-      new Date(row.endDate),
-      row.status,
-    );
+    return new AcademicYear(row.id, row.name, row.startDate, row.endDate, row.status);
   }
 }

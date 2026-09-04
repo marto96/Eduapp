@@ -14,7 +14,7 @@ export class DeleteAcademicYearUseCase {
       throw new NotFoundException(`No existe el año lectivo "${id}"`);
     }
 
-    if (year.startDate.toISOString().slice(0, 10) <= todayLocalDate()) {
+    if (year.startDate <= todayLocalDate()) {
       throw new BadRequestException(
         'No se puede eliminar un año lectivo que ya empezó o está en curso',
       );

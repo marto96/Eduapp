@@ -36,3 +36,47 @@ export function useCreateAcademicYear() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['academic-years'] }),
   });
 }
+
+export interface EditAcademicYearInput {
+  id: string;
+  name: string;
+  startDate: string;
+  endDate: string;
+}
+
+async function editAcademicYear({ id, ...input }: EditAcademicYearInput): Promise<AcademicYear> {
+  const res = await fetch(`/api/academic/years/${id}`, {
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.message ?? 'No se pudo editar el año lectivo');
+  }
+  return res.json();
+}
+
+export function useEditAcademicYear() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: editAcademicYear,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['academic-years'] }),
+  });
+}
+
+async function deleteAcademicYear(id: string): Promise<void> {
+  const res = await fetch(`/api/academic/years/${id}`, { method: 'DELETE' });
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.message ?? 'No se pudo eliminar el año lectivo');
+  }
+}
+
+export function useDeleteAcademicYear() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteAcademicYear,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['academic-years'] }),
+  });
+}
