@@ -42,8 +42,9 @@ export class UsersController {
   @Get()
   @CheckPolicies((ability) => ability.can('read', 'User'))
   async list(@Query() query: ListUsersQueryDto) {
-    const users = await this.listUsers.execute(query.role ? { role: query.role } : undefined);
-    return users.map(toResponse);
+    const result = await this.listUsers.execute(query.role, query.page, query.pageSize, query.search);
+    if (Array.isArray(result)) return result.map(toResponse);
+    return { ...result, items: result.items.map(toResponse) };
   }
 
   @Patch(':id/reset-password')

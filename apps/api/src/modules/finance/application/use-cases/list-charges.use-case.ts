@@ -5,6 +5,7 @@ import { Charge } from '../../domain/entities/charge.entity';
 import { EnrollmentAccessService } from '../../../enrollment/application/services/enrollment-access.service';
 import { JwtPayload } from '../../../../core/auth/jwt-payload.interface';
 import { PaginatedResult } from '../../../../core/http/pagination.dto';
+import { normalizePagination } from '../../../../core/http/pagination';
 
 export type ChargeStatus = 'pendiente' | 'parcial' | 'pagado' | 'anulado';
 
@@ -19,6 +20,8 @@ export interface ListChargesInput extends ChargeFilter {
   status?: ChargeStatus;
   page?: number;
   pageSize?: number;
+  /** Coincidencia parcial, sin distinguir mayúsculas, contra la descripción del cargo. */
+  search?: string;
 }
 
 @Injectable()
@@ -69,7 +72,11 @@ export class ListChargesUseCase {
       return { ...charge, paidAmount, netAmount, balance, status } as ChargeWithBalance;
     });
 
-    const filtered = input?.status ? enriched.filter((c) => c.status === input.status) : enriched;
+    const byStatus = input?.status ? enriched.filter((c) => c.status === input.status) : enriched;
+    const search = input?.search?.trim().toLowerCase();
+    const filtered = search
+      ? byStatus.filter((c) => c.description.toLowerCase().includes(search))
+      : byStatus;
     return paginate(filtered);
   }
 
@@ -85,8 +92,7 @@ export class ListChargesUseCase {
     input: ListChargesInput | undefined,
   ): ChargeWithBalance[] | PaginatedResult<ChargeWithBalance> {
     if (!input?.page && !input?.pageSize) return result;
-    const page = input.page ?? 1;
-    const pageSize = input.pageSize ?? 20;
+    const { page, pageSize } = normalizePagination(input.page, input.pageSize);
     const start = (page - 1) * pageSize;
     return { items: result.slice(start, start + pageSize), total: result.length, page, pageSize };
   }

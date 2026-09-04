@@ -34,6 +34,10 @@ export class TypeOrmAcademicYearRepository extends AcademicYearRepositoryPort {
     });
   }
 
+  async deleteById(id: string): Promise<void> {
+    await this.repo.softDelete(id);
+  }
+
   private toDomain(row: AcademicYearOrmEntity): AcademicYear {
     return new AcademicYear(
       row.id,

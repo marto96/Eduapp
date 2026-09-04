@@ -41,7 +41,7 @@ export function GradebookSearch({ onSelect }: { onSelect: (student: GradebookStu
             className="flex h-10 w-40 rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
           >
             <option value="" disabled>
-              Seleccioná un año
+              Selecciona un año
             </option>
             {years?.map((year) => (
               <option key={year.id} value={year.id}>

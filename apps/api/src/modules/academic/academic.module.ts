@@ -7,6 +7,8 @@ import { PeriodsController } from './interface/controllers/periods.controller';
 import { CreateAcademicYearUseCase } from './application/use-cases/create-academic-year.use-case';
 import { ListAcademicYearsUseCase } from './application/use-cases/list-academic-years.use-case';
 import { GetAcademicYearUseCase } from './application/use-cases/get-academic-year.use-case';
+import { EditAcademicYearUseCase } from './application/use-cases/edit-academic-year.use-case';
+import { DeleteAcademicYearUseCase } from './application/use-cases/delete-academic-year.use-case';
 import { CreateGradeUseCase } from './application/use-cases/create-grade.use-case';
 import { EditGradeUseCase } from './application/use-cases/edit-grade.use-case';
 import { ListGradesUseCase } from './application/use-cases/list-grades.use-case';
@@ -34,6 +36,8 @@ import { TypeOrmPeriodRepository } from './infrastructure/repositories/typeorm-p
     CreateAcademicYearUseCase,
     ListAcademicYearsUseCase,
     GetAcademicYearUseCase,
+    EditAcademicYearUseCase,
+    DeleteAcademicYearUseCase,
     CreateGradeUseCase,
     EditGradeUseCase,
     ListGradesUseCase,

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useCharges, useEditCharge, useVoidCharge } from '../use-charges';
 import { RecordPaymentForm } from './record-payment-form';
 import { ChargePayments } from './charge-payments';
@@ -15,7 +15,8 @@ import { formatCurrency } from '@/lib/currency';
 import type { Charge, ChargeStatus } from '@eduapp/shared-types';
 import { LoadingState } from '@/components/ui/loading-state';
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
+const SEARCH_DEBOUNCE_MS = 350;
 
 const CONCEPT_LABELS: Record<string, string> = {
   matricula: 'Matrícula',
@@ -38,8 +39,21 @@ const STATUS_CLASSES: Record<ChargeStatus, string> = {
 };
 
 export function ChargesList({ canManage }: { canManage: boolean }) {
+  const [searchInput, setSearchInput] = useState('');
+  const [committedSearch, setCommittedSearch] = useState('');
   const [page, setPage] = useState(1);
-  const { data, isLoading, error } = useCharges({ page, pageSize: PAGE_SIZE });
+  const [pageSize, setPageSize] = useState(25);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => setCommittedSearch(searchInput), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timeout);
+  }, [searchInput]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [committedSearch, pageSize]);
+
+  const { data, isLoading, error } = useCharges({ page, pageSize, search: committedSearch || undefined });
   const charges = data?.items;
   const { data: enrollments } = useEnrollments();
   const { data: students } = useUsers('estudiante');
@@ -53,10 +67,33 @@ export function ChargesList({ canManage }: { canManage: boolean }) {
   const [dueDate, setDueDate] = useState('');
   const [discountAmount, setDiscountAmount] = useState('');
 
+  const filters = (
+    <Input
+      placeholder="Buscar por descripción..."
+      value={searchInput}
+      onChange={(e) => setSearchInput(e.target.value)}
+      className="w-72"
+    />
+  );
+
   if (isLoading) return <LoadingState />;
-  if (error) return <p className="text-sm text-destructive">No se pudieron cargar los cargos.</p>;
+  if (error) {
+    return (
+      <div className="space-y-3">
+        {filters}
+        <p className="text-sm text-destructive">No se pudieron cargar los cargos.</p>
+      </div>
+    );
+  }
   if (!charges || charges.length === 0) {
-    return <p className="text-sm text-muted-foreground">Todavía no hay cargos.</p>;
+    return (
+      <div className="space-y-3">
+        {filters}
+        <p className="text-sm text-muted-foreground">
+          {committedSearch ? 'No hay cargos que coincidan con la búsqueda.' : 'Todavía no hay cargos.'}
+        </p>
+      </div>
+    );
   }
 
   const enrollmentById = new Map(enrollments?.map((e) => [e.id, e]));
@@ -88,6 +125,7 @@ export function ChargesList({ canManage }: { canManage: boolean }) {
 
   return (
     <div className="space-y-4">
+      {filters}
       <ul className="space-y-2">
         {charges.map((charge) => {
         const enrollment = enrollmentById.get(charge.enrollmentId);
@@ -197,7 +235,14 @@ export function ChargesList({ canManage }: { canManage: boolean }) {
         })}
       </ul>
       {data && (
-        <Pagination page={data.page} pageSize={data.pageSize} total={data.total} onPageChange={setPage} />
+        <Pagination
+          page={data.page}
+          pageSize={data.pageSize}
+          total={data.total}
+          onPageChange={setPage}
+          pageSizeOptions={PAGE_SIZE_OPTIONS}
+          onPageSizeChange={setPageSize}
+        />
       )}
     </div>
   );

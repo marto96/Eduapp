@@ -3,7 +3,9 @@ import { DataSource, Repository } from 'typeorm';
 import {
   IssuedDocumentFilter,
   IssuedDocumentRepositoryPort,
+  PaginatedIssuedDocuments,
 } from '../../application/ports/issued-document.repository.port';
+import { PaginationParams } from '../../../../core/http/pagination.dto';
 import { IssuedDocument } from '../../domain/entities/issued-document.entity';
 import { IssuedDocumentOrmEntity } from '../entities/issued-document.orm-entity';
 import { TENANT_DATA_SOURCE } from '../../../../core/database/tenant-datasource.provider';
@@ -17,15 +19,50 @@ export class TypeOrmIssuedDocumentRepository extends IssuedDocumentRepositoryPor
     this.repo = dataSource.getRepository(IssuedDocumentOrmEntity);
   }
 
-  async findAll(filter?: IssuedDocumentFilter): Promise<IssuedDocument[]> {
-    const rows = await this.repo.find({
-      where: {
-        ...(filter?.enrollmentId && { enrollmentId: filter.enrollmentId }),
-        ...(filter?.type && { type: filter.type }),
-      },
-      order: { issuedAt: 'DESC' },
-    });
-    return rows.map((row) => this.toDomain(row));
+  async findAll(
+    filter: IssuedDocumentFilter | undefined,
+    pagination?: PaginationParams,
+  ): Promise<PaginatedIssuedDocuments> {
+    const query = this.repo.createQueryBuilder('d').orderBy('d.issued_at', 'DESC');
+
+    if (filter?.enrollmentId) {
+      query.andWhere('d.enrollment_id = :enrollmentId', { enrollmentId: filter.enrollmentId });
+    }
+    if (filter?.enrollmentIds) {
+      query.andWhere('d.enrollment_id = ANY(:enrollmentIds)', { enrollmentIds: filter.enrollmentIds });
+    }
+    if (filter?.type) {
+      query.andWhere('d.type = :type', { type: filter.type });
+    }
+    if (filter?.search) {
+      // El nombre del estudiante no vive en `documents` — hay que ir a
+      // buscarlo vía enrollments -> users. Una subquery en el WHERE (en vez
+      // de un JOIN) evita un bug de larga data de TypeORM (issues
+      // #3356/#4270/#8213/#11742 en su repo): combinar `orderBy` + join +
+      // `skip`/`take` revienta con "Cannot read properties of undefined
+      // (reading 'databaseName')" — sin JOIN en la query principal, no hay
+      // nada que combinar y el bug no se dispara.
+      query.andWhere(
+        `d.enrollment_id IN (
+          SELECT e.id FROM enrollments e
+          INNER JOIN users u ON u.id = e.student_id
+          WHERE u.first_name ILIKE :term OR u.last_name ILIKE :term
+        )`,
+        { term: `%${filter.search}%` },
+      );
+    }
+
+    if (!pagination) {
+      const rows = await query.getMany();
+      return { items: rows.map((row) => this.toDomain(row)), total: rows.length };
+    }
+
+    const [rows, total] = await query
+      .skip((pagination.page - 1) * pagination.pageSize)
+      .take(pagination.pageSize)
+      .getManyAndCount();
+
+    return { items: rows.map((row) => this.toDomain(row)), total };
   }
 
   async findById(id: string): Promise<IssuedDocument | null> {

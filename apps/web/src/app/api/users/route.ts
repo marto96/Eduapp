@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { serverApiFetch } from '@/lib/server-api';
-import type { TenantUser } from '@eduapp/shared-types';
+import type { PaginatedResult, TenantUser } from '@eduapp/shared-types';
 
 export async function GET(req: NextRequest) {
-  const role = req.nextUrl.searchParams.get('role');
-  const path = role ? `/users?role=${encodeURIComponent(role)}` : '/users';
-  const users = await serverApiFetch<TenantUser[]>(path);
-  if (users === null) return NextResponse.json({ message: 'No autenticado' }, { status: 401 });
-  return NextResponse.json(users);
+  const qs = req.nextUrl.searchParams.toString();
+  const result = await serverApiFetch<PaginatedResult<TenantUser>>(`/users${qs ? `?${qs}` : ''}`);
+  if (result === null) return NextResponse.json({ message: 'No autenticado' }, { status: 401 });
+  return NextResponse.json(result);
 }
 
 export async function POST(req: NextRequest) {

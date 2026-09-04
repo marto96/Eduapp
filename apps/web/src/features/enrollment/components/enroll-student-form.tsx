@@ -205,7 +205,7 @@ export function EnrollStudentForm({
               className="flex h-10 w-48 rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
             >
               <option value="" disabled>
-                Seleccioná un estudiante
+                Selecciona un estudiante
               </option>
               {students?.map((student) => (
                 <option key={student.id} value={student.id}>
@@ -224,7 +224,7 @@ export function EnrollStudentForm({
               className="flex h-10 w-40 rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
             >
               <option value="" disabled>
-                Seleccioná un año
+                Selecciona un año
               </option>
               {years?.map((year) => (
                 <option key={year.id} value={year.id}>
@@ -243,7 +243,7 @@ export function EnrollStudentForm({
               className="flex h-10 w-40 rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
             >
               <option value="" disabled>
-                Seleccioná una sección
+                Selecciona una sección
               </option>
               {sections?.map((section) => (
                 <option key={section.id} value={section.id}>
@@ -336,7 +336,7 @@ export function EnrollStudentForm({
                 className="flex h-10 w-full rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
               >
                 <option value="" disabled>
-                  Seleccioná un tipo
+                  Selecciona un tipo
                 </option>
                 {DOCUMENT_TYPE_OPTIONS.map((option) => (
                   <option key={option.value} value={option.value}>
@@ -375,7 +375,7 @@ export function EnrollStudentForm({
                 className="flex h-10 w-full rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
               >
                 <option value="" disabled>
-                  Seleccioná un año
+                  Selecciona un año
                 </option>
                 {years?.map((year) => (
                   <option key={year.id} value={year.id}>
@@ -394,7 +394,7 @@ export function EnrollStudentForm({
                 className="flex h-10 w-full rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
               >
                 <option value="" disabled>
-                  Seleccioná una sección
+                  Selecciona una sección
                 </option>
                 {sections?.map((section) => (
                   <option key={section.id} value={section.id}>

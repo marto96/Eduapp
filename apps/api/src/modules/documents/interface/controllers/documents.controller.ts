@@ -27,7 +27,8 @@ export class DocumentsController {
 
   @Get()
   async list(@Query() query: ListDocumentsQueryDto, @CurrentUser() user: JwtPayload) {
-    return this.listDocuments.execute(query, user);
+    const input = query.enrollmentId || query.type ? { enrollmentId: query.enrollmentId, type: query.type } : undefined;
+    return this.listDocuments.execute(input, user, query.page, query.pageSize, query.search);
   }
 
   @Patch(':id/void')

@@ -22,8 +22,18 @@ export class AdmissionManagementController {
   ) {}
 
   @Get()
-  async list(@Query('status') status?: AdmissionStatus) {
-    return this.listApplications.execute(status);
+  async list(
+    @Query('status') status?: AdmissionStatus,
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
+    @Query('search') search?: string,
+  ) {
+    return this.listApplications.execute(
+      status,
+      page ? Number(page) : undefined,
+      pageSize ? Number(pageSize) : undefined,
+      search,
+    );
   }
 
   @Patch(':id/interview')

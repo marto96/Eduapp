@@ -3,6 +3,8 @@ import { DataSource, Repository } from 'typeorm';
 import {
   AdmissionApplicationFilter,
   AdmissionApplicationRepositoryPort,
+  PaginatedAdmissionApplications,
+  PaginationParams,
 } from '../../application/ports/admission-application.repository.port';
 import { AdmissionApplication, AdmissionStatus } from '../../domain/entities/admission-application.entity';
 import { DocumentType } from '../../../identity/domain/entities/user.entity';
@@ -39,13 +41,27 @@ export class TypeOrmAdmissionApplicationRepository extends AdmissionApplicationR
     return row ? this.toDomain(row) : null;
   }
 
-  async findAll(filter?: AdmissionApplicationFilter): Promise<AdmissionApplication[]> {
+  async findAll(
+    filter: AdmissionApplicationFilter | undefined,
+    pagination: PaginationParams,
+  ): Promise<PaginatedAdmissionApplications> {
     const query = this.repo.createQueryBuilder('a').orderBy('a.created_at', 'DESC');
     if (filter?.status) {
       query.andWhere('a.status = :status', { status: filter.status });
     }
-    const rows = await query.getMany();
-    return rows.map((row) => this.toDomain(row));
+    if (filter?.search) {
+      query.andWhere(
+        '(a.tracking_code ILIKE :term OR a.student_first_name ILIKE :term OR a.student_last_name ILIKE :term)',
+        { term: `%${filter.search}%` },
+      );
+    }
+
+    const [rows, total] = await query
+      .skip((pagination.page - 1) * pagination.pageSize)
+      .take(pagination.pageSize)
+      .getManyAndCount();
+
+    return { items: rows.map((row) => this.toDomain(row)), total };
   }
 
   async save(application: AdmissionApplication): Promise<void> {

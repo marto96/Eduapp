@@ -1,12 +1,15 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useDocuments, useVoidDocument } from '../use-documents';
 import { useEnrollments } from '@/features/enrollment/use-enrollments';
 import { useUsers } from '@/features/users/use-users';
 import { useSections } from '@/features/academic/use-sections';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { LoadingState } from '@/components/ui/loading-state';
+import { Pagination } from '@/components/ui/pagination';
 
 const TYPE_LABELS: Record<string, string> = {
   constancia_matricula: 'Constancia de matrícula',
@@ -15,17 +18,58 @@ const TYPE_LABELS: Record<string, string> = {
   otro: 'Otro',
 };
 
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
+const SEARCH_DEBOUNCE_MS = 350;
+
 export function DocumentsList({ canManage }: { canManage: boolean }) {
-  const { data: documents, isLoading, error } = useDocuments();
+  const [searchInput, setSearchInput] = useState('');
+  const [committedSearch, setCommittedSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => setCommittedSearch(searchInput), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timeout);
+  }, [searchInput]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [committedSearch, pageSize]);
+
+  const { data, isLoading, error } = useDocuments({ page, pageSize, search: committedSearch || undefined });
+  const documents = data?.items;
   const { data: enrollments } = useEnrollments();
   const { data: users } = useUsers();
   const { data: sections } = useSections();
   const voidDocument = useVoidDocument();
 
+  const filters = (
+    <Input
+      placeholder="Buscar por nombre del estudiante..."
+      value={searchInput}
+      onChange={(e) => setSearchInput(e.target.value)}
+      className="w-72"
+    />
+  );
+
   if (isLoading) return <LoadingState />;
-  if (error) return <p className="text-sm text-destructive">No se pudieron cargar los documentos.</p>;
+  if (error) {
+    return (
+      <div className="space-y-3">
+        {filters}
+        <p className="text-sm text-destructive">No se pudieron cargar los documentos.</p>
+      </div>
+    );
+  }
   if (!documents || documents.length === 0) {
-    return <p className="text-sm text-muted-foreground">Todavía no hay documentos emitidos.</p>;
+    return (
+      <div className="space-y-3">
+        {filters}
+        <p className="text-sm text-muted-foreground">
+          {committedSearch ? 'No hay documentos que coincidan con la búsqueda.' : 'Todavía no hay documentos emitidos.'}
+        </p>
+      </div>
+    );
   }
 
   const enrollmentById = new Map(enrollments?.map((e) => [e.id, e]));
@@ -33,54 +77,67 @@ export function DocumentsList({ canManage }: { canManage: boolean }) {
   const sectionNameById = new Map(sections?.map((s) => [s.id, s.name]));
 
   return (
-    <ul className="space-y-2">
-      {documents.map((document) => {
-        const enrollment = enrollmentById.get(document.enrollmentId);
-        const studentName = enrollment
-          ? (userNameById.get(enrollment.studentId) ?? enrollment.studentId)
-          : document.enrollmentId;
-        const sectionName = enrollment ? sectionNameById.get(enrollment.sectionId) : undefined;
+    <div className="space-y-3">
+      {filters}
+      <ul className="space-y-2">
+        {documents.map((document) => {
+          const enrollment = enrollmentById.get(document.enrollmentId);
+          const studentName = enrollment
+            ? (userNameById.get(enrollment.studentId) ?? enrollment.studentId)
+            : document.enrollmentId;
+          const sectionName = enrollment ? sectionNameById.get(enrollment.sectionId) : undefined;
 
-        return (
-          <Card key={document.id} className="flex items-center justify-between py-3">
-            <div>
-              <p className="font-medium">
-                {TYPE_LABELS[document.type] ?? document.type} — {studentName}
-                {sectionName ? ` (Sección ${sectionName})` : ''}
-                {document.voidedAt && (
-                  <span className="ml-2 text-xs uppercase text-destructive">Anulado</span>
-                )}
-              </p>
-              <p className="text-sm text-muted-foreground">{document.description}</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="text-right text-xs text-muted-foreground">
-                <p>{document.issuedAt}</p>
-                <p>{userNameById.get(document.issuedBy) ?? document.issuedBy}</p>
+          return (
+            <Card key={document.id} className="flex items-center justify-between py-3">
+              <div>
+                <p className="font-medium">
+                  {TYPE_LABELS[document.type] ?? document.type} — {studentName}
+                  {sectionName ? ` (Sección ${sectionName})` : ''}
+                  {document.voidedAt && (
+                    <span className="ml-2 text-xs uppercase text-destructive">Anulado</span>
+                  )}
+                </p>
+                <p className="text-sm text-muted-foreground">{document.description}</p>
               </div>
-              {document.pdfGeneratedAt && (
-                <a
-                  href={`/api/documents/${document.id}/pdf`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-sm text-primary underline"
-                >
-                  Descargar PDF
-                </a>
-              )}
-              {canManage && !document.voidedAt && (
-                <Button
-                  variant="ghost"
-                  disabled={voidDocument.isPending}
-                  onClick={() => voidDocument.mutate(document.id)}
-                >
-                  Anular
-                </Button>
-              )}
-            </div>
-          </Card>
-        );
-      })}
-    </ul>
+              <div className="flex items-center gap-3">
+                <div className="text-right text-xs text-muted-foreground">
+                  <p>{document.issuedAt}</p>
+                  <p>{userNameById.get(document.issuedBy) ?? document.issuedBy}</p>
+                </div>
+                {document.pdfGeneratedAt && (
+                  <a
+                    href={`/api/documents/${document.id}/pdf`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-sm text-primary underline"
+                  >
+                    Descargar PDF
+                  </a>
+                )}
+                {canManage && !document.voidedAt && (
+                  <Button
+                    variant="ghost"
+                    disabled={voidDocument.isPending}
+                    onClick={() => voidDocument.mutate(document.id)}
+                  >
+                    Anular
+                  </Button>
+                )}
+              </div>
+            </Card>
+          );
+        })}
+      </ul>
+      {data && (
+        <Pagination
+          page={data.page}
+          pageSize={data.pageSize}
+          total={data.total}
+          onPageChange={setPage}
+          pageSizeOptions={PAGE_SIZE_OPTIONS}
+          onPageSizeChange={setPageSize}
+        />
+      )}
+    </div>
   );
 }

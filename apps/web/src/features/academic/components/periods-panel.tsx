@@ -88,7 +88,7 @@ export function PeriodsPanel({ canManage = false }: { canManage?: boolean }) {
           className="flex h-10 w-48 rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
         >
           <option value="" disabled>
-            Seleccioná un año
+            Selecciona un año
           </option>
           {years?.map((year) => (
             <option key={year.id} value={year.id}>

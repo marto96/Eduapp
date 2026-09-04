@@ -4,4 +4,5 @@ export abstract class AcademicYearRepositoryPort {
   abstract findAll(): Promise<AcademicYear[]>;
   abstract findById(id: string): Promise<AcademicYear | null>;
   abstract save(year: AcademicYear): Promise<void>;
+  abstract deleteById(id: string): Promise<void>;
 }

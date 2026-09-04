@@ -23,6 +23,7 @@ describe('CreateFeeScheduleUseCase', () => {
     findAll: jest.fn(),
     findById: jest.fn(),
     save: jest.fn(),
+    deleteById: jest.fn(),
   };
 
   const useCase = new CreateFeeScheduleUseCase(feeSchedules, grades, academicYears);

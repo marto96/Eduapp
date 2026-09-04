@@ -1,7 +1,8 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import type { AdmissionStatus } from '@eduapp/shared-types';
 import {
   useAdmissionApplications,
   useRecordAdmissionInterview,
@@ -12,6 +13,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { LoadingState } from '@/components/ui/loading-state';
+import { cn } from '@/lib/utils';
 
 const STATUS_LABELS: Record<string, string> = {
   pendiente_pago: 'Pendiente de pago',
@@ -20,9 +22,44 @@ const STATUS_LABELS: Record<string, string> = {
   rechazada: 'Rechazada',
 };
 
+const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
+const SEARCH_DEBOUNCE_MS = 350;
+
+/** Si el término de búsqueda es exactamente el nombre (o el valor crudo) de un estado, se busca por estado en vez de texto libre — así "aceptada" filtra por estado en el mismo cuadro de búsqueda. */
+function matchStatusLabel(term: string): AdmissionStatus | undefined {
+  const normalized = term.trim().toLowerCase();
+  if (!normalized) return undefined;
+  const entry = Object.entries(STATUS_LABELS).find(
+    ([status, label]) => status === normalized || label.toLowerCase() === normalized,
+  );
+  return entry?.[0] as AdmissionStatus | undefined;
+}
+
 export function AdmissionApplicationsList() {
   const router = useRouter();
-  const { data: applications, isLoading, error } = useAdmissionApplications();
+  const [searchInput, setSearchInput] = useState('');
+  const [committedSearch, setCommittedSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => setCommittedSearch(searchInput), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timeout);
+  }, [searchInput]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [committedSearch, pageSize]);
+
+  const statusFromSearch = useMemo(() => matchStatusLabel(committedSearch), [committedSearch]);
+
+  const { data, isLoading, error } = useAdmissionApplications({
+    page,
+    pageSize,
+    status: statusFromSearch,
+    search: statusFromSearch ? undefined : committedSearch || undefined,
+  });
+  const applications = data?.items;
   const recordInterview = useRecordAdmissionInterview();
   const acceptApplication = useAcceptAdmissionApplication();
   const rejectApplication = useRejectAdmissionApplication();
@@ -33,10 +70,55 @@ export function AdmissionApplicationsList() {
   const [rejectingId, setRejectingId] = useState<string | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
 
+  const totalPages = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;
+
+  const filters = (
+    <Input
+      placeholder="Buscar por código, nombre o estado..."
+      value={searchInput}
+      onChange={(e) => setSearchInput(e.target.value)}
+      className="w-72"
+    />
+  );
+
+  const pageSizeControl = (
+    <div className="flex items-center gap-0.5 rounded-md border border-border p-0.5">
+      {PAGE_SIZE_OPTIONS.map((size) => (
+        <button
+          key={size}
+          type="button"
+          onClick={() => setPageSize(size)}
+          className={cn(
+            'rounded px-2 py-1 text-xs font-medium transition-colors',
+            pageSize === size
+              ? 'bg-primary/10 text-primary'
+              : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+          )}
+        >
+          {size}
+        </button>
+      ))}
+    </div>
+  );
+
   if (isLoading) return <LoadingState />;
-  if (error) return <p className="text-sm text-destructive">No se pudieron cargar las solicitudes.</p>;
+  if (error) {
+    return (
+      <div className="space-y-3">
+        {filters}
+        <p className="text-sm text-destructive">No se pudieron cargar las solicitudes.</p>
+      </div>
+    );
+  }
   if (!applications || applications.length === 0) {
-    return <p className="text-sm text-muted-foreground">Todavía no hay solicitudes.</p>;
+    return (
+      <div className="space-y-3">
+        {filters}
+        <p className="text-sm text-muted-foreground">
+          {committedSearch ? 'No hay solicitudes que coincidan con la búsqueda.' : 'Todavía no hay solicitudes.'}
+        </p>
+      </div>
+    );
   }
 
   function saveInterview(id: string) {
@@ -72,7 +154,9 @@ export function AdmissionApplicationsList() {
   }
 
   return (
-    <ul className="space-y-2">
+    <div className="space-y-3">
+      {filters}
+      <ul className="space-y-2">
       {applications.map((application) => (
         <Card key={application.id} className="space-y-2 py-3">
           <div className="flex items-center justify-between">
@@ -156,6 +240,31 @@ export function AdmissionApplicationsList() {
           )}
         </Card>
       ))}
-    </ul>
+      </ul>
+      <div className="flex items-center justify-between text-sm text-muted-foreground">
+        <span>
+          Página {page} de {totalPages} · {data?.total} solicitud{data?.total === 1 ? '' : 'es'}
+        </span>
+        <div className="flex items-center gap-2">
+          {pageSizeControl}
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={page <= 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+          >
+            Anterior
+          </Button>
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={page >= totalPages}
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+          >
+            Siguiente
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -3,11 +3,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import type { Charge, ChargeConcept, ChargeStatus, PaginatedResult } from '@eduapp/shared-types';
+import { toQueryString } from '@/lib/utils';
 
 export interface ChargeFilter {
   enrollmentId?: string;
   concept?: ChargeConcept;
   status?: ChargeStatus;
+  /** Coincidencia parcial, sin distinguir mayúsculas, contra la descripción del cargo. */
+  search?: string;
 }
 
 export interface PaginatedChargeFilter extends ChargeFilter {
@@ -18,9 +21,7 @@ export interface PaginatedChargeFilter extends ChargeFilter {
 async function fetchCharges(
   filter?: ChargeFilter | PaginatedChargeFilter,
 ): Promise<Charge[] | PaginatedResult<Charge>> {
-  const qs = filter
-    ? new URLSearchParams(filter as unknown as Record<string, string>).toString()
-    : '';
+  const qs = filter ? toQueryString(filter) : '';
   const res = await fetch(qs ? `/api/finance/charges?${qs}` : '/api/finance/charges');
   if (!res.ok) throw new Error('No se pudieron cargar los cargos');
   return res.json();

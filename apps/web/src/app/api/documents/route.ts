@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { serverApiFetch } from '@/lib/server-api';
-import type { IssuedDocument } from '@eduapp/shared-types';
+import type { IssuedDocument, PaginatedResult } from '@eduapp/shared-types';
 
 export async function GET(req: NextRequest) {
   const qs = req.nextUrl.searchParams.toString();
   const path = qs ? `/documents?${qs}` : '/documents';
-  const documents = await serverApiFetch<IssuedDocument[]>(path);
+  const documents = await serverApiFetch<IssuedDocument[] | PaginatedResult<IssuedDocument>>(path);
   if (documents === null) return NextResponse.json({ message: 'No autenticado' }, { status: 401 });
   return NextResponse.json(documents);
 }

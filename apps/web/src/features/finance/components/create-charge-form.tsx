@@ -87,7 +87,7 @@ export function CreateChargeForm() {
           className="flex h-10 w-64 rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
         >
           <option value="" disabled>
-            Seleccioná un estudiante
+            Selecciona un estudiante
           </option>
           {activeEnrollments.map((enrollment) => (
             <option key={enrollment.id} value={enrollment.id}>

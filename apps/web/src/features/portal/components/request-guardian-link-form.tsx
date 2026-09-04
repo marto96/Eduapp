@@ -41,7 +41,7 @@ export function RequestGuardianLinkForm() {
             className="flex h-10 w-56 rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
           >
             <option value="" disabled>
-              Seleccioná uno
+              Selecciona uno
             </option>
             {students?.map((u) => (
               <option key={u.id} value={u.id}>

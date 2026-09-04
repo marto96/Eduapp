@@ -109,7 +109,7 @@ export function TakeAttendanceForm({
             className="flex h-10 w-40 rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
           >
             <option value="" disabled>
-              Seleccioná un año
+              Selecciona un año
             </option>
             {years?.map((year) => (
               <option key={year.id} value={year.id}>
@@ -128,7 +128,7 @@ export function TakeAttendanceForm({
             className="flex h-10 w-56 rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary disabled:opacity-60"
           >
             <option value="" disabled>
-              Seleccioná una clase
+              Selecciona una clase
             </option>
             {schedules?.map((schedule) => (
               <option key={schedule.id} value={schedule.id}>

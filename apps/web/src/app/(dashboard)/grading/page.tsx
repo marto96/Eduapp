@@ -1,7 +1,4 @@
-import { CreateEvaluationForm } from '@/features/grading/components/create-evaluation-form';
-import { EvaluationsList } from '@/features/grading/components/evaluations-list';
-import { RecordScoresForm } from '@/features/grading/components/record-scores-form';
-import { GradebookPanel } from '@/features/grading/components/gradebook-panel';
+import { GradingTabs } from '@/features/grading/components/grading-tabs';
 import { getCurrentUser } from '@/lib/server-api';
 import { canManageGrading } from '@/lib/permissions';
 
@@ -10,7 +7,7 @@ export default async function GradingPage() {
   const canManage = canManageGrading(user?.roles ?? []);
 
   return (
-    <main className="space-y-8 p-6">
+    <main className="space-y-6 p-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Calificaciones</h1>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -18,21 +15,7 @@ export default async function GradingPage() {
         </p>
       </div>
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-medium">Boletín por estudiante</h2>
-        <GradebookPanel />
-      </section>
-
-      <section className="space-y-3">
-        <h2 className="text-lg font-medium">Evaluaciones</h2>
-        {canManage && <CreateEvaluationForm />}
-        <EvaluationsList />
-      </section>
-
-      <section className="space-y-3">
-        <h2 className="text-lg font-medium">Cargar notas</h2>
-        <RecordScoresForm readOnly={!canManage} />
-      </section>
+      <GradingTabs canManage={canManage} />
     </main>
   );
 }

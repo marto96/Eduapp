@@ -1,4 +1,4 @@
-import { IsIn, IsOptional, IsUUID } from 'class-validator';
+import { IsIn, IsOptional, IsString, IsUUID } from 'class-validator';
 import { ChargeConcept } from '../../domain/entities/charge.entity';
 import { ChargeStatus } from '../../application/use-cases/list-charges.use-case';
 import { PaginationQueryDto } from '../../../../core/http/pagination.dto';
@@ -18,4 +18,8 @@ export class ListChargesQueryDto extends PaginationQueryDto {
   @IsOptional()
   @IsIn(KNOWN_STATUSES)
   status?: ChargeStatus;
+
+  @IsOptional()
+  @IsString()
+  search?: string;
 }

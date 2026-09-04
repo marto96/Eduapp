@@ -7,6 +7,7 @@ import { LogoutButton } from '@/components/logout-button';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { TenantBranding } from '@/lib/server-api';
+import { cacheBranding } from '@/lib/branding-cache';
 
 const STORAGE_KEY = 'sidebar-collapsed';
 
@@ -16,6 +17,13 @@ export function Sidebar({ branding, roles }: { branding: TenantBranding; roles: 
   useEffect(() => {
     setCollapsed(localStorage.getItem(STORAGE_KEY) === 'true');
   }, []);
+
+  // Para que el loader de pantalla completa (`(dashboard)/loading.tsx`)
+  // pueda mostrar el logo sin tener que volver a pedirlo — ver el
+  // comentario en `branding-cache.ts`.
+  useEffect(() => {
+    cacheBranding({ name: branding.name, logoUrl: branding.logoUrl });
+  }, [branding.name, branding.logoUrl]);
 
   function toggle() {
     const next = !collapsed;

@@ -52,7 +52,7 @@ export function CreateEmployeeForm() {
           className="flex h-10 w-56 rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
         >
           <option value="" disabled>
-            Seleccioná un usuario
+            Selecciona un usuario
           </option>
           {staffUsers.map((user) => (
             <option key={user.id} value={user.id}>

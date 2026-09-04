@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { serverApiFetch } from '@/lib/server-api';
-import type { Charge } from '@eduapp/shared-types';
+import type { Charge, PaginatedResult } from '@eduapp/shared-types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 const TENANT_SUBDOMAIN = process.env.NEXT_PUBLIC_TENANT_SUBDOMAIN ?? '';
@@ -9,7 +9,7 @@ const TENANT_SUBDOMAIN = process.env.NEXT_PUBLIC_TENANT_SUBDOMAIN ?? '';
 export async function GET(req: NextRequest) {
   const qs = req.nextUrl.searchParams.toString();
   const path = qs ? `/finance/charges?${qs}` : '/finance/charges';
-  const charges = await serverApiFetch<Charge[]>(path);
+  const charges = await serverApiFetch<Charge[] | PaginatedResult<Charge>>(path);
   if (charges === null) return NextResponse.json({ message: 'No autenticado' }, { status: 401 });
   return NextResponse.json(charges);
 }

@@ -1,4 +1,5 @@
-import { IsIn, IsOptional } from 'class-validator';
+import { IsIn, IsOptional, IsString } from 'class-validator';
+import { PaginationQueryDto } from '../../../../core/http/pagination.dto';
 import { UserRole } from '../../domain/entities/user.entity';
 
 const KNOWN_ROLES: UserRole[] = [
@@ -10,8 +11,12 @@ const KNOWN_ROLES: UserRole[] = [
   'padre_tutor',
 ];
 
-export class ListUsersQueryDto {
+export class ListUsersQueryDto extends PaginationQueryDto {
   @IsOptional()
   @IsIn(KNOWN_ROLES)
   role?: UserRole;
+
+  @IsOptional()
+  @IsString()
+  search?: string;
 }

@@ -32,6 +32,7 @@ describe('CreateAdmissionApplicationUseCase', () => {
     findAll: jest.fn(),
     findById: jest.fn(),
     save: jest.fn(),
+    deleteById: jest.fn(),
   };
   const feeSchedules: jest.Mocked<FeeScheduleRepositoryPort> = {
     findAll: jest.fn(),

@@ -7,6 +7,7 @@ import type {
   AdmissionStatus,
   AdmissionStatusResponse,
   IdentityDocumentType,
+  PaginatedResult,
 } from '@eduapp/shared-types';
 
 export interface CreateAdmissionApplicationInput {
@@ -61,19 +62,32 @@ export function useAdmissionStatus(trackingCode: string) {
   });
 }
 
-async function fetchAdmissionApplications(status?: AdmissionStatus): Promise<AdmissionApplication[]> {
-  const url = status
-    ? `/api/admissions/management?status=${encodeURIComponent(status)}`
-    : '/api/admissions/management';
-  const res = await fetch(url);
+export interface AdmissionApplicationsQuery {
+  status?: AdmissionStatus;
+  page?: number;
+  pageSize?: number;
+  search?: string;
+}
+
+async function fetchAdmissionApplications(
+  query: AdmissionApplicationsQuery,
+): Promise<PaginatedResult<AdmissionApplication>> {
+  const params = new URLSearchParams();
+  if (query.status) params.set('status', query.status);
+  if (query.page) params.set('page', String(query.page));
+  if (query.pageSize) params.set('pageSize', String(query.pageSize));
+  if (query.search) params.set('search', query.search);
+  const qs = params.toString();
+
+  const res = await fetch(`/api/admissions/management${qs ? `?${qs}` : ''}`);
   if (!res.ok) throw new Error('No se pudieron cargar las solicitudes');
   return res.json();
 }
 
-export function useAdmissionApplications(status?: AdmissionStatus) {
+export function useAdmissionApplications(query: AdmissionApplicationsQuery = {}) {
   return useQuery({
-    queryKey: ['admission-applications', status ?? 'all'],
-    queryFn: () => fetchAdmissionApplications(status),
+    queryKey: ['admission-applications', query],
+    queryFn: () => fetchAdmissionApplications(query),
   });
 }
 

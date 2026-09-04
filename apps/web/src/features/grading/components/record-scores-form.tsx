@@ -80,7 +80,7 @@ export function RecordScoresForm({ readOnly = false }: { readOnly?: boolean }) {
           className="flex h-10 w-72 rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
         >
           <option value="" disabled>
-            Seleccioná una evaluación
+            Selecciona una evaluación
           </option>
           {evaluations?.map((e) => (
             <option key={e.id} value={e.id}>

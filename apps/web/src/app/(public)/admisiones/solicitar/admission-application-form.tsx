@@ -132,7 +132,7 @@ export function AdmissionApplicationForm() {
             className="flex h-10 w-full rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
           >
             <option value="" disabled>
-              Seleccioná un grado
+              Selecciona un grado
             </option>
             {grades.map((grade) => (
               <option key={grade.id} value={grade.id}>
@@ -151,7 +151,7 @@ export function AdmissionApplicationForm() {
             className="flex h-10 w-full rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
           >
             <option value="" disabled>
-              Seleccioná un tipo
+              Selecciona un tipo
             </option>
             {DOCUMENT_TYPE_OPTIONS.map((option) => (
               <option key={option.value} value={option.value}>

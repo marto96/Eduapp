@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { DataSource, Repository } from 'typeorm';
-import { UserFilter, UserRepositoryPort } from '../../application/ports/user.repository.port';
+import { PaginatedUsers, UserFilter, UserRepositoryPort } from '../../application/ports/user.repository.port';
+import { PaginationParams } from '../../../../core/http/pagination.dto';
 import { DocumentType, User, UserRole } from '../../domain/entities/user.entity';
 import { UserOrmEntity } from '../entities/user.orm-entity';
 import { TENANT_DATA_SOURCE } from '../../../../core/database/tenant-datasource.provider';
@@ -35,13 +36,29 @@ export class TypeOrmUserRepository extends UserRepositoryPort {
     return row ? this.toDomain(row) : null;
   }
 
-  async findAll(filter?: UserFilter): Promise<User[]> {
+  async findAll(filter?: UserFilter, pagination?: PaginationParams): Promise<PaginatedUsers> {
     const query = this.repo.createQueryBuilder('user').orderBy('user.created_at', 'DESC');
     if (filter?.role) {
       query.andWhere(':role = ANY(user.roles)', { role: filter.role });
     }
-    const rows = await query.getMany();
-    return rows.map((row) => this.toDomain(row));
+    if (filter?.search) {
+      query.andWhere(
+        '(user.first_name ILIKE :term OR user.last_name ILIKE :term OR user.email ILIKE :term)',
+        { term: `%${filter.search}%` },
+      );
+    }
+
+    if (!pagination) {
+      const rows = await query.getMany();
+      return { items: rows.map((row) => this.toDomain(row)), total: rows.length };
+    }
+
+    const [rows, total] = await query
+      .skip((pagination.page - 1) * pagination.pageSize)
+      .take(pagination.pageSize)
+      .getManyAndCount();
+
+    return { items: rows.map((row) => this.toDomain(row)), total };
   }
 
   async save(user: User): Promise<void> {

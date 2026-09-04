@@ -64,9 +64,9 @@ export class TypeOrmGradebookRepository extends GradebookRepositoryPort {
         WHERE e.academic_year_id = $1 AND e.status = 'active'
           AND ($2::text IS NULL OR u.first_name ILIKE $2 OR u.last_name ILIKE $2 OR u.document_number ILIKE $2)
           AND e.deleted_at IS NULL AND s.deleted_at IS NULL
-          AND ($5::uuid[] IS NULL OR e.id = ANY($5))
+          AND ($3::uuid[] IS NULL OR e.id = ANY($3))
       `,
-      [filter.academicYearId, term, filter.pageSize, offset, enrollmentIds],
+      [filter.academicYearId, term, enrollmentIds],
     );
 
     const items: GradebookStudentRow[] = rows.map((row) => ({
