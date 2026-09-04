@@ -36,6 +36,7 @@ export class TypeOrmGradebookRepository extends GradebookRepositoryPort {
   async searchStudents(filter: SearchGradebookStudentsFilter): Promise<PaginatedGradebookStudents> {
     const term = filter.search?.trim() ? `%${filter.search.trim()}%` : null;
     const offset = (filter.page - 1) * filter.pageSize;
+    const enrollmentIds = filter.enrollmentIds ?? null;
 
     const rows = await this.dataSource.query<StudentRow[]>(
       `
@@ -46,10 +47,12 @@ export class TypeOrmGradebookRepository extends GradebookRepositoryPort {
         INNER JOIN sections s ON s.id = e.section_id
         WHERE e.academic_year_id = $1 AND e.status = 'active'
           AND ($2::text IS NULL OR u.first_name ILIKE $2 OR u.last_name ILIKE $2 OR u.document_number ILIKE $2)
+          AND e.deleted_at IS NULL AND s.deleted_at IS NULL
+          AND ($5::uuid[] IS NULL OR e.id = ANY($5))
         ORDER BY u.first_name, u.last_name
         LIMIT $3 OFFSET $4
       `,
-      [filter.academicYearId, term, filter.pageSize, offset],
+      [filter.academicYearId, term, filter.pageSize, offset, enrollmentIds],
     );
 
     const [{ count }] = await this.dataSource.query<{ count: string }[]>(
@@ -57,10 +60,13 @@ export class TypeOrmGradebookRepository extends GradebookRepositoryPort {
         SELECT COUNT(*) AS count
         FROM enrollments e
         INNER JOIN users u ON u.id = e.student_id
+        INNER JOIN sections s ON s.id = e.section_id
         WHERE e.academic_year_id = $1 AND e.status = 'active'
           AND ($2::text IS NULL OR u.first_name ILIKE $2 OR u.last_name ILIKE $2 OR u.document_number ILIKE $2)
+          AND e.deleted_at IS NULL AND s.deleted_at IS NULL
+          AND ($5::uuid[] IS NULL OR e.id = ANY($5))
       `,
-      [filter.academicYearId, term],
+      [filter.academicYearId, term, filter.pageSize, offset, enrollmentIds],
     );
 
     const items: GradebookStudentRow[] = rows.map((row) => ({

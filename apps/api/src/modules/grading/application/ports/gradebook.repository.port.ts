@@ -12,6 +12,7 @@ export interface SearchGradebookStudentsFilter {
   search?: string;
   page: number;
   pageSize: number;
+  enrollmentIds?: string[];
 }
 
 export interface PaginatedGradebookStudents {

@@ -21,8 +21,8 @@ export class GradebookController {
 
   @Get('students')
   @CheckPolicies((ability) => ability.can('read', 'Grading'))
-  async searchStudents(@Query() query: ListGradebookStudentsQueryDto) {
-    return this.listStudents.execute(query);
+  async searchStudents(@Query() query: ListGradebookStudentsQueryDto, @CurrentUser() user: JwtPayload) {
+    return this.listStudents.execute(query, user);
   }
 
   @Get(':enrollmentId')
