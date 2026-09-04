@@ -96,6 +96,7 @@ export function useCreateGrade() {
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['gradebook', variables.enrollmentId] });
       queryClient.invalidateQueries({ queryKey: ['gradebook-subject-period', variables.enrollmentId] });
+      queryClient.invalidateQueries({ queryKey: ['evaluations'] });
     },
   });
 }

@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Evaluation, GradeCategory } from '@eduapp/shared-types';
+import { toQueryString } from '@/lib/utils';
 
 export interface EvaluationFilter {
   sectionId?: string;
@@ -12,9 +13,7 @@ export interface EvaluationFilter {
 }
 
 async function fetchEvaluations(filter?: EvaluationFilter): Promise<Evaluation[]> {
-  const qs = filter
-    ? new URLSearchParams(filter as unknown as Record<string, string>).toString()
-    : '';
+  const qs = filter ? toQueryString(filter) : '';
   const res = await fetch(qs ? `/api/grading/evaluations?${qs}` : '/api/grading/evaluations');
   if (!res.ok) throw new Error('No se pudieron cargar las evaluaciones');
   return res.json();

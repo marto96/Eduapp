@@ -87,7 +87,11 @@ export function GradebookTable({
                     <td className="px-2 py-2 text-center text-muted-foreground">{cell.absences}</td>
                   </Fragment>
                 ))}
-                <td className="px-2 py-2 text-center font-medium">{formatGrade(subject.accumulatedGrade)}</td>
+                <td className="px-2 py-2 text-center font-medium">
+                  {formatGrade(
+                    subject.periods.every((p) => p.grade === null) ? null : subject.accumulatedGrade,
+                  )}
+                </td>
                 <td className="px-2 py-2 text-center text-muted-foreground">{subject.accumulatedAbsences}</td>
               </tr>
             ))}

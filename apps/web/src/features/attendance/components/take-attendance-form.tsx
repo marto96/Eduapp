@@ -5,6 +5,8 @@ import { useAttendance, useRecordAttendance } from '../use-attendance';
 import { useEnrollments } from '@/features/enrollment/use-enrollments';
 import { useUsers } from '@/features/users/use-users';
 import { useAcademicYears } from '@/features/academic/use-academic-years';
+import { useSubjects } from '@/features/academic/use-subjects';
+import { useSections } from '@/features/academic/use-sections';
 import { useSchedules } from '@/features/schedule/use-schedules';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -31,6 +33,8 @@ export function TakeAttendanceForm({
 }) {
   const { data: years } = useAcademicYears();
   const { data: students } = useUsers('estudiante');
+  const { data: subjects } = useSubjects();
+  const { data: sections } = useSections();
 
   const [academicYearId, setAcademicYearId] = useState('');
   const [scheduleId, setScheduleId] = useState('');
@@ -58,6 +62,9 @@ export function TakeAttendanceForm({
     () => new Map(students?.map((s) => [s.id, s.fullName])),
     [students],
   );
+
+  const subjectNameById = useMemo(() => new Map(subjects?.map((s) => [s.id, s.name])), [subjects]);
+  const sectionNameById = useMemo(() => new Map(sections?.map((s) => [s.id, s.name])), [sections]);
 
   const activeEnrollments = useMemo(
     () => (enrollments ?? []).filter((e) => e.status === 'active'),
@@ -125,7 +132,9 @@ export function TakeAttendanceForm({
             </option>
             {schedules?.map((schedule) => (
               <option key={schedule.id} value={schedule.id}>
-                {schedule.dayOfWeek} {schedule.startTime}–{schedule.endTime}
+                {`${subjectNameById.get(schedule.subjectId) ?? schedule.subjectId} — ${
+                  sectionNameById.get(schedule.sectionId) ?? schedule.sectionId
+                } · ${schedule.dayOfWeek} ${schedule.startTime}–${schedule.endTime}`}
               </option>
             ))}
           </select>
