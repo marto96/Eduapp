@@ -33,6 +33,27 @@ export class AddScheduleIdToAttendanceRecords1700000000053 implements MigrationI
   public async down(queryRunner: QueryRunner): Promise<void> {
     await queryRunner.query(`DROP INDEX "IDX_attendance_records_schedule_date"`);
     await queryRunner.query(`DROP INDEX "IDX_attendance_records_enrollment_schedule_date"`);
+
+    // El rollback no puede preservar la granularidad por sesión de clase que
+    // `up()` habilitó (múltiples registros por (enrollment_id, date), uno
+    // por materia/horario) — una vez que un tenant tomó asistencia así,
+    // recrear el índice único de abajo violaría la restricción. Como este es
+    // un camino de rollback (no operación de rutina), se colapsa a una sola
+    // fila por (enrollment_id, date), conservando la más reciente según
+    // `updated_at`.
+    await queryRunner.query(`
+      DELETE FROM "attendance_records"
+      WHERE id IN (
+        SELECT id FROM (
+          SELECT id, ROW_NUMBER() OVER (
+            PARTITION BY enrollment_id, date ORDER BY updated_at DESC
+          ) AS rn
+          FROM "attendance_records"
+        ) t
+        WHERE rn > 1
+      )
+    `);
+
     await queryRunner.query(`
       CREATE UNIQUE INDEX "IDX_attendance_records_enrollment_date"
       ON "attendance_records" ("enrollment_id", "date")
