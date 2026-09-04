@@ -1,6 +1,6 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { PaginatedResult, TenantUser } from '@eduapp/shared-types';
 
 export interface UsersFilter {
@@ -62,7 +62,15 @@ export function useUsers(
 ): ReturnType<typeof useQuery<PaginatedResult<TenantUser>>>;
 export function useUsers(arg?: string | UsersFilter | PaginatedUsersFilter) {
   const filter: UsersFilter | PaginatedUsersFilter = typeof arg === 'string' ? { role: arg } : (arg ?? {});
-  return useQuery({ queryKey: ['users', filter], queryFn: () => fetchUsers(filter) });
+  return useQuery({
+    queryKey: ['users', filter],
+    queryFn: () => fetchUsers(filter),
+    // Cada término de búsqueda distinto es una query-key nueva (nunca antes
+    // vista), así que sin esto `isLoading` se prendía en cada tecla y
+    // `UsersList` desmontaba todo el árbol (incluido el input) para mostrar
+    // el spinner — el input perdía foco/hover en cada carácter escrito.
+    placeholderData: keepPreviousData,
+  });
 }
 
 export function useCreateUser() {
@@ -81,4 +89,71 @@ async function resetUserPassword(id: string): Promise<{ temporaryPassword: strin
 
 export function useResetUserPassword() {
   return useMutation({ mutationFn: resetUserPassword });
+}
+
+export interface EditUserInput {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  roles: string[];
+  birthDate?: string;
+  documentType?: DocumentType;
+  documentNumber?: string;
+  address?: string;
+}
+
+async function editUser({ id, ...input }: EditUserInput): Promise<TenantUser> {
+  const res = await fetch(`/api/users/${id}`, {
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.message ?? 'No se pudo editar el usuario');
+  }
+  return res.json();
+}
+
+export function useEditUser() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: editUser,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['users'] }),
+  });
+}
+
+async function deactivateUser(id: string): Promise<TenantUser> {
+  const res = await fetch(`/api/users/${id}/deactivate`, { method: 'PATCH' });
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.message ?? 'No se pudo inactivar el usuario');
+  }
+  return res.json();
+}
+
+export function useDeactivateUser() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deactivateUser,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['users'] }),
+  });
+}
+
+async function reactivateUser(id: string): Promise<TenantUser> {
+  const res = await fetch(`/api/users/${id}/reactivate`, { method: 'PATCH' });
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.message ?? 'No se pudo reactivar el usuario');
+  }
+  return res.json();
+}
+
+export function useReactivateUser() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: reactivateUser,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['users'] }),
+  });
 }

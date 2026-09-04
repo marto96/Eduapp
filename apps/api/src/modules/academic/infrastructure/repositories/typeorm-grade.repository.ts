@@ -27,4 +27,8 @@ export class TypeOrmGradeRepository extends GradeRepositoryPort {
   async save(grade: Grade): Promise<void> {
     await this.repo.save({ id: grade.id, name: grade.name, level: grade.level, order: grade.order });
   }
+
+  async deleteById(id: string): Promise<void> {
+    await this.repo.softDelete({ id });
+  }
 }

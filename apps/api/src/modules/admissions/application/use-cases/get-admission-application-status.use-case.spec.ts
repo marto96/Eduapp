@@ -17,6 +17,7 @@ describe('GetAdmissionApplicationStatusUseCase', () => {
     findAll: jest.fn(),
     findById: jest.fn(),
     save: jest.fn(),
+    deleteById: jest.fn(),
   };
 
   const useCase = new GetAdmissionApplicationStatusUseCase(applications, grades);

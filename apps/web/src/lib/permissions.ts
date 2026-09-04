@@ -16,6 +16,17 @@ export function canManageUsers(roles: string[]): boolean {
   return roles.includes('admin_institucion') || roles.includes('directivo');
 }
 
+/**
+ * A diferencia de `canManageUsers` (crear, resetear contraseña, vincular
+ * acudientes — directivo también puede): editar los datos de un usuario e
+ * inactivarlo/reactivarlo queda reservado solo a admin_institucion, por
+ * decisión explícita. Ver `EditUserUseCase`/`DeactivateUserUseCase` en el
+ * backend — misma regla.
+ */
+export function canEditUsers(roles: string[]): boolean {
+  return roles.includes('admin_institucion');
+}
+
 export function canManageEnrollment(roles: string[]): boolean {
   return roles.includes('admin_institucion') || roles.includes('directivo');
 }

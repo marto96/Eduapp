@@ -47,6 +47,31 @@ export class User {
     this.status = 'suspended';
   }
 
+  reactivate(): void {
+    if (this.status === 'active') return;
+    this.status = 'active';
+  }
+
+  edit(input: {
+    email: string;
+    firstName: string;
+    lastName: string;
+    roles: UserRole[];
+    birthDate?: string | null;
+    documentType?: DocumentType | null;
+    documentNumber?: string | null;
+    address?: string | null;
+  }): void {
+    this.email = input.email;
+    this.firstName = input.firstName;
+    this.lastName = input.lastName;
+    this.roles = input.roles;
+    this.birthDate = input.birthDate ?? null;
+    this.documentType = input.documentType ?? null;
+    this.documentNumber = input.documentNumber ?? null;
+    this.address = input.address ?? null;
+  }
+
   getPasswordHash(): string {
     return this.passwordHash;
   }

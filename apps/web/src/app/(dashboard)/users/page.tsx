@@ -1,11 +1,12 @@
 import { UsersList } from '@/features/users/components/users-list';
 import { CreateUserForm } from '@/features/users/components/create-user-form';
 import { getCurrentUser } from '@/lib/server-api';
-import { canManageUsers } from '@/lib/permissions';
+import { canManageUsers, canEditUsers } from '@/lib/permissions';
 
 export default async function UsersPage() {
   const user = await getCurrentUser();
   const canManage = canManageUsers(user?.roles ?? []);
+  const canEdit = canEditUsers(user?.roles ?? []);
 
   return (
     <main className="space-y-6 p-6">
@@ -17,7 +18,7 @@ export default async function UsersPage() {
       </div>
 
       {canManage && <CreateUserForm />}
-      <UsersList canManage={canManage} />
+      <UsersList canManage={canManage} canEdit={canEdit} />
     </main>
   );
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Pencil, Trash2 } from 'lucide-react';
 import { useAcademicYears, useDeleteAcademicYear } from '../use-academic-years';
 import { usePeriods } from '../use-periods';
 import { useGradeWeightConfig } from '@/features/grading/use-grade-weight-config';
@@ -143,18 +144,22 @@ export function AcademicYearsList({ canManage = false }: { canManage?: boolean }
                     <>
                       <button
                         type="button"
-                        className="text-xs text-muted-foreground underline hover:text-foreground"
+                        title="Editar año lectivo"
+                        aria-label="Editar año lectivo"
+                        className="rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
                         onClick={() => setEditingYear(year)}
                       >
-                        Editar
+                        <Pencil className="h-4 w-4" />
                       </button>
                       <button
                         type="button"
-                        className="text-xs text-destructive underline hover:text-destructive/80"
+                        title="Eliminar año lectivo"
+                        aria-label="Eliminar año lectivo"
+                        className="rounded p-1.5 text-destructive hover:bg-destructive/10 disabled:opacity-50"
                         disabled={deleteYear.isPending}
                         onClick={() => handleDelete(year)}
                       >
-                        Eliminar
+                        <Trash2 className="h-4 w-4" />
                       </button>
                     </>
                   )}

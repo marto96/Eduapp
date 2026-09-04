@@ -1,18 +1,34 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useUsers, useResetUserPassword } from '../use-users';
+import { Ban, KeyRound, Pencil } from 'lucide-react';
+import { useUsers, useResetUserPassword, useDeactivateUser, useReactivateUser } from '../use-users';
 import { useGuardians } from '../use-guardians';
 import { LinkGuardianModal } from './link-guardian-modal';
+import { EditUserModal } from './edit-user-modal';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { LoadingState } from '@/components/ui/loading-state';
 import { Pagination } from '@/components/ui/pagination';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import type { TenantUser } from '@eduapp/shared-types';
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 const SEARCH_DEBOUNCE_MS = 350;
 
-export function UsersList({ canManage = false }: { canManage?: boolean }) {
+const STATUS_LABELS: Record<TenantUser['status'], string> = {
+  active: 'Activo',
+  invited: 'Invitado',
+  suspended: 'Inactivo',
+};
+
+const STATUS_CLASSES: Record<TenantUser['status'], string> = {
+  active: 'bg-primary/10 text-primary',
+  invited: 'bg-muted text-muted-foreground',
+  suspended: 'bg-destructive/10 text-destructive',
+};
+
+export function UsersList({ canManage = false, canEdit = false }: { canManage?: boolean; canEdit?: boolean }) {
   const [searchInput, setSearchInput] = useState('');
   const [committedSearch, setCommittedSearch] = useState('');
   const [page, setPage] = useState(1);
@@ -30,9 +46,13 @@ export function UsersList({ canManage = false }: { canManage?: boolean }) {
   const { data, isLoading, error } = useUsers({ page, pageSize, search: committedSearch || undefined });
   const users = data?.items;
   const resetPassword = useResetUserPassword();
+  const deactivateUser = useDeactivateUser();
+  const reactivateUser = useReactivateUser();
   const [revealed, setRevealed] = useState<{ userId: string; password: string } | null>(null);
   const { data: guardianLinks } = useGuardians();
   const [modalGuardian, setModalGuardian] = useState<{ id: string; name: string } | null>(null);
+  const [editingUser, setEditingUser] = useState<TenantUser | null>(null);
+  const [deactivatingUser, setDeactivatingUser] = useState<TenantUser | null>(null);
 
   const filters = (
     <Input
@@ -70,6 +90,13 @@ export function UsersList({ canManage = false }: { canManage?: boolean }) {
     });
   }
 
+  function confirmDeactivate() {
+    if (!deactivatingUser) return;
+    deactivateUser.mutate(deactivatingUser.id, {
+      onSuccess: () => setDeactivatingUser(null),
+    });
+  }
+
   return (
     <div className="space-y-3">
       {filters}
@@ -82,6 +109,9 @@ export function UsersList({ canManage = false }: { canManage?: boolean }) {
                 <p className="text-sm text-muted-foreground">{user.email}</p>
               </div>
               <div className="flex items-center gap-3">
+                <span className={`rounded px-1.5 py-0.5 text-xs font-medium ${STATUS_CLASSES[user.status]}`}>
+                  {STATUS_LABELS[user.status]}
+                </span>
                 <span className="text-xs uppercase text-muted-foreground">
                   {user.roles.join(', ')}
                 </span>
@@ -100,11 +130,45 @@ export function UsersList({ canManage = false }: { canManage?: boolean }) {
                 {canManage && (
                   <button
                     type="button"
-                    className="text-xs text-muted-foreground underline hover:text-foreground"
+                    title="Resetear contraseña"
+                    aria-label="Resetear contraseña"
+                    className="rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-50"
                     disabled={resetPassword.isPending}
                     onClick={() => handleReset(user.id)}
                   >
-                    Resetear contraseña
+                    <KeyRound className="h-4 w-4" />
+                  </button>
+                )}
+                {canEdit && (
+                  <button
+                    type="button"
+                    title="Editar usuario"
+                    aria-label="Editar usuario"
+                    className="rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+                    onClick={() => setEditingUser(user)}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </button>
+                )}
+                {canEdit && user.status === 'suspended' && (
+                  <button
+                    type="button"
+                    className="text-xs text-primary underline hover:text-primary/80"
+                    disabled={reactivateUser.isPending}
+                    onClick={() => reactivateUser.mutate(user.id)}
+                  >
+                    Reactivar
+                  </button>
+                )}
+                {canEdit && user.status !== 'suspended' && (
+                  <button
+                    type="button"
+                    title="Inactivar usuario"
+                    aria-label="Inactivar usuario"
+                    className="rounded p-1.5 text-destructive hover:bg-destructive/10"
+                    onClick={() => setDeactivatingUser(user)}
+                  >
+                    <Ban className="h-4 w-4" />
                   </button>
                 )}
               </div>
@@ -143,6 +207,20 @@ export function UsersList({ canManage = false }: { canManage?: boolean }) {
         guardianUserId={modalGuardian?.id ?? null}
         guardianName={modalGuardian?.name ?? ''}
         onClose={() => setModalGuardian(null)}
+      />
+      <EditUserModal user={editingUser} onClose={() => setEditingUser(null)} />
+      <ConfirmDialog
+        open={deactivatingUser !== null}
+        onClose={() => {
+          setDeactivatingUser(null);
+          deactivateUser.reset();
+        }}
+        onConfirm={confirmDeactivate}
+        title="Inactivar usuario"
+        description={`¿Inactivar a ${deactivatingUser?.fullName}? Va a perder acceso a la plataforma hasta que lo reactives.`}
+        confirmLabel="Inactivar"
+        isConfirming={deactivateUser.isPending}
+        errorMessage={deactivateUser.isError ? deactivateUser.error.message : undefined}
       />
     </div>
   );

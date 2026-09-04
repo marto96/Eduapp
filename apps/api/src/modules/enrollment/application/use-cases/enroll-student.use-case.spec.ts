@@ -36,6 +36,7 @@ describe('EnrollStudentUseCase', () => {
     findAll: jest.fn(),
     findById: jest.fn(),
     save: jest.fn(),
+    deleteById: jest.fn(),
   };
 
   const useCase = new EnrollStudentUseCase(enrollments, users, overdueBalanceChecker, sections, grades);

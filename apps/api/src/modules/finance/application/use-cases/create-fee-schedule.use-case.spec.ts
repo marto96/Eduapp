@@ -18,6 +18,7 @@ describe('CreateFeeScheduleUseCase', () => {
     findAll: jest.fn(),
     findById: jest.fn(),
     save: jest.fn(),
+    deleteById: jest.fn(),
   };
   const academicYears: jest.Mocked<AcademicYearRepositoryPort> = {
     findAll: jest.fn(),

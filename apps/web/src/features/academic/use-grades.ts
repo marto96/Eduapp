@@ -64,3 +64,19 @@ export function useEditGrade() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['grades'] }),
   });
 }
+
+async function deleteGrade(id: string): Promise<void> {
+  const res = await fetch(`/api/academic/grades/${id}`, { method: 'DELETE' });
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.message ?? 'No se pudo eliminar el grado');
+  }
+}
+
+export function useDeleteGrade() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteGrade,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['grades'] }),
+  });
+}

@@ -667,7 +667,19 @@ export function LandingPage() {
             <a href="#demo" className="text-[13px] text-[#6c7189]">
               Contacto
             </a>
-            <span className="text-[13px] text-[#a2a7bd]">© 2026</span>
+            <span className="text-[13px] text-[#a2a7bd]">
+              © 2026{' '}
+              <a
+                href="/modelo-2027"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-hidden="true"
+                tabIndex={-1}
+                className="text-white no-underline select-none hover:text-white"
+              >
+                .
+              </a>
+            </span>
           </div>
         </div>
       </footer>

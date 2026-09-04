@@ -61,8 +61,14 @@ export interface TenantUser {
   id: string;
   email: string;
   fullName: string;
+  firstName: string;
+  lastName: string;
   roles: string[];
   status: 'active' | 'invited' | 'suspended';
+  birthDate: string | null;
+  documentType: IdentityDocumentType | null;
+  documentNumber: string | null;
+  address: string | null;
 }
 
 export type EnrollmentStatus = 'active' | 'withdrawn' | 'completed';

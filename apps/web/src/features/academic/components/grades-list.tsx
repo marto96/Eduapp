@@ -1,20 +1,24 @@
 'use client';
 
 import { useState } from 'react';
-import { useGrades, useEditGrade } from '../use-grades';
+import { Pencil, Trash2 } from 'lucide-react';
+import { useGrades, useEditGrade, useDeleteGrade } from '../use-grades';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { ConfirmDialog } from '@/components/ui/confirm-dialog';
 import type { Grade } from '@eduapp/shared-types';
 import { LoadingState } from '@/components/ui/loading-state';
 
 export function GradesList({ canManage = false }: { canManage?: boolean }) {
   const { data: grades, isLoading, error } = useGrades();
   const editGrade = useEditGrade();
+  const deleteGrade = useDeleteGrade();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [level, setLevel] = useState('');
   const [order, setOrder] = useState('');
+  const [deletingGrade, setDeletingGrade] = useState<Grade | null>(null);
 
   if (isLoading) return <LoadingState />;
   if (error) return <p className="text-sm text-destructive">No se pudieron cargar los grados.</p>;
@@ -37,7 +41,15 @@ export function GradesList({ canManage = false }: { canManage?: boolean }) {
     );
   }
 
+  function confirmDelete() {
+    if (!deletingGrade) return;
+    deleteGrade.mutate(deletingGrade.id, {
+      onSuccess: () => setDeletingGrade(null),
+    });
+  }
+
   return (
+    <>
     <ul className="space-y-2">
       {grades.map((grade) => {
         const isEditing = editingId === grade.id;
@@ -71,13 +83,29 @@ export function GradesList({ canManage = false }: { canManage?: boolean }) {
                   <span className="text-xs text-muted-foreground">Orden: {grade.order}</span>
                   <span className="text-xs uppercase text-muted-foreground">{grade.level}</span>
                   {canManage && (
-                    <button
-                      type="button"
-                      className="text-xs text-muted-foreground underline hover:text-foreground"
-                      onClick={() => startEditing(grade)}
-                    >
-                      Editar
-                    </button>
+                    <>
+                      <button
+                        type="button"
+                        title="Editar grado"
+                        aria-label="Editar grado"
+                        className="rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+                        onClick={() => startEditing(grade)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                      <button
+                        type="button"
+                        title="Eliminar grado"
+                        aria-label="Eliminar grado"
+                        className="rounded p-1.5 text-destructive hover:bg-destructive/10"
+                        onClick={() => {
+                          deleteGrade.reset();
+                          setDeletingGrade(grade);
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </>
                   )}
                 </div>
               </div>
@@ -86,5 +114,18 @@ export function GradesList({ canManage = false }: { canManage?: boolean }) {
         );
       })}
     </ul>
+    <ConfirmDialog
+      open={deletingGrade !== null}
+      onClose={() => {
+        setDeletingGrade(null);
+        deleteGrade.reset();
+      }}
+      onConfirm={confirmDelete}
+      title="Eliminar grado"
+      description={`¿Eliminar el grado ${deletingGrade?.name}? Esta acción no se puede deshacer.`}
+      isConfirming={deleteGrade.isPending}
+      errorMessage={deleteGrade.isError ? deleteGrade.error.message : undefined}
+    />
+    </>
   );
 }
