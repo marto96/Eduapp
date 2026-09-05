@@ -12,7 +12,7 @@ import { JwtPayload } from '../jwt-payload.interface';
 @Injectable()
 export class AbilityFactory {
   createForUser(payload: JwtPayload): AppAbility {
-    const { can, build } = new AbilityBuilder<AppAbility>(Ability as AbilityClass<AppAbility>);
+    const { can, cannot, build } = new AbilityBuilder<AppAbility>(Ability as AbilityClass<AppAbility>);
     const roles = payload.roles;
 
     if (roles.includes('admin_institucion')) {
@@ -45,6 +45,14 @@ export class AbilityFactory {
         'Admission',
       ]);
       can('read', 'all');
+      // Excepción explícita al `can('read', 'all')` de arriba: 'all' en CASL
+      // matchea cualquier subject check (incluido 'AuditLog'), así que sin
+      // este `cannot` directivo podría leer /audit-logs pese a que ningún
+      // rol que no sea admin_institucion lo lista explícitamente. Un
+      // `cannot` agregado después de un `can` lo overridea para ese
+      // action+subject puntual, sin tocar el resto de subjects que
+      // directivo sí puede leer.
+      cannot('read', 'AuditLog');
     }
 
     if (roles.includes('docente')) {

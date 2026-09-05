@@ -1,6 +1,6 @@
 import { of, throwError } from 'rxjs';
-import { CallHandler, ExecutionContext } from '@nestjs/common';
-import { ModuleRef, Reflector } from '@nestjs/core';
+import { CallHandler, ExecutionContext, Logger } from '@nestjs/common';
+import { ContextIdFactory, ModuleRef, Reflector } from '@nestjs/core';
 import { AuditInterceptor } from './audit.interceptor';
 import { RecordAuditLogUseCase } from '../application/use-cases/record-audit-log.use-case';
 
@@ -140,6 +140,47 @@ describe('AuditInterceptor', () => {
     interceptor.intercept(context, buildHandler({ ok: true })).subscribe((value) => {
       expect(value).toEqual({ ok: true });
       done();
+    });
+  });
+
+  it('no rompe la respuesta si moduleRef.resolve() falla (no solo si falla execute())', (done) => {
+    moduleRef.resolve = jest.fn().mockRejectedValue(new Error('module not found'));
+    const warnSpy = jest.spyOn(Logger.prototype, 'warn').mockImplementation();
+    const context = buildContext({ method: 'DELETE', url: '/academic/sections/sec-1' });
+
+    interceptor.intercept(context, buildHandler({ ok: true })).subscribe((value) => {
+      expect(value).toEqual({ ok: true });
+      setImmediate(() => {
+        expect(warnSpy).toHaveBeenCalled();
+        warnSpy.mockRestore();
+        done();
+      });
+    });
+  });
+
+  it('usa el MISMO contextId que ContextIdFactory.getByRequest() derivó para el request, no uno nuevo', (done) => {
+    // Se espía (sin mockear) `getByRequest` para capturar el valor real que
+    // devuelve para ESTE request específico, y se verifica que sea
+    // exactamente (===) el que recibe `moduleRef.resolve` — no "algún"
+    // contextId, sino el mismo objeto que Nest asocia a este request (vía
+    // `getByRequest`, no `ContextIdFactory.create()`, que mintaría uno
+    // nuevo y desconectado del `TENANT_DATA_SOURCE` real del request).
+    const getByRequestSpy = jest.spyOn(ContextIdFactory, 'getByRequest');
+    const context = buildContext({
+      method: 'DELETE',
+      url: '/academic/sections/sec-1',
+      params: { id: 'sec-1' },
+      user: { sub: 'user-1', email: 'admin@test.com', roles: ['admin_institucion'] },
+    });
+
+    interceptor.intercept(context, buildHandler({ ok: true })).subscribe(() => {
+      setImmediate(() => {
+        expect(getByRequestSpy).toHaveBeenCalledTimes(1);
+        const actualContextId = getByRequestSpy.mock.results[0].value;
+        expect(moduleRef.resolve).toHaveBeenCalledWith(RecordAuditLogUseCase, actualContextId);
+        getByRequestSpy.mockRestore();
+        done();
+      });
     });
   });
 });

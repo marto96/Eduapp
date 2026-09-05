@@ -118,6 +118,13 @@ describe('AbilityFactory', () => {
     expect(ability.can('manage', 'VirtualClass')).toBe(true);
   });
 
+  it('solo admin_institucion puede read AuditLog; directivo (y otros roles) quedan excluidos pese al can(\'read\', \'all\') genérico', () => {
+    expect(factory.createForUser(payload(['admin_institucion'])).can('read', 'AuditLog')).toBe(true);
+    expect(factory.createForUser(payload(['directivo'])).can('read', 'AuditLog')).toBe(false);
+    expect(factory.createForUser(payload(['docente'])).can('read', 'AuditLog')).toBe(false);
+    expect(factory.createForUser(payload(['secretaria'])).can('read', 'AuditLog')).toBe(false);
+  });
+
   it('secretaria/estudiante/padre_tutor solo pueden read VirtualClass', () => {
     expect(factory.createForUser(payload(['secretaria'])).can('read', 'VirtualClass')).toBe(true);
     expect(factory.createForUser(payload(['secretaria'])).can('manage', 'VirtualClass')).toBe(false);

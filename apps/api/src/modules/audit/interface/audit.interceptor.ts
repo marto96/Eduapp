@@ -60,6 +60,14 @@ export class AuditInterceptor implements NestInterceptor {
     // este interceptor se mantiene singleton y resuelve el use case bajo
     // demanda con `ModuleRef#resolve`, atado al `contextId` del request
     // actual — el patrón documentado por Nest para este caso.
+    //
+    // Nota: `getByRequest` devuelve un contextId "fresco" (no el atado al
+    // request real) para requests a `/platform/*` — esos controllers son
+    // completamente static-scoped, sin el middleware de tenant que registra
+    // el request en el WeakMap de Nest. Para esas rutas, `persist` fallará
+    // al resolver el use case (que es request-scoped vía el tenant
+    // DataSource) y solo emitirá un warning — es esperado, no un bug: las
+    // rutas `/platform/*` no pertenecen al audit trail de ningún tenant.
     const contextId: ContextId = ContextIdFactory.getByRequest(request);
 
     return next.handle().pipe(
@@ -81,7 +89,7 @@ export class AuditInterceptor implements NestInterceptor {
 
   private persist(contextId: ContextId, entry: RecordAuditLogEntry): void {
     this.moduleRef
-      .resolve(RecordAuditLogUseCase, contextId, { strict: false })
+      .resolve(RecordAuditLogUseCase, contextId)
       .then((recordAuditLog) => recordAuditLog.execute(entry))
       .catch((err: Error) => {
         this.logger.warn(`No se pudo registrar el log de auditoría: ${err.message}`);
