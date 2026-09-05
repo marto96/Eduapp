@@ -27,6 +27,17 @@ export function canEditUsers(roles: string[]): boolean {
   return roles.includes('admin_institucion');
 }
 
+/**
+ * Solo admin_institucion — ni siquiera directivo — puede ver el log de
+ * auditoría: pierde el sentido si el rol que más acciones ejecuta también
+ * es el único que revisa el rastro. Ver `AuditLogsController` en el
+ * backend, mismo criterio (el subject CASL `'AuditLog'` no se le da a
+ * `directivo`).
+ */
+export function canViewAuditLogs(roles: string[]): boolean {
+  return roles.includes('admin_institucion');
+}
+
 export function canManageEnrollment(roles: string[]): boolean {
   return roles.includes('admin_institucion') || roles.includes('directivo');
 }
