@@ -81,6 +81,23 @@ export interface Enrollment {
   status: EnrollmentStatus;
 }
 
+export type AuditLogKind = 'write' | 'sensitive_read';
+
+export interface AuditLog {
+  id: string;
+  actorId: string | null;
+  actorEmail: string | null;
+  actorRoles: string[] | null;
+  method: string;
+  route: string;
+  resourceId: string | null;
+  statusCode: number | null;
+  success: boolean;
+  kind: AuditLogKind;
+  ipAddress: string | null;
+  createdAt: string;
+}
+
 export type AdmissionStatus = 'pendiente_pago' | 'pendiente_entrevista' | 'aceptada' | 'rechazada';
 
 /**
