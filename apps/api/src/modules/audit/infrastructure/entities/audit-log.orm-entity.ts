@@ -30,7 +30,7 @@ export class AuditLogOrmEntity {
   @Column()
   success: boolean;
 
-  @Column()
+  @Column({ type: 'varchar' })
   kind: AuditLogKind;
 
   @Column({ name: 'ip_address', type: 'varchar', nullable: true })

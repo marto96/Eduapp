@@ -22,7 +22,12 @@ export class TypeOrmAuditLogRepository extends AuditLogRepositoryPort {
   }
 
   async record(entry: RecordAuditLogEntry): Promise<void> {
-    await this.repo.save({ id: randomUUID(), ...entry });
+    // `audit_logs` es append-only (nunca se actualiza) y el id siempre es
+    // recién generado acá — `insert()` emite un solo INSERT, mientras que
+    // `save()` con una PK ya poblada primero hace un SELECT para decidir si
+    // corresponde insert o update. Evita ese SELECT redundante en cada
+    // request de escritura de toda la app.
+    await this.repo.insert({ id: randomUUID(), ...entry });
   }
 
   async findAll(filter: AuditLogFilter, pagination: PaginationParams): Promise<PaginatedAuditLogs> {

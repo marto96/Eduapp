@@ -11,3 +11,4 @@ coverage
 uploads
 private-uploads
 .superpowers
+apps/web/tsconfig.tsbuildinfo
