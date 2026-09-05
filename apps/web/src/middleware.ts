@@ -187,6 +187,7 @@ export const config = {
     '/messages/:path*',
     '/surveys/:path*',
     '/library/:path*',
+    '/audit/:path*',
     '/api/:path*',
   ],
 };
