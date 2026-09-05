@@ -5,6 +5,10 @@ import { Pencil, Trash2 } from 'lucide-react';
 import { useAcademicYears, useDeleteAcademicYear, useSetAdmissionsOpen } from '../use-academic-years';
 import { usePeriods } from '../use-periods';
 import { useGradeWeightConfig } from '@/features/grading/use-grade-weight-config';
+import {
+  useGradeAdmissionAvailability,
+  useSetAdmissionGradeClosed,
+} from '@/features/admissions/use-admissions';
 import { Card } from '@/components/ui/card';
 import { LoadingState } from '@/components/ui/loading-state';
 import { EditAcademicYearModal } from './edit-academic-year-modal';
@@ -19,11 +23,68 @@ function isFutureYear(year: AcademicYear): boolean {
   return year.startDate > todayLocalDate();
 }
 
-function AcademicYearDetails({
+function GradeAdmissionAvailabilitySection({
   academicYearId,
   canManage,
 }: {
   academicYearId: string;
+  canManage: boolean;
+}) {
+  const { data: grades, isLoading, error } = useGradeAdmissionAvailability(academicYearId);
+  const setClosed = useSetAdmissionGradeClosed();
+
+  if (isLoading) return <LoadingState />;
+  if (error) return <p className="text-destructive">No se pudieron cargar los cupos de admisión.</p>;
+  if (!grades || grades.length === 0) {
+    return (
+      <p className="text-muted-foreground">
+        Todavía no hay grados con precio de solicitud de admisión configurado para este año.
+      </p>
+    );
+  }
+
+  return (
+    <div>
+      <p className="font-medium text-muted-foreground">Cupos de admisión por grado</p>
+      <ul className="space-y-1">
+        {grades.map((grade) => (
+          <li key={grade.gradeId} className="flex items-center justify-between">
+            <span>{grade.gradeName}</span>
+            {canManage ? (
+              <button
+                type="button"
+                disabled={setClosed.isPending}
+                className={`rounded px-2 py-0.5 text-xs font-medium disabled:opacity-50 ${
+                  grade.closed
+                    ? 'bg-muted text-muted-foreground hover:bg-muted/80'
+                    : 'bg-primary/10 text-primary hover:bg-primary/20'
+                }`}
+                onClick={() =>
+                  setClosed.mutate({ gradeId: grade.gradeId, academicYearId, closed: !grade.closed })
+                }
+              >
+                {grade.closed ? 'Cupo lleno' : 'Cupo disponible'}
+              </button>
+            ) : (
+              <span className="text-muted-foreground">
+                {grade.closed ? 'Cupo lleno' : 'Cupo disponible'}
+              </span>
+            )}
+          </li>
+        ))}
+      </ul>
+      {setClosed.isError && <p className="text-destructive">{setClosed.error.message}</p>}
+    </div>
+  );
+}
+
+function AcademicYearDetails({
+  academicYearId,
+  admissionsOpen,
+  canManage,
+}: {
+  academicYearId: string;
+  admissionsOpen: boolean;
   canManage: boolean;
 }) {
   const { data: periods, isLoading } = usePeriods({ academicYearId });
@@ -86,6 +147,9 @@ function AcademicYearDetails({
             <li>Disciplina: {Math.round(weightConfig.disciplinaWeight * 100)}%</li>
           </ul>
         </div>
+      )}
+      {admissionsOpen && (
+        <GradeAdmissionAvailabilitySection academicYearId={academicYearId} canManage={canManage} />
       )}
       <EditPeriodModal period={editingPeriod} onClose={() => setEditingPeriod(null)} />
       <CreatePeriodModal
@@ -182,7 +246,13 @@ export function AcademicYearsList({ canManage = false }: { canManage?: boolean }
                   )}
                 </div>
               </div>
-              {expanded && <AcademicYearDetails academicYearId={year.id} canManage={canManage} />}
+              {expanded && (
+                <AcademicYearDetails
+                  academicYearId={year.id}
+                  admissionsOpen={year.admissionsOpen}
+                  canManage={canManage}
+                />
+              )}
             </Card>
           );
         })}

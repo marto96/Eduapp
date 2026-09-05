@@ -34,6 +34,12 @@ export interface AdmissionOpenYear {
   name: string;
 }
 
+export interface GradeAdmissionAvailability {
+  gradeId: string;
+  gradeName: string;
+  closed: boolean;
+}
+
 export interface Grade {
   id: string;
   name: string;

@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { AdmissionApplicationRepositoryPort } from '../ports/admission-application.repository.port';
 import { AdmissionPaymentAttemptRepositoryPort } from '../ports/admission-payment-attempt.repository.port';
+import { AdmissionGradeClosureRepositoryPort } from '../ports/admission-grade-closure.repository.port';
 import { GradeRepositoryPort } from '../../../academic/application/ports/grade.repository.port';
 import { AcademicYearRepositoryPort } from '../../../academic/application/ports/academic-year.repository.port';
 import { FeeScheduleRepositoryPort } from '../../../finance/application/ports/fee-schedule.repository.port';
@@ -36,6 +37,7 @@ export class CreateAdmissionApplicationUseCase {
   constructor(
     @Inject(AdmissionApplicationRepositoryPort) private readonly applications: AdmissionApplicationRepositoryPort,
     @Inject(AdmissionPaymentAttemptRepositoryPort) private readonly attempts: AdmissionPaymentAttemptRepositoryPort,
+    @Inject(AdmissionGradeClosureRepositoryPort) private readonly gradeClosures: AdmissionGradeClosureRepositoryPort,
     @Inject(GradeRepositoryPort) private readonly grades: GradeRepositoryPort,
     @Inject(AcademicYearRepositoryPort) private readonly academicYears: AcademicYearRepositoryPort,
     @Inject(FeeScheduleRepositoryPort) private readonly feeSchedules: FeeScheduleRepositoryPort,
@@ -51,6 +53,13 @@ export class CreateAdmissionApplicationUseCase {
     const academicYear = await this.academicYears.findById(input.academicYearId);
     if (!academicYear || !academicYear.admissionsOpen) {
       throw new NotFoundException('El año lectivo seleccionado no está abierto para admisiones');
+    }
+
+    const gradeClosure = await this.gradeClosures.findByGradeAndYear(input.gradeId, academicYear.id);
+    if (gradeClosure) {
+      throw new ConflictException(
+        `Ya no se reciben solicitudes para ${grade.name} en este año lectivo — cupo lleno`,
+      );
     }
 
     const existingPending = await this.applications.findPendingByDocumentNumber(
