@@ -4,11 +4,21 @@ import { Request } from 'express';
 import { Observable, catchError, tap, throwError } from 'rxjs';
 import { RecordAuditLogUseCase } from '../application/use-cases/record-audit-log.use-case';
 import { RecordAuditLogEntry } from '../application/ports/audit-log.repository.port';
-import { AUDIT_READ_KEY, AuditReadPredicate } from './decorators/audit-read.decorator';
+import { AUDIT_READ_KEY, AuditReadMetadata } from './decorators/audit-read.decorator';
+import { AUDIT_SKIP_KEY } from './decorators/audit-skip.decorator';
 import { JwtPayload } from '../../../core/auth/jwt-payload.interface';
 
 const WRITE_METHODS = new Set(['POST', 'PATCH', 'PUT', 'DELETE']);
 
+/**
+ * Límite conocido, no un bug: los guards de Nest (`ThrottlerGuard`,
+ * `JwtAuthGuard`, `PoliciesGuard`) corren ANTES que cualquier interceptor, y
+ * pueden rechazar la request (401/403/429) sin que este interceptor llegue a
+ * ejecutarse nunca. Un intento de acceso no autenticado o sin permiso, o uno
+ * bloqueado por rate-limit, no queda registrado en el log de auditoría —
+ * solo se audita el `success: false` de fallas lanzadas DENTRO de la lógica
+ * del handler (400/404/409/etc.), no las de los guards previos.
+ */
 @Injectable()
 export class AuditInterceptor implements NestInterceptor {
   private readonly logger = new Logger(AuditInterceptor.name);
@@ -22,15 +32,43 @@ export class AuditInterceptor implements NestInterceptor {
     const request = context.switchToHttp().getRequest<Request>();
     const method = request.method;
 
+    const skip = this.reflector.getAllAndOverride<boolean | undefined>(AUDIT_SKIP_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+    if (skip) {
+      return next.handle();
+    }
+
     let kind: 'write' | 'sensitive_read' | null = WRITE_METHODS.has(method) ? 'write' : null;
+    let resourceIdFromRead: string | null = null;
 
     if (!kind) {
-      const predicate = this.reflector.getAllAndOverride<AuditReadPredicate | undefined>(
-        AUDIT_READ_KEY,
-        [context.getHandler(), context.getClass()],
-      );
-      if (predicate && predicate(request)) {
-        kind = 'sensitive_read';
+      const metadata = this.reflector.getAllAndOverride<AuditReadMetadata | undefined>(AUDIT_READ_KEY, [
+        context.getHandler(),
+        context.getClass(),
+      ]);
+      if (metadata) {
+        let isSensitive = false;
+        try {
+          isSensitive = metadata.predicate(request);
+        } catch (err) {
+          // Un predicado que tira no debe romper el endpoint real que
+          // decora — se trata como "no sensible, no auditar" y se sigue.
+          this.logger.warn(`@AuditRead predicate falló, no se audita esta lectura: ${(err as Error).message}`);
+          isSensitive = false;
+        }
+        if (isSensitive) {
+          kind = 'sensitive_read';
+          if (metadata.resourceId) {
+            try {
+              resourceIdFromRead = metadata.resourceId(request);
+            } catch (err) {
+              this.logger.warn(`@AuditRead resourceId extractor falló: ${(err as Error).message}`);
+              resourceIdFromRead = null;
+            }
+          }
+        }
       }
     }
 
@@ -45,7 +83,7 @@ export class AuditInterceptor implements NestInterceptor {
       actorRoles: user?.roles ?? null,
       method,
       route: request.originalUrl.split('?')[0],
-      resourceId: request.params?.id ?? null,
+      resourceId: request.params?.id ?? resourceIdFromRead ?? null,
       ipAddress: request.ip ?? null,
       kind,
     };

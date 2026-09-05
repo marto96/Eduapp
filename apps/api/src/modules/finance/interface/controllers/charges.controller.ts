@@ -29,7 +29,10 @@ export class ChargesController {
   }
 
   @Get()
-  @AuditRead((request) => !!request.query.enrollmentId)
+  @AuditRead(
+    (request) => !!request.query.enrollmentId,
+    (request) => (request.query.enrollmentId as string) ?? null,
+  )
   async list(@Query() query: ListChargesQueryDto, @CurrentUser() user: JwtPayload) {
     return this.listCharges.execute(query, user);
   }
