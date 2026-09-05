@@ -3,6 +3,7 @@ import { Throttle } from '@nestjs/throttler';
 import { Public } from '../../../../core/auth/public.decorator';
 import { CurrentUser } from '../../../../core/auth/current-user.decorator';
 import { JwtPayload } from '../../../../core/auth/jwt-payload.interface';
+import { AuditSkip } from '../../../audit/interface/decorators/audit-skip.decorator';
 import { AuthenticateUserUseCase } from '../../application/use-cases/authenticate-user.use-case';
 import { RefreshTokenUseCase } from '../../application/use-cases/refresh-token.use-case';
 import { GetCurrentUserUseCase } from '../../application/use-cases/get-current-user.use-case';
@@ -28,6 +29,7 @@ export class AuthController {
   }
 
   @Public()
+  @AuditSkip()
   @Post('refresh')
   @HttpCode(200)
   async refresh(@Body() dto: RefreshTokenDto) {

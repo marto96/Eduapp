@@ -2,6 +2,7 @@ import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common
 import { CheckPolicies } from '../../../../core/auth/casl/policies.decorator';
 import { CurrentUser } from '../../../../core/auth/current-user.decorator';
 import { JwtPayload } from '../../../../core/auth/jwt-payload.interface';
+import { AuditSkip } from '../../../audit/interface/decorators/audit-skip.decorator';
 import { PublishAnnouncementUseCase } from '../../application/use-cases/publish-announcement.use-case';
 import { ListAnnouncementsUseCase } from '../../application/use-cases/list-announcements.use-case';
 import { EditAnnouncementUseCase } from '../../application/use-cases/edit-announcement.use-case';
@@ -53,6 +54,7 @@ export class AnnouncementsController {
   // sección) antes de registrar la lectura, así que no se puede ensuciar
   // el conteo de lectores de comunicados ajenos.
   @Patch(':id/read')
+  @AuditSkip()
   async markRead(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
     await this.markAnnouncementRead.execute(id, user);
     return { ok: true };

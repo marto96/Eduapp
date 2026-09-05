@@ -21,6 +21,7 @@ import { CheckPolicies } from '../../../../core/auth/casl/policies.decorator';
 import { CurrentUser } from '../../../../core/auth/current-user.decorator';
 import { JwtPayload } from '../../../../core/auth/jwt-payload.interface';
 import { REDIS_CLIENT } from '../../../../core/cache/redis.module';
+import { AuditSkip } from '../../../audit/interface/decorators/audit-skip.decorator';
 import { SendMessageUseCase } from '../../application/use-cases/send-message.use-case';
 import { ListMessagesUseCase } from '../../application/use-cases/list-messages.use-case';
 import { MarkMessageReadUseCase } from '../../application/use-cases/mark-message-read.use-case';
@@ -89,6 +90,7 @@ export class MessagesController {
   }
 
   @Patch(':id/read')
+  @AuditSkip()
   @CheckPolicies((ability) => ability.can('update', 'Message'))
   async markRead(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
     return this.markMessageRead.execute(id, user);
