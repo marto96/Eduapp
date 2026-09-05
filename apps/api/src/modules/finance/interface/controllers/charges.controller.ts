@@ -2,6 +2,7 @@ import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common
 import { CheckPolicies } from '../../../../core/auth/casl/policies.decorator';
 import { CurrentUser } from '../../../../core/auth/current-user.decorator';
 import { JwtPayload } from '../../../../core/auth/jwt-payload.interface';
+import { AuditRead } from '../../../audit/interface/decorators/audit-read.decorator';
 import { CreateChargeUseCase } from '../../application/use-cases/create-charge.use-case';
 import { ListChargesUseCase } from '../../application/use-cases/list-charges.use-case';
 import { EditChargeUseCase } from '../../application/use-cases/edit-charge.use-case';
@@ -28,6 +29,7 @@ export class ChargesController {
   }
 
   @Get()
+  @AuditRead((request) => !!request.query.enrollmentId)
   async list(@Query() query: ListChargesQueryDto, @CurrentUser() user: JwtPayload) {
     return this.listCharges.execute(query, user);
   }

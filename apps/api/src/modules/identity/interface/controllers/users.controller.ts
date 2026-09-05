@@ -2,6 +2,7 @@ import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common
 import { CheckPolicies } from '../../../../core/auth/casl/policies.decorator';
 import { CurrentUser } from '../../../../core/auth/current-user.decorator';
 import { JwtPayload } from '../../../../core/auth/jwt-payload.interface';
+import { AuditRead } from '../../../audit/interface/decorators/audit-read.decorator';
 import { CreateUserUseCase } from '../../application/use-cases/create-user.use-case';
 import { ListUsersUseCase } from '../../application/use-cases/list-users.use-case';
 import { ResetUserPasswordUseCase } from '../../application/use-cases/reset-user-password.use-case';
@@ -56,6 +57,7 @@ export class UsersController {
 
   @Get()
   @CheckPolicies((ability) => ability.can('read', 'User'))
+  @AuditRead()
   async list(@Query() query: ListUsersQueryDto) {
     const result = await this.listUsers.execute(query.role, query.page, query.pageSize, query.search);
     if (Array.isArray(result)) return result.map(toResponse);
