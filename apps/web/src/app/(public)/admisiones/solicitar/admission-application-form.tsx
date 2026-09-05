@@ -5,6 +5,7 @@ import { useCreateAdmissionApplication } from '@/features/admissions/use-admissi
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { LoadingState } from '@/components/ui/loading-state';
 import { Spinner } from '@/components/ui/spinner';
 import type { AdmissionOpenYear, Grade, IdentityDocumentType } from '@eduapp/shared-types';
 
@@ -22,6 +23,7 @@ export function AdmissionApplicationForm() {
   const createApplication = useCreateAdmissionApplication();
   const [grades, setGrades] = useState<Grade[]>([]);
   const [openYears, setOpenYears] = useState<AdmissionOpenYear[]>([]);
+  const [isLoadingOptions, setIsLoadingOptions] = useState(true);
   const [academicYearId, setAcademicYearId] = useState('');
   const [studentFirstName, setStudentFirstName] = useState('');
   const [studentLastName, setStudentLastName] = useState('');
@@ -38,20 +40,19 @@ export function AdmissionApplicationForm() {
   );
 
   useEffect(() => {
-    fetch('/api/public/grades')
-      .then((res) => res.json())
-      .then(setGrades)
-      .catch(() => setGrades([]));
-  }, []);
-
-  useEffect(() => {
-    fetch('/api/public/admission-years')
-      .then((res) => res.json())
-      .then((years: AdmissionOpenYear[]) => {
-        setOpenYears(years);
-        if (years.length === 1) setAcademicYearId(years[0].id);
-      })
-      .catch(() => setOpenYears([]));
+    Promise.all([
+      fetch('/api/public/grades')
+        .then((res) => res.json())
+        .then(setGrades)
+        .catch(() => setGrades([])),
+      fetch('/api/public/admission-years')
+        .then((res) => res.json())
+        .then((years: AdmissionOpenYear[]) => {
+          setOpenYears(years);
+          if (years.length === 1) setAcademicYearId(years[0].id);
+        })
+        .catch(() => setOpenYears([])),
+    ]).finally(() => setIsLoadingOptions(false));
   }, []);
 
   function handleSubmit(event: FormEvent) {
@@ -75,6 +76,10 @@ export function AdmissionApplicationForm() {
         onSuccess: (result) => setSubmitted(result),
       },
     );
+  }
+
+  if (isLoadingOptions) {
+    return <LoadingState label="Cargando formulario..." className="justify-center py-8" />;
   }
 
   if (submitted) {
