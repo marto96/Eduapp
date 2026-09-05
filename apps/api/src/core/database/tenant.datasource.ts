@@ -13,6 +13,7 @@ import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConne
  * por cada módulo de negocio nuevo que se implemente.
  */
 const TENANT_MODULES = [
+  'audit',
   'identity',
   'academic',
   'enrollment',
