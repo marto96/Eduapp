@@ -125,6 +125,11 @@ describe('AbilityFactory', () => {
     expect(factory.createForUser(payload(['secretaria'])).can('read', 'AuditLog')).toBe(false);
   });
 
+  it('admin_institucion + directivo puede read AuditLog (admin no queda pisado por el cannot de directivo)', () => {
+    const ability = factory.createForUser(payload(['admin_institucion', 'directivo']));
+    expect(ability.can('read', 'AuditLog')).toBe(true);
+  });
+
   it('secretaria/estudiante/padre_tutor solo pueden read VirtualClass', () => {
     expect(factory.createForUser(payload(['secretaria'])).can('read', 'VirtualClass')).toBe(true);
     expect(factory.createForUser(payload(['secretaria'])).can('manage', 'VirtualClass')).toBe(false);

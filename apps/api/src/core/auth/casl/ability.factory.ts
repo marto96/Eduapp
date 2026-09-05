@@ -52,7 +52,15 @@ export class AbilityFactory {
       // `cannot` agregado después de un `can` lo overridea para ese
       // action+subject puntual, sin tocar el resto de subjects que
       // directivo sí puede leer.
-      cannot('read', 'AuditLog');
+      //
+      // Guardado detrás de `!admin_institucion`: CASL resuelve la última
+      // regla que matchea, así que un usuario con AMBOS roles (combinación
+      // real y creable desde Usuarios) vería este `cannot` pisar el
+      // `can('manage', 'all')` del bloque admin_institucion de arriba pese a
+      // ser admin — el carve-out es solo para directivo "puro".
+      if (!roles.includes('admin_institucion')) {
+        cannot('read', 'AuditLog');
+      }
     }
 
     if (roles.includes('docente')) {
