@@ -17,6 +17,7 @@ describe('RecordAttendanceUseCase', () => {
   };
   const enrollments: jest.Mocked<EnrollmentRepositoryPort> = {
     findAll: jest.fn(),
+    findAllPaginated: jest.fn(),
     findById: jest.fn(),
     findActiveByStudentAndYear: jest.fn(),
     save: jest.fn(),

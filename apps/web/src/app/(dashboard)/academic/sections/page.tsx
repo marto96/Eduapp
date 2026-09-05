@@ -16,7 +16,7 @@ export default async function SectionsPage() {
       </div>
 
       {canManage && <CreateSectionForm />}
-      <SectionsList />
+      <SectionsList canManage={canManage} />
     </main>
   );
 }

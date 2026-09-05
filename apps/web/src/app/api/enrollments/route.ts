@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { serverApiFetch } from '@/lib/server-api';
-import type { Enrollment } from '@eduapp/shared-types';
+import type { Enrollment, PaginatedResult } from '@eduapp/shared-types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001';
 const TENANT_SUBDOMAIN = process.env.NEXT_PUBLIC_TENANT_SUBDOMAIN ?? '';
@@ -9,7 +9,7 @@ const TENANT_SUBDOMAIN = process.env.NEXT_PUBLIC_TENANT_SUBDOMAIN ?? '';
 export async function GET(req: NextRequest) {
   const qs = req.nextUrl.searchParams.toString();
   const path = qs ? `/enrollments?${qs}` : '/enrollments';
-  const enrollments = await serverApiFetch<Enrollment[]>(path);
+  const enrollments = await serverApiFetch<Enrollment[] | PaginatedResult<Enrollment>>(path);
   if (enrollments === null) {
     return NextResponse.json({ message: 'No autenticado' }, { status: 401 });
   }

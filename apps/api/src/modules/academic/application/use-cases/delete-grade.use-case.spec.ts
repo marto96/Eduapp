@@ -16,6 +16,8 @@ describe('DeleteGradeUseCase', () => {
     findAll: jest.fn(),
     findById: jest.fn(),
     save: jest.fn(),
+    deleteById: jest.fn(),
+    hasEnrollments: jest.fn(),
   };
 
   const useCase = new DeleteGradeUseCase(grades, sections);

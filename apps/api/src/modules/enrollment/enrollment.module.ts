@@ -4,6 +4,7 @@ import { EnrollStudentUseCase } from './application/use-cases/enroll-student.use
 import { ListEnrollmentsUseCase } from './application/use-cases/list-enrollments.use-case';
 import { WithdrawEnrollmentUseCase } from './application/use-cases/withdraw-enrollment.use-case';
 import { CompleteEnrollmentUseCase } from './application/use-cases/complete-enrollment.use-case';
+import { ReassignEnrollmentSectionUseCase } from './application/use-cases/reassign-enrollment-section.use-case';
 import { EnrollmentAccessService } from './application/services/enrollment-access.service';
 import { EnrollmentRepositoryPort } from './application/ports/enrollment.repository.port';
 import { TypeOrmEnrollmentRepository } from './infrastructure/repositories/typeorm-enrollment.repository';
@@ -20,6 +21,7 @@ import { AcademicModule } from '../academic/academic.module';
     ListEnrollmentsUseCase,
     WithdrawEnrollmentUseCase,
     CompleteEnrollmentUseCase,
+    ReassignEnrollmentSectionUseCase,
     EnrollmentAccessService,
     { provide: EnrollmentRepositoryPort, useClass: TypeOrmEnrollmentRepository },
   ],

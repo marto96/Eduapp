@@ -4,4 +4,8 @@ export class Section {
     public readonly gradeId: string,
     public name: string,
   ) {}
+
+  edit(name: string): void {
+    this.name = name;
+  }
 }

@@ -13,6 +13,7 @@ import { Grade } from '../../../academic/domain/entities/grade.entity';
 describe('EnrollStudentUseCase', () => {
   const enrollments: jest.Mocked<EnrollmentRepositoryPort> = {
     findAll: jest.fn(),
+    findAllPaginated: jest.fn(),
     findById: jest.fn(),
     findActiveByStudentAndYear: jest.fn(),
     save: jest.fn(),
@@ -31,6 +32,8 @@ describe('EnrollStudentUseCase', () => {
     findAll: jest.fn(),
     findById: jest.fn(),
     save: jest.fn(),
+    deleteById: jest.fn(),
+    hasEnrollments: jest.fn(),
   };
   const grades: jest.Mocked<GradeRepositoryPort> = {
     findAll: jest.fn(),

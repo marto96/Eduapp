@@ -4,7 +4,7 @@ export class Enrollment {
   constructor(
     public readonly id: string,
     public readonly studentId: string,
-    public readonly sectionId: string,
+    public sectionId: string,
     public readonly academicYearId: string,
     public status: EnrollmentStatus,
   ) {}
@@ -15,5 +15,9 @@ export class Enrollment {
 
   complete(): void {
     this.status = 'completed';
+  }
+
+  reassignSection(sectionId: string): void {
+    this.sectionId = sectionId;
   }
 }

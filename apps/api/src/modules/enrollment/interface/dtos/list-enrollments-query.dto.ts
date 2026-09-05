@@ -1,6 +1,7 @@
-import { IsOptional, IsUUID } from 'class-validator';
+import { IsOptional, IsString, IsUUID } from 'class-validator';
+import { PaginationQueryDto } from '../../../../core/http/pagination.dto';
 
-export class ListEnrollmentsQueryDto {
+export class ListEnrollmentsQueryDto extends PaginationQueryDto {
   @IsOptional()
   @IsUUID()
   studentId?: string;
@@ -12,4 +13,8 @@ export class ListEnrollmentsQueryDto {
   @IsOptional()
   @IsUUID()
   academicYearId?: string;
+
+  @IsOptional()
+  @IsString()
+  search?: string;
 }

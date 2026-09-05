@@ -35,3 +35,45 @@ export function useCreateSection() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sections'] }),
   });
 }
+
+export interface EditSectionInput {
+  id: string;
+  name: string;
+}
+
+async function editSection({ id, name }: EditSectionInput): Promise<Section> {
+  const res = await fetch(`/api/academic/sections/${id}`, {
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ name }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.message ?? 'No se pudo editar la sección');
+  }
+  return res.json();
+}
+
+export function useEditSection() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: editSection,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sections'] }),
+  });
+}
+
+async function deleteSection(id: string): Promise<void> {
+  const res = await fetch(`/api/academic/sections/${id}`, { method: 'DELETE' });
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.message ?? 'No se pudo eliminar la sección');
+  }
+}
+
+export function useDeleteSection() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteSection,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['sections'] }),
+  });
+}

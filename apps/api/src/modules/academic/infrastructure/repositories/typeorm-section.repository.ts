@@ -27,4 +27,19 @@ export class TypeOrmSectionRepository extends SectionRepositoryPort {
   async save(section: Section): Promise<void> {
     await this.repo.save({ id: section.id, gradeId: section.gradeId, name: section.name });
   }
+
+  async deleteById(id: string): Promise<void> {
+    await this.repo.softDelete({ id });
+  }
+
+  async hasEnrollments(sectionId: string): Promise<boolean> {
+    // Solo matrículas `active` bloquean el borrado — una sección con
+    // matrículas `withdrawn`/`completed` ya no tiene estudiantes cursando
+    // ahí, así que no hay razón para impedir eliminarla.
+    const rows = await this.repo.manager.query(
+      "SELECT 1 FROM enrollments WHERE section_id = $1 AND status = 'active' AND deleted_at IS NULL LIMIT 1",
+      [sectionId],
+    );
+    return rows.length > 0;
+  }
 }

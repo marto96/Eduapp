@@ -14,6 +14,8 @@ import { EditGradeUseCase } from './application/use-cases/edit-grade.use-case';
 import { DeleteGradeUseCase } from './application/use-cases/delete-grade.use-case';
 import { ListGradesUseCase } from './application/use-cases/list-grades.use-case';
 import { CreateSectionUseCase } from './application/use-cases/create-section.use-case';
+import { EditSectionUseCase } from './application/use-cases/edit-section.use-case';
+import { DeleteSectionUseCase } from './application/use-cases/delete-section.use-case';
 import { ListSectionsUseCase } from './application/use-cases/list-sections.use-case';
 import { CreateSubjectUseCase } from './application/use-cases/create-subject.use-case';
 import { ListSubjectsUseCase } from './application/use-cases/list-subjects.use-case';
@@ -44,6 +46,8 @@ import { TypeOrmPeriodRepository } from './infrastructure/repositories/typeorm-p
     DeleteGradeUseCase,
     ListGradesUseCase,
     CreateSectionUseCase,
+    EditSectionUseCase,
+    DeleteSectionUseCase,
     ListSectionsUseCase,
     CreateSubjectUseCase,
     ListSubjectsUseCase,

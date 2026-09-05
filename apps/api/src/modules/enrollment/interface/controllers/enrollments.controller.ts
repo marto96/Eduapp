@@ -6,8 +6,10 @@ import { EnrollStudentUseCase } from '../../application/use-cases/enroll-student
 import { ListEnrollmentsUseCase } from '../../application/use-cases/list-enrollments.use-case';
 import { WithdrawEnrollmentUseCase } from '../../application/use-cases/withdraw-enrollment.use-case';
 import { CompleteEnrollmentUseCase } from '../../application/use-cases/complete-enrollment.use-case';
+import { ReassignEnrollmentSectionUseCase } from '../../application/use-cases/reassign-enrollment-section.use-case';
 import { EnrollStudentDto } from '../dtos/enroll-student.dto';
 import { ListEnrollmentsQueryDto } from '../dtos/list-enrollments-query.dto';
+import { ReassignEnrollmentSectionDto } from '../dtos/reassign-enrollment-section.dto';
 
 @Controller('enrollments')
 export class EnrollmentsController {
@@ -16,6 +18,7 @@ export class EnrollmentsController {
     private readonly listEnrollments: ListEnrollmentsUseCase,
     private readonly withdrawEnrollment: WithdrawEnrollmentUseCase,
     private readonly completeEnrollment: CompleteEnrollmentUseCase,
+    private readonly reassignEnrollmentSection: ReassignEnrollmentSectionUseCase,
   ) {}
 
   @Post()
@@ -39,5 +42,11 @@ export class EnrollmentsController {
   @CheckPolicies((ability) => ability.can('update', 'Enrollment'))
   async complete(@Param('id') id: string) {
     return this.completeEnrollment.execute(id);
+  }
+
+  @Patch(':id/reassign-section')
+  @CheckPolicies((ability) => ability.can('update', 'Enrollment'))
+  async reassignSection(@Param('id') id: string, @Body() dto: ReassignEnrollmentSectionDto) {
+    return this.reassignEnrollmentSection.execute(id, dto.sectionId);
   }
 }
