@@ -1,12 +1,13 @@
 import { of, throwError } from 'rxjs';
 import { CallHandler, ExecutionContext } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
+import { ModuleRef, Reflector } from '@nestjs/core';
 import { AuditInterceptor } from './audit.interceptor';
 import { RecordAuditLogUseCase } from '../application/use-cases/record-audit-log.use-case';
 
 describe('AuditInterceptor', () => {
   let recordAuditLog: jest.Mocked<RecordAuditLogUseCase>;
   let reflector: jest.Mocked<Reflector>;
+  let moduleRef: jest.Mocked<ModuleRef>;
   let interceptor: AuditInterceptor;
 
   function buildContext(overrides: {
@@ -39,7 +40,12 @@ describe('AuditInterceptor', () => {
   beforeEach(() => {
     recordAuditLog = { execute: jest.fn().mockResolvedValue(undefined) } as unknown as jest.Mocked<RecordAuditLogUseCase>;
     reflector = { getAllAndOverride: jest.fn() } as unknown as jest.Mocked<Reflector>;
-    interceptor = new AuditInterceptor(reflector, recordAuditLog);
+    // El interceptor resuelve `RecordAuditLogUseCase` bajo demanda vía
+    // `ModuleRef#resolve` (ver comentario en audit.interceptor.ts sobre por
+    // qué no se inyecta directo por constructor) — se mockea para que
+    // devuelva siempre el mismo mock, como haría Nest para un contextId real.
+    moduleRef = { resolve: jest.fn().mockResolvedValue(recordAuditLog) } as unknown as jest.Mocked<ModuleRef>;
+    interceptor = new AuditInterceptor(reflector, moduleRef);
   });
 
   it('loguea toda escritura (POST/PATCH/DELETE) sin necesidad de decorador', (done) => {

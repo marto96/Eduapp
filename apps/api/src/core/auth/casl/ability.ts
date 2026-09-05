@@ -33,6 +33,7 @@ export type AppSubjects =
   | 'Loan'
   | 'Report'
   | 'Admission'
+  | 'AuditLog'
   | 'all';
 
 export type AppAbility = Ability<[AppAction, AppSubjects]>;

@@ -1,5 +1,5 @@
 import { CallHandler, ExecutionContext, Injectable, Logger, NestInterceptor } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
+import { ContextId, ContextIdFactory, ModuleRef, Reflector } from '@nestjs/core';
 import { Request } from 'express';
 import { Observable, catchError, tap, throwError } from 'rxjs';
 import { RecordAuditLogUseCase } from '../application/use-cases/record-audit-log.use-case';
@@ -15,7 +15,7 @@ export class AuditInterceptor implements NestInterceptor {
 
   constructor(
     private readonly reflector: Reflector,
-    private readonly recordAuditLog: RecordAuditLogUseCase,
+    private readonly moduleRef: ModuleRef,
   ) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
@@ -50,6 +50,18 @@ export class AuditInterceptor implements NestInterceptor {
       kind,
     };
 
+    // `RecordAuditLogUseCase` es transitivamente `Scope.REQUEST` (vía
+    // `TypeOrmAuditLogRepository` -> `TENANT_DATA_SOURCE`). Si este
+    // interceptor lo inyectara directo por constructor, Nest lo volvería
+    // request-scoped a él también — y como está registrado como
+    // `APP_INTERCEPTOR` (global), Nest no logra resolver esa cadena
+    // correctamente: construye una instancia "cascarón" cuyo constructor
+    // nunca corre (se detectó en vivo: `Object.keys(this)` vacío). Por eso
+    // este interceptor se mantiene singleton y resuelve el use case bajo
+    // demanda con `ModuleRef#resolve`, atado al `contextId` del request
+    // actual — el patrón documentado por Nest para este caso.
+    const contextId: ContextId = ContextIdFactory.getByRequest(request);
+
     return next.handle().pipe(
       tap(() => {
         // El status code real todavía no lo fijó Nest en este punto del
@@ -57,19 +69,22 @@ export class AuditInterceptor implements NestInterceptor {
         // para el camino exitoso no se intenta adivinar, solo se marca
         // `success: true` con `statusCode: null`. El camino de error sí
         // tiene un código confiable (viene de la excepción atrapada).
-        this.persist({ ...base, statusCode: null, success: true });
+        this.persist(contextId, { ...base, statusCode: null, success: true });
       }),
       catchError((err) => {
         const statusCode = typeof err?.getStatus === 'function' ? err.getStatus() : 500;
-        this.persist({ ...base, statusCode, success: false });
+        this.persist(contextId, { ...base, statusCode, success: false });
         return throwError(() => err);
       }),
     );
   }
 
-  private persist(entry: RecordAuditLogEntry): void {
-    this.recordAuditLog.execute(entry).catch((err: Error) => {
-      this.logger.warn(`No se pudo registrar el log de auditoría: ${err.message}`);
-    });
+  private persist(contextId: ContextId, entry: RecordAuditLogEntry): void {
+    this.moduleRef
+      .resolve(RecordAuditLogUseCase, contextId, { strict: false })
+      .then((recordAuditLog) => recordAuditLog.execute(entry))
+      .catch((err: Error) => {
+        this.logger.warn(`No se pudo registrar el log de auditoría: ${err.message}`);
+      });
   }
 }
