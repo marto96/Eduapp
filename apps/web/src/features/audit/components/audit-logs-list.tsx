@@ -96,7 +96,7 @@ export function AuditLogsList() {
   return (
     <div className="space-y-3">
       {filters}
-      <ul className="space-y-2">
+      <ul className="max-h-[65vh] space-y-2 overflow-y-auto pr-1">
         {logs.map((log) => (
           <Card key={log.id} className="py-3">
             <div className="flex items-center justify-between">
