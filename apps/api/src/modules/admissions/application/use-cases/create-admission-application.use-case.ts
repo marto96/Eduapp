@@ -20,6 +20,7 @@ export interface CreateAdmissionApplicationInput {
   studentDocumentNumber: string;
   studentAddress: string;
   gradeId: string;
+  academicYearId: string;
   guardianName: string;
   guardianEmail: string;
   guardianPhone: string;
@@ -47,10 +48,9 @@ export class CreateAdmissionApplicationUseCase {
       throw new NotFoundException(`No existe el grado "${input.gradeId}"`);
     }
 
-    const years = await this.academicYears.findAll();
-    const activeYear = years.find((y) => y.status === 'active');
-    if (!activeYear) {
-      throw new NotFoundException('No hay un año lectivo activo configurado');
+    const academicYear = await this.academicYears.findById(input.academicYearId);
+    if (!academicYear || !academicYear.admissionsOpen) {
+      throw new NotFoundException('El año lectivo seleccionado no está abierto para admisiones');
     }
 
     const existingPending = await this.applications.findPendingByDocumentNumber(
@@ -62,7 +62,7 @@ export class CreateAdmissionApplicationUseCase {
 
     const feeSchedule = await this.feeSchedules.findOne(
       input.gradeId,
-      activeYear.id,
+      academicYear.id,
       'solicitud_admision',
     );
     if (!feeSchedule) {
@@ -79,7 +79,7 @@ export class CreateAdmissionApplicationUseCase {
       input.studentDocumentNumber,
       input.studentAddress,
       input.gradeId,
-      activeYear.id,
+      academicYear.id,
       input.guardianName,
       input.guardianEmail,
       input.guardianPhone,

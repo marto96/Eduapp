@@ -18,6 +18,7 @@ export interface CreateAdmissionApplicationInput {
   studentDocumentNumber: string;
   studentAddress: string;
   gradeId: string;
+  academicYearId: string;
   guardianName: string;
   guardianEmail: string;
   guardianPhone: string;

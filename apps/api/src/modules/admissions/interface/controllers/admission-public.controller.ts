@@ -3,6 +3,7 @@ import { Throttle } from '@nestjs/throttler';
 import { Public } from '../../../../core/auth/public.decorator';
 import { CreateAdmissionApplicationUseCase } from '../../application/use-cases/create-admission-application.use-case';
 import { GetAdmissionApplicationStatusUseCase } from '../../application/use-cases/get-admission-application-status.use-case';
+import { ListOpenAdmissionYearsUseCase } from '../../application/use-cases/list-open-admission-years.use-case';
 import { CreateAdmissionApplicationDto } from '../dtos/create-admission-application.dto';
 
 @Controller('admissions/applications')
@@ -11,6 +12,7 @@ export class AdmissionPublicController {
   constructor(
     private readonly createApplication: CreateAdmissionApplicationUseCase,
     private readonly getStatus: GetAdmissionApplicationStatusUseCase,
+    private readonly listOpenYears: ListOpenAdmissionYearsUseCase,
   ) {}
 
   @Post()
@@ -23,5 +25,11 @@ export class AdmissionPublicController {
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
   async status(@Param('trackingCode') trackingCode: string) {
     return this.getStatus.execute(trackingCode);
+  }
+
+  @Get('open-years')
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  async openYears() {
+    return this.listOpenYears.execute();
   }
 }

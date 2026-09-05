@@ -17,6 +17,9 @@ export class AcademicYearOrmEntity {
   @Column({ default: 'active' })
   status: 'active' | 'closed';
 
+  @Column({ name: 'admissions_open', default: false })
+  admissionsOpen: boolean;
+
   @Column({ name: 'created_at', type: 'timestamptz', default: () => 'now()' })
   createdAt: Date;
 

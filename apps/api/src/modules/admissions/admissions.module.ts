@@ -10,6 +10,7 @@ import { RecordAdmissionInterviewUseCase } from './application/use-cases/record-
 import { AcceptAdmissionApplicationUseCase } from './application/use-cases/accept-admission-application.use-case';
 import { RejectAdmissionApplicationUseCase } from './application/use-cases/reject-admission-application.use-case';
 import { LinkAdmissionEnrollmentUseCase } from './application/use-cases/link-admission-enrollment.use-case';
+import { ListOpenAdmissionYearsUseCase } from './application/use-cases/list-open-admission-years.use-case';
 import { AdmissionApplicationRepositoryPort } from './application/ports/admission-application.repository.port';
 import { AdmissionPaymentAttemptRepositoryPort } from './application/ports/admission-payment-attempt.repository.port';
 import { TypeOrmAdmissionApplicationRepository } from './infrastructure/repositories/typeorm-admission-application.repository';
@@ -30,6 +31,7 @@ import { IdentityModule } from '../identity/identity.module';
     AcceptAdmissionApplicationUseCase,
     RejectAdmissionApplicationUseCase,
     LinkAdmissionEnrollmentUseCase,
+    ListOpenAdmissionYearsUseCase,
     { provide: AdmissionApplicationRepositoryPort, useClass: TypeOrmAdmissionApplicationRepository },
     { provide: AdmissionPaymentAttemptRepositoryPort, useClass: TypeOrmAdmissionPaymentAttemptRepository },
   ],

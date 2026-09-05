@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
-import { useAcademicYears, useDeleteAcademicYear } from '../use-academic-years';
+import { useAcademicYears, useDeleteAcademicYear, useSetAdmissionsOpen } from '../use-academic-years';
 import { usePeriods } from '../use-periods';
 import { useGradeWeightConfig } from '@/features/grading/use-grade-weight-config';
 import { Card } from '@/components/ui/card';
@@ -100,6 +100,7 @@ function AcademicYearDetails({
 export function AcademicYearsList({ canManage = false }: { canManage?: boolean }) {
   const { data: years, isLoading, error } = useAcademicYears();
   const deleteYear = useDeleteAcademicYear();
+  const setAdmissionsOpen = useSetAdmissionsOpen();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [editingYear, setEditingYear] = useState<AcademicYear | null>(null);
 
@@ -140,6 +141,22 @@ export function AcademicYearsList({ canManage = false }: { canManage?: boolean }
                 </button>
                 <div className="flex items-center gap-3">
                   <span className="text-xs uppercase text-muted-foreground">{year.status}</span>
+                  {canManage && (
+                    <button
+                      type="button"
+                      disabled={setAdmissionsOpen.isPending}
+                      className={`rounded px-2 py-1 text-xs font-medium disabled:opacity-50 ${
+                        year.admissionsOpen
+                          ? 'bg-primary/10 text-primary hover:bg-primary/20'
+                          : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                      }`}
+                      onClick={() =>
+                        setAdmissionsOpen.mutate({ id: year.id, open: !year.admissionsOpen })
+                      }
+                    >
+                      {year.admissionsOpen ? 'Admisiones abiertas' : 'Admisiones cerradas'}
+                    </button>
+                  )}
                   {canManage && editable && (
                     <>
                       <button
@@ -171,6 +188,9 @@ export function AcademicYearsList({ canManage = false }: { canManage?: boolean }
         })}
       </ul>
       {deleteYear.isError && <p className="text-sm text-destructive">{deleteYear.error.message}</p>}
+      {setAdmissionsOpen.isError && (
+        <p className="text-sm text-destructive">{setAdmissionsOpen.error.message}</p>
+      )}
       <EditAcademicYearModal year={editingYear} onClose={() => setEditingYear(null)} />
     </>
   );

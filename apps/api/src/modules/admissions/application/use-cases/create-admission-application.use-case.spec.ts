@@ -63,6 +63,7 @@ describe('CreateAdmissionApplicationUseCase', () => {
     studentDocumentNumber: '1098765432',
     studentAddress: 'Calle 1 # 2-3',
     gradeId: 'grade-1',
+    academicYearId: 'year-2026',
     guardianName: 'María Pérez',
     guardianEmail: 'maria@test.com',
     guardianPhone: '3001234567',
@@ -71,9 +72,9 @@ describe('CreateAdmissionApplicationUseCase', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     grades.findById.mockResolvedValue(new Grade('grade-1', 'Sexto', 'Bachillerato', 7));
-    academicYears.findAll.mockResolvedValue([
-      new AcademicYear('year-2026', '2026', '2026-01-01', '2026-12-15', 'active'),
-    ]);
+    academicYears.findById.mockResolvedValue(
+      new AcademicYear('year-2026', '2026', '2026-01-01', '2026-12-15', 'active', true),
+    );
     applications.findPendingByDocumentNumber.mockResolvedValue(null);
     feeSchedules.findOne.mockResolvedValue(
       new FeeSchedule('fs-1', 'grade-1', 'year-2026', 'solicitud_admision', 150000),
@@ -91,10 +92,16 @@ describe('CreateAdmissionApplicationUseCase', () => {
     expect(applications.save).not.toHaveBeenCalled();
   });
 
-  it('rechaza si no hay un año lectivo activo', async () => {
-    academicYears.findAll.mockResolvedValue([
-      new AcademicYear('year-2025', '2025', '2025-01-01', '2025-12-15', 'closed'),
-    ]);
+  it('rechaza si el año lectivo indicado no existe', async () => {
+    academicYears.findById.mockResolvedValue(null);
+
+    await expect(useCase.execute(input)).rejects.toThrow(NotFoundException);
+  });
+
+  it('rechaza si el año lectivo indicado no tiene admisiones abiertas', async () => {
+    academicYears.findById.mockResolvedValue(
+      new AcademicYear('year-2026', '2026', '2026-01-01', '2026-12-15', 'active', false),
+    );
 
     await expect(useCase.execute(input)).rejects.toThrow(NotFoundException);
   });

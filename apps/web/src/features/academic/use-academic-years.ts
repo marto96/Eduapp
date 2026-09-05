@@ -65,6 +65,27 @@ export function useEditAcademicYear() {
   });
 }
 
+async function setAdmissionsOpen({ id, open }: { id: string; open: boolean }): Promise<AcademicYear> {
+  const res = await fetch(`/api/academic/years/${id}/admissions`, {
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ open }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.message ?? 'No se pudo actualizar las admisiones de ese año');
+  }
+  return res.json();
+}
+
+export function useSetAdmissionsOpen() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: setAdmissionsOpen,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['academic-years'] }),
+  });
+}
+
 async function deleteAcademicYear(id: string): Promise<void> {
   const res = await fetch(`/api/academic/years/${id}`, { method: 'DELETE' });
   if (!res.ok) {
