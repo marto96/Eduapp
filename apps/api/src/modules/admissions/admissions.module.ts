@@ -22,9 +22,10 @@ import { TypeOrmAdmissionGradeClosureRepository } from './infrastructure/reposit
 import { AcademicModule } from '../academic/academic.module';
 import { FinanceModule } from '../finance/finance.module';
 import { IdentityModule } from '../identity/identity.module';
+import { EmailModule } from '../email/email.module';
 
 @Module({
-  imports: [AcademicModule, FinanceModule, IdentityModule],
+  imports: [AcademicModule, FinanceModule, IdentityModule, EmailModule],
   controllers: [AdmissionPublicController, AdmissionWebhookController, AdmissionManagementController],
   providers: [
     CreateAdmissionApplicationUseCase,

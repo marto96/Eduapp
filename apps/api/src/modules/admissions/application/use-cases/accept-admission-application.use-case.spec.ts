@@ -2,6 +2,7 @@ import { ConflictException, NotFoundException } from '@nestjs/common';
 import { AcceptAdmissionApplicationUseCase } from './accept-admission-application.use-case';
 import { AdmissionApplicationRepositoryPort } from '../ports/admission-application.repository.port';
 import { UserRepositoryPort } from '../../../identity/application/ports/user.repository.port';
+import { SendTemplatedEmailUseCase } from '../../../email/application/use-cases/send-templated-email.use-case';
 import { AdmissionApplication, AdmissionStatus } from '../../domain/entities/admission-application.entity';
 import { User } from '../../../identity/domain/entities/user.entity';
 
@@ -21,7 +22,9 @@ describe('AcceptAdmissionApplicationUseCase', () => {
     save: jest.fn(),
   };
 
-  const useCase = new AcceptAdmissionApplicationUseCase(applications, users);
+  const sendEmail = { execute: jest.fn() } as unknown as jest.Mocked<SendTemplatedEmailUseCase>;
+
+  const useCase = new AcceptAdmissionApplicationUseCase(applications, users, sendEmail);
 
   const build = (status: AdmissionStatus) =>
     new AdmissionApplication(
@@ -91,5 +94,17 @@ describe('AcceptAdmissionApplicationUseCase', () => {
 
     expect(result.matchedUserId).toBeNull();
     expect(result.application.matchedUserId).toBeNull();
+  });
+
+  it('envía el correo de solicitud aceptada', async () => {
+    applications.findById.mockResolvedValue(build('pendiente_entrevista'));
+
+    await useCase.execute('app-1');
+
+    expect(sendEmail.execute).toHaveBeenCalledWith({
+      type: 'solicitud_aceptada',
+      to: 'maria@test.com',
+      variables: { trackingCode: 'SOL-A8F3K2', estudiante: 'Juan Pérez' },
+    });
   });
 });

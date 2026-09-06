@@ -7,6 +7,7 @@ import { GradeRepositoryPort } from '../../../academic/application/ports/grade.r
 import { AcademicYearRepositoryPort } from '../../../academic/application/ports/academic-year.repository.port';
 import { FeeScheduleRepositoryPort } from '../../../finance/application/ports/fee-schedule.repository.port';
 import { PaymentGatewayPort } from '../../../finance/application/ports/payment-gateway.port';
+import { SendTemplatedEmailUseCase } from '../../../email/application/use-cases/send-templated-email.use-case';
 import { Grade } from '../../../academic/domain/entities/grade.entity';
 import { AcademicYear } from '../../../academic/domain/entities/academic-year.entity';
 import { FeeSchedule } from '../../../finance/domain/entities/fee-schedule.entity';
@@ -53,6 +54,7 @@ describe('CreateAdmissionApplicationUseCase', () => {
     createCheckoutPreference: jest.fn(),
     getPaymentInfo: jest.fn(),
   };
+  const sendEmail = { execute: jest.fn() } as unknown as jest.Mocked<SendTemplatedEmailUseCase>;
 
   const useCase = new CreateAdmissionApplicationUseCase(
     applications,
@@ -62,6 +64,7 @@ describe('CreateAdmissionApplicationUseCase', () => {
     academicYears,
     feeSchedules,
     gateway,
+    sendEmail,
   );
 
   const input = {
@@ -164,6 +167,22 @@ describe('CreateAdmissionApplicationUseCase', () => {
       webhookPath: 'admissions/webhooks/payment',
       successPath: `admisiones/estado?code=${result.trackingCode}`,
       failurePath: `admisiones/estado?code=${result.trackingCode}`,
+    });
+  });
+
+  it('envía el correo de solicitud recibida con el trackingCode y el checkoutUrl', async () => {
+    const result = await useCase.execute(input);
+
+    expect(sendEmail.execute).toHaveBeenCalledWith({
+      type: 'solicitud_recibida',
+      to: 'maria@test.com',
+      variables: {
+        trackingCode: result.trackingCode,
+        guardianName: 'María Pérez',
+        estudiante: 'Juan Pérez',
+        grado: 'Sexto',
+        checkoutUrl: 'https://checkout.wompi.co/p/?reference=pref-1',
+      },
     });
   });
 });

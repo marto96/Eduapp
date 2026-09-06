@@ -1,6 +1,7 @@
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { RejectAdmissionApplicationUseCase } from './reject-admission-application.use-case';
 import { AdmissionApplicationRepositoryPort } from '../ports/admission-application.repository.port';
+import { SendTemplatedEmailUseCase } from '../../../email/application/use-cases/send-templated-email.use-case';
 import { AdmissionApplication, AdmissionStatus } from '../../domain/entities/admission-application.entity';
 
 describe('RejectAdmissionApplicationUseCase', () => {
@@ -12,7 +13,9 @@ describe('RejectAdmissionApplicationUseCase', () => {
     save: jest.fn(),
   };
 
-  const useCase = new RejectAdmissionApplicationUseCase(applications);
+  const sendEmail = { execute: jest.fn() } as unknown as jest.Mocked<SendTemplatedEmailUseCase>;
+
+  const useCase = new RejectAdmissionApplicationUseCase(applications, sendEmail);
 
   const build = (status: AdmissionStatus) =>
     new AdmissionApplication(
@@ -43,5 +46,17 @@ describe('RejectAdmissionApplicationUseCase', () => {
     expect(result.status).toBe('rechazada');
     expect(result.rejectionReason).toBe('No cumple requisitos de edad');
     expect(applications.save).toHaveBeenCalledTimes(1);
+  });
+
+  it('envía el correo de solicitud rechazada', async () => {
+    applications.findById.mockResolvedValue(build('pendiente_entrevista'));
+
+    await useCase.execute('app-1', 'Cupo lleno');
+
+    expect(sendEmail.execute).toHaveBeenCalledWith({
+      type: 'solicitud_rechazada',
+      to: 'maria@test.com',
+      variables: { trackingCode: 'SOL-A8F3K2', estudiante: 'Juan Pérez' },
+    });
   });
 });

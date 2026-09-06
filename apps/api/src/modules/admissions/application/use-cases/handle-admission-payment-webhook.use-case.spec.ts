@@ -3,6 +3,7 @@ import { HandleAdmissionPaymentWebhookUseCase } from './handle-admission-payment
 import { AdmissionApplicationRepositoryPort } from '../ports/admission-application.repository.port';
 import { AdmissionPaymentAttemptRepositoryPort } from '../ports/admission-payment-attempt.repository.port';
 import { PaymentGatewayPort } from '../../../finance/application/ports/payment-gateway.port';
+import { SendTemplatedEmailUseCase } from '../../../email/application/use-cases/send-templated-email.use-case';
 import { AdmissionApplication } from '../../domain/entities/admission-application.entity';
 import { AdmissionPaymentAttempt } from '../../domain/entities/admission-payment-attempt.entity';
 
@@ -23,7 +24,9 @@ describe('HandleAdmissionPaymentWebhookUseCase', () => {
     getPaymentInfo: jest.fn(),
   };
 
-  const useCase = new HandleAdmissionPaymentWebhookUseCase(applications, attempts, gateway);
+  const sendEmail = { execute: jest.fn() } as unknown as jest.Mocked<SendTemplatedEmailUseCase>;
+
+  const useCase = new HandleAdmissionPaymentWebhookUseCase(applications, attempts, gateway, sendEmail);
 
   const buildApplication = () =>
     new AdmissionApplication(
@@ -66,7 +69,7 @@ describe('HandleAdmissionPaymentWebhookUseCase', () => {
     expect(attempts.save).not.toHaveBeenCalled();
   });
 
-  it('con pago approved: marca el intento approved y la solicitud pendiente_entrevista', async () => {
+  it('con pago approved: marca el intento approved y la solicitud pendiente_entrevista, y envía el correo', async () => {
     gateway.getPaymentInfo.mockResolvedValue({
       status: 'approved',
       paymentMethodId: 'CARD',
@@ -81,19 +84,30 @@ describe('HandleAdmissionPaymentWebhookUseCase', () => {
     expect(applications.save).toHaveBeenCalledWith(
       expect.objectContaining({ status: 'pendiente_entrevista' }),
     );
+    expect(sendEmail.execute).toHaveBeenCalledWith({
+      type: 'pago_aprobado',
+      to: 'maria@test.com',
+      variables: { trackingCode: 'SOL-A8F3K2' },
+    });
   });
 
-  it('con pago rejected: marca el intento rejected y no toca la solicitud', async () => {
+  it('con pago rejected: marca el intento rejected, no toca la solicitud, y envía el correo', async () => {
     gateway.getPaymentInfo.mockResolvedValue({
       status: 'rejected',
       paymentMethodId: 'CARD',
       externalReference: 'att-1',
     });
     attempts.findById.mockResolvedValue(buildAttempt('pending'));
+    applications.findById.mockResolvedValue(buildApplication());
 
     await useCase.execute({ event: 'transaction.updated', data: { transaction: { id: 'txn-1' } } });
 
     expect(attempts.save).toHaveBeenCalledWith(expect.objectContaining({ status: 'rejected' }));
     expect(applications.save).not.toHaveBeenCalled();
+    expect(sendEmail.execute).toHaveBeenCalledWith({
+      type: 'pago_rechazado',
+      to: 'maria@test.com',
+      variables: { trackingCode: 'SOL-A8F3K2' },
+    });
   });
 });

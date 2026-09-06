@@ -1,11 +1,13 @@
 import { ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { AdmissionApplicationRepositoryPort } from '../ports/admission-application.repository.port';
+import { SendTemplatedEmailUseCase } from '../../../email/application/use-cases/send-templated-email.use-case';
 import { AdmissionApplication } from '../../domain/entities/admission-application.entity';
 
 @Injectable()
 export class RejectAdmissionApplicationUseCase {
   constructor(
     @Inject(AdmissionApplicationRepositoryPort) private readonly applications: AdmissionApplicationRepositoryPort,
+    private readonly sendEmail: SendTemplatedEmailUseCase,
   ) {}
 
   async execute(id: string, rejectionReason: string): Promise<AdmissionApplication> {
@@ -18,6 +20,16 @@ export class RejectAdmissionApplicationUseCase {
     }
     application.reject(rejectionReason);
     await this.applications.save(application);
+
+    await this.sendEmail.execute({
+      type: 'solicitud_rechazada',
+      to: application.guardianEmail,
+      variables: {
+        trackingCode: application.trackingCode,
+        estudiante: `${application.studentFirstName} ${application.studentLastName}`,
+      },
+    });
+
     return application;
   }
 }

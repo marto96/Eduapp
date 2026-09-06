@@ -7,6 +7,7 @@ import { GradeRepositoryPort } from '../../../academic/application/ports/grade.r
 import { AcademicYearRepositoryPort } from '../../../academic/application/ports/academic-year.repository.port';
 import { FeeScheduleRepositoryPort } from '../../../finance/application/ports/fee-schedule.repository.port';
 import { PaymentGatewayPort } from '../../../finance/application/ports/payment-gateway.port';
+import { SendTemplatedEmailUseCase } from '../../../email/application/use-cases/send-templated-email.use-case';
 import { AdmissionApplication } from '../../domain/entities/admission-application.entity';
 import { AdmissionPaymentAttempt } from '../../domain/entities/admission-payment-attempt.entity';
 import { DocumentType } from '../../../identity/domain/entities/user.entity';
@@ -42,6 +43,7 @@ export class CreateAdmissionApplicationUseCase {
     @Inject(AcademicYearRepositoryPort) private readonly academicYears: AcademicYearRepositoryPort,
     @Inject(FeeScheduleRepositoryPort) private readonly feeSchedules: FeeScheduleRepositoryPort,
     @Inject(PaymentGatewayPort) private readonly gateway: PaymentGatewayPort,
+    private readonly sendEmail: SendTemplatedEmailUseCase,
   ) {}
 
   async execute(input: CreateAdmissionApplicationInput): Promise<CreateAdmissionApplicationOutput> {
@@ -130,6 +132,18 @@ export class CreateAdmissionApplicationUseCase {
       new Date().toISOString(),
     );
     await this.attempts.save(attempt);
+
+    await this.sendEmail.execute({
+      type: 'solicitud_recibida',
+      to: input.guardianEmail,
+      variables: {
+        trackingCode: application.trackingCode,
+        guardianName: input.guardianName,
+        estudiante: `${input.studentFirstName} ${input.studentLastName}`,
+        grado: grade.name,
+        checkoutUrl,
+      },
+    });
 
     return { trackingCode: application.trackingCode, checkoutUrl };
   }
