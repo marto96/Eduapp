@@ -34,6 +34,7 @@ export type AppSubjects =
   | 'Report'
   | 'Admission'
   | 'AuditLog'
+  | 'EmailTemplate'
   | 'all';
 
 export type AppAbility = Ability<[AppAction, AppSubjects]>;

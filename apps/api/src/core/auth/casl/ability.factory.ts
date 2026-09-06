@@ -43,6 +43,7 @@ export class AbilityFactory {
         'Loan',
         'Report',
         'Admission',
+        'EmailTemplate',
       ]);
       can('read', 'all');
       // Excepción explícita al `can('read', 'all')` de arriba: 'all' en CASL

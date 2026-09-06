@@ -136,4 +136,14 @@ describe('AbilityFactory', () => {
     expect(factory.createForUser(payload(['estudiante'])).can('read', 'VirtualClass')).toBe(true);
     expect(factory.createForUser(payload(['padre_tutor'])).can('read', 'VirtualClass')).toBe(true);
   });
+
+  it('directivo puede manage EmailTemplate', () => {
+    const ability = factory.createForUser(payload(['directivo']));
+    expect(ability.can('manage', 'EmailTemplate')).toBe(true);
+  });
+
+  it('docente no puede manage EmailTemplate', () => {
+    const ability = factory.createForUser(payload(['docente']));
+    expect(ability.can('manage', 'EmailTemplate')).toBe(false);
+  });
 });
