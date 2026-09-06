@@ -21,7 +21,7 @@ export default async function MyGradesPage() {
         </p>
       </div>
 
-      <MyGradesView isGuardian={isGuardian} />
+      <MyGradesView />
     </main>
   );
 }

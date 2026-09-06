@@ -12,10 +12,12 @@ export function GradebookTable({
   enrollmentId,
   onViewDetail,
   onCreateGrade,
+  readOnly = false,
 }: {
   enrollmentId: string;
-  onViewDetail: (subjectId: string, periodId: string) => void;
-  onCreateGrade: (subjectId: string, periodId: string) => void;
+  onViewDetail?: (subjectId: string, periodId: string) => void;
+  onCreateGrade?: (subjectId: string, periodId: string) => void;
+  readOnly?: boolean;
 }) {
   const { data: gradebook, isLoading, error } = useGradebook(enrollmentId);
 
@@ -64,11 +66,16 @@ export function GradebookTable({
                 {subject.periods.map((cell) => (
                   <Fragment key={cell.periodId}>
                     <td className="px-2 py-2 text-center">
-                      {cell.grade === null ? (
+                      {readOnly ? (
+                        <span title={cell.isPartial ? 'Nota parcial: todavía faltan categorías por cargar' : undefined}>
+                          {formatGrade(cell.grade)}
+                          {cell.isPartial && <span className="text-muted-foreground">·</span>}
+                        </span>
+                      ) : cell.grade === null ? (
                         <button
                           type="button"
                           className="text-muted-foreground underline hover:text-foreground"
-                          onClick={() => onCreateGrade(subject.subjectId, cell.periodId)}
+                          onClick={() => onCreateGrade?.(subject.subjectId, cell.periodId)}
                         >
                           +
                         </button>
@@ -76,7 +83,7 @@ export function GradebookTable({
                         <button
                           type="button"
                           className="underline hover:text-primary"
-                          onClick={() => onViewDetail(subject.subjectId, cell.periodId)}
+                          onClick={() => onViewDetail?.(subject.subjectId, cell.periodId)}
                           title={cell.isPartial ? 'Nota parcial: todavía faltan categorías por cargar' : undefined}
                         >
                           {formatGrade(cell.grade)}
