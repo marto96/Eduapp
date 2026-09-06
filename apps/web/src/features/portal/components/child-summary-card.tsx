@@ -2,6 +2,7 @@
 
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { StudentGradesList } from '@/features/grading/components/student-grades-list';
 import { usePaymentCheckout } from '@/features/finance/use-payment-checkout';
 import { formatCurrency } from '@/lib/currency';
 import type {
@@ -12,7 +13,6 @@ import type {
   Enrollment,
   EnrollmentStatus,
   Evaluation,
-  GradeCategory,
   GradeScore,
   IssuedDocument,
   Loan,
@@ -44,12 +44,6 @@ const STATUS_CLASSES: Record<string, string> = {
   pagado: 'text-muted-foreground',
 };
 
-const CATEGORY_LABELS: Record<GradeCategory, string> = {
-  actividad: 'Actividad',
-  evaluacion_bimestral: 'Evaluación bimestral',
-  disciplina: 'Disciplina',
-};
-
 export function ChildSummaryCard({
   enrollment,
   studentName,
@@ -79,7 +73,6 @@ export function ChildSummaryCard({
   loans: Loan[];
   bookById: Map<string, Book>;
 }) {
-  const evaluationById = new Map(evaluations.map((e) => [e.id, e]));
   const sortedAttendance = [...attendance].sort((a, b) => b.date.localeCompare(a.date));
   const checkout = usePaymentCheckout();
 
@@ -115,24 +108,12 @@ export function ChildSummaryCard({
 
       <div>
         <p className="text-sm font-medium">Notas</p>
-        {scores.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Sin notas todavía.</p>
-        ) : (
-          <ul className="space-y-1 text-sm text-muted-foreground">
-            {scores.map((score) => {
-              const evaluation = evaluationById.get(score.evaluationId);
-              return (
-                <li key={score.id}>
-                  {evaluation
-                    ? `${subjectNameById.get(evaluation.subjectId) ?? evaluation.subjectId} — ${periodNameById.get(evaluation.periodId) ?? evaluation.periodId} (${CATEGORY_LABELS[evaluation.category]})`
-                    : score.evaluationId}
-                  : {score.score}
-                  {evaluation ? `/${evaluation.maxScore}` : ''}
-                </li>
-              );
-            })}
-          </ul>
-        )}
+        <StudentGradesList
+          scores={scores}
+          evaluations={evaluations}
+          subjectNameById={subjectNameById}
+          periodNameById={periodNameById}
+        />
       </div>
 
       <div>

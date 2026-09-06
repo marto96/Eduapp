@@ -54,6 +54,7 @@ const EVERYONE = [...ADMIN, 'secretaria', 'docente', ...GUARDIAN_STUDENT];
 export const NAV_ITEMS: NavItem[] = [
   { type: 'link', href: '/dashboard', label: 'Panel', icon: LayoutDashboard, roles: EVERYONE },
   { type: 'link', href: '/portal', label: 'Mi familia', icon: Home, roles: GUARDIAN_STUDENT },
+  { type: 'link', href: '/my-grades', label: 'Calificaciones', icon: BarChart3, roles: GUARDIAN_STUDENT },
   {
     type: 'group',
     id: 'academico',
