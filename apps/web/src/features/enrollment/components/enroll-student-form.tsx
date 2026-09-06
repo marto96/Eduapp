@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
+import { UserPlus } from 'lucide-react';
 import { useEnrollStudent } from '../use-enrollments';
 import { useCreateUser, useUsers } from '@/features/users/use-users';
 import { useAcademicYears } from '@/features/academic/use-academic-years';
@@ -179,6 +180,7 @@ export function EnrollStudentForm({
   return (
     <div className="space-y-3">
       <Button type="button" onClick={() => setDialogOpen(true)} disabled={missingPrereqs}>
+        <UserPlus className="mr-2 h-4 w-4" />
         Nueva matrícula
       </Button>
 

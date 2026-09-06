@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { Shuffle } from 'lucide-react';
 import { useGrades } from '@/features/academic/use-grades';
 import { useSections } from '@/features/academic/use-sections';
 import { useAcademicYears } from '@/features/academic/use-academic-years';
@@ -53,9 +54,10 @@ export function DistributeSectionsButton() {
   return (
     <>
       <Button type="button" onClick={() => setOpen(true)}>
-        Repartir automáticamente
+        <Shuffle className="mr-2 h-4 w-4" />
+        Distribuir cursos
       </Button>
-      <Dialog open={open} onClose={reset} title="Repartir estudiantes entre cursos" className="max-w-2xl">
+      <Dialog open={open} onClose={reset} title="Distribuir cursos" className="max-w-2xl">
       {!result && (
         <div className="space-y-4">
           <div className="space-y-1.5">
@@ -126,7 +128,7 @@ export function DistributeSectionsButton() {
               onClick={handleSubmit}
             >
               {distribute.isPending && <Spinner className="mr-2 h-4 w-4" />}
-              Repartir
+              Asignar
             </Button>
             <Button type="button" variant="ghost" onClick={reset}>
               Cancelar
@@ -137,7 +139,7 @@ export function DistributeSectionsButton() {
 
       {result && (
         <div className="space-y-3">
-          <p className="text-sm text-muted-foreground">{result.length} estudiantes repartidos.</p>
+          <p className="text-sm text-muted-foreground">{result.length} estudiantes asignados.</p>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
