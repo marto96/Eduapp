@@ -26,12 +26,14 @@ import { PaymentAttemptRepositoryPort } from './application/ports/payment-attemp
 import { PaymentGatewayPort } from './application/ports/payment-gateway.port';
 import { RecordApprovedPaymentPort } from './application/ports/record-approved-payment.port';
 import { FeeScheduleRepositoryPort } from './application/ports/fee-schedule.repository.port';
+import { PensionReminderLogRepositoryPort } from './application/ports/pension-reminder-log.repository.port';
 import { TypeOrmChargeRepository } from './infrastructure/repositories/typeorm-charge.repository';
 import { TypeOrmPaymentRepository } from './infrastructure/repositories/typeorm-payment.repository';
 import { TypeOrmBankTransactionRepository } from './infrastructure/repositories/typeorm-bank-transaction.repository';
 import { TypeOrmPaymentAttemptRepository } from './infrastructure/repositories/typeorm-payment-attempt.repository';
 import { TypeOrmRecordApprovedPayment } from './infrastructure/repositories/typeorm-record-approved-payment';
 import { TypeOrmFeeScheduleRepository } from './infrastructure/repositories/typeorm-fee-schedule.repository';
+import { TypeOrmPensionReminderLogRepository } from './infrastructure/repositories/typeorm-pension-reminder-log.repository';
 import { WompiPaymentGateway } from './infrastructure/payment-gateway/wompi-payment-gateway';
 import { EnrollmentModule } from '../enrollment/enrollment.module';
 import { IdentityModule } from '../identity/identity.module';
@@ -69,6 +71,7 @@ import { AcademicModule } from '../academic/academic.module';
     { provide: PaymentGatewayPort, useClass: WompiPaymentGateway },
     { provide: RecordApprovedPaymentPort, useClass: TypeOrmRecordApprovedPayment },
     { provide: FeeScheduleRepositoryPort, useClass: TypeOrmFeeScheduleRepository },
+    { provide: PensionReminderLogRepositoryPort, useClass: TypeOrmPensionReminderLogRepository },
   ],
   exports: [ChargeRepositoryPort, PaymentRepositoryPort, PaymentGatewayPort, FeeScheduleRepositoryPort],
 })
