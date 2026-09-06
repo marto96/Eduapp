@@ -6,6 +6,7 @@ import { useSections } from '@/features/academic/use-sections';
 import { useAcademicYears } from '@/features/academic/use-academic-years';
 import { useDistributeGradeIntoSections } from '../use-enrollments';
 import { Button } from '@/components/ui/button';
+import { Dialog } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import type { DistributeSectionsResultRow } from '@eduapp/shared-types';
@@ -49,20 +50,14 @@ export function DistributeSectionsButton() {
     setResult(null);
   }
 
-  if (!open) {
-    return (
+  return (
+    <>
       <Button type="button" onClick={() => setOpen(true)}>
         Repartir automáticamente
       </Button>
-    );
-  }
-
-  return (
-    <div className="space-y-4 rounded border border-border p-4">
-      <p className="font-medium">Repartir estudiantes entre cursos</p>
-
+      <Dialog open={open} onClose={reset} title="Repartir estudiantes entre cursos" className="max-w-2xl">
       {!result && (
-        <>
+        <div className="space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="distribute-grade">Grado</Label>
             <select
@@ -137,7 +132,7 @@ export function DistributeSectionsButton() {
               Cancelar
             </Button>
           </div>
-        </>
+        </div>
       )}
 
       {result && (
@@ -172,6 +167,7 @@ export function DistributeSectionsButton() {
           </Button>
         </div>
       )}
-    </div>
+      </Dialog>
+    </>
   );
 }

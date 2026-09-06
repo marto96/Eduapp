@@ -24,12 +24,14 @@ export default async function EnrollmentPage({
       </div>
 
       {canManage && (
-        <EnrollStudentForm
-          admissionId={searchParams.admissionId}
-          matchedUserId={searchParams.matchedUserId || undefined}
-        />
+        <div className="flex flex-wrap gap-3">
+          <EnrollStudentForm
+            admissionId={searchParams.admissionId}
+            matchedUserId={searchParams.matchedUserId || undefined}
+          />
+          <DistributeSectionsButton />
+        </div>
       )}
-      {canManage && <DistributeSectionsButton />}
       <EnrollmentsList canManage={canManage} />
     </main>
   );
