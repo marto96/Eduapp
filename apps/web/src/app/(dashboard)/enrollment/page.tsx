@@ -1,5 +1,6 @@
 import { EnrollmentsList } from '@/features/enrollment/components/enrollments-list';
 import { EnrollStudentForm } from '@/features/enrollment/components/enroll-student-form';
+import { DistributeSectionsButton } from '@/features/enrollment/components/distribute-sections-modal';
 import { getCurrentUser } from '@/lib/server-api';
 import { canManageEnrollment } from '@/lib/permissions';
 
@@ -28,6 +29,7 @@ export default async function EnrollmentPage({
           matchedUserId={searchParams.matchedUserId || undefined}
         />
       )}
+      {canManage && <DistributeSectionsButton />}
       <EnrollmentsList canManage={canManage} />
     </main>
   );
