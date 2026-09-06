@@ -42,6 +42,10 @@ export class DistributeGradeIntoSectionsUseCase {
       throw new BadRequestException('Se necesitan al menos 2 cursos destino para repartir');
     }
 
+    if (new Set(input.sectionIds).size !== input.sectionIds.length) {
+      throw new BadRequestException('Los cursos destino no pueden repetirse');
+    }
+
     const grade = await this.grades.findById(input.gradeId);
     if (!grade) {
       throw new NotFoundException(`No existe el grado "${input.gradeId}"`);
@@ -125,7 +129,7 @@ export class DistributeGradeIntoSectionsUseCase {
           previousSectionName: previousSection.name,
           newSectionId: newSection.id,
           newSectionName: newSection.name,
-          average: resolvedAverageByEnrollmentId.get(enrollment.id)!,
+          average: realAverages.length > 0 ? resolvedAverageByEnrollmentId.get(enrollment.id)! : null,
           isReturning: candidate.isReturning,
         });
       }

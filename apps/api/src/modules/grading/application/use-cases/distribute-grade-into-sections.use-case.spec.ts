@@ -82,6 +82,12 @@ describe('DistributeGradeIntoSectionsUseCase', () => {
     ).rejects.toThrow(BadRequestException);
   });
 
+  it('rechaza si hay secciones destino repetidas', async () => {
+    await expect(
+      useCase.execute({ ...input, sectionIds: ['section-901', 'section-901'] }),
+    ).rejects.toThrow(BadRequestException);
+  });
+
   it('rechaza si el grado no existe', async () => {
     grades.findById.mockResolvedValue(null);
 
@@ -167,5 +173,26 @@ describe('DistributeGradeIntoSectionsUseCase', () => {
     expect(e1.sectionId).toBe('section-901');
     expect(e2.sectionId).toBe('section-901');
     expect(e4.sectionId).toBe('section-902');
+  });
+
+  it('no fabrica un promedio 0.00 cuando ningún estudiante tiene promedio real', async () => {
+    const e1 = new Enrollment('enr-1', 'student-1', 'section-901', 'year-2026', 'active'); // nuevo
+    const e2 = new Enrollment('enr-2', 'student-2', 'section-901', 'year-2026', 'active'); // nuevo
+    const e3 = new Enrollment('enr-3', 'student-3', 'section-902', 'year-2026', 'active'); // nuevo
+    const e4 = new Enrollment('enr-4', 'student-4', 'section-902', 'year-2026', 'active'); // nuevo
+
+    enrollments.findAll.mockImplementation(async (filter) => {
+      if (filter?.academicYearId === 'year-2026') return [e1, e2, e3, e4];
+      return []; // ningún estudiante tiene matrícula previa -> todos nuevos, sin promedio real
+    });
+
+    studentYearAverage.compute.mockResolvedValue(null);
+
+    const result = await useCase.execute(input);
+
+    expect(result).toHaveLength(4);
+    for (const row of result) {
+      expect(row.average).toBeNull();
+    }
   });
 });
