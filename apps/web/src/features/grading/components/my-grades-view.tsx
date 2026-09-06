@@ -7,8 +7,8 @@ import { useAcademicYears } from '@/features/academic/use-academic-years';
 import { useSubjects } from '@/features/academic/use-subjects';
 import { usePeriods } from '@/features/academic/use-periods';
 import { useEvaluations } from '@/features/grading/use-evaluations';
-import { usePortalScores } from '@/features/portal/use-portal-data';
-import { StudentGradesList } from './student-grades-list';
+import { usePortalAttendance, usePortalScores } from '@/features/portal/use-portal-data';
+import { PeriodGradesTable } from './period-grades-table';
 import { Card } from '@/components/ui/card';
 import { LoadingState } from '@/components/ui/loading-state';
 
@@ -28,6 +28,7 @@ export function MyGradesView({ isGuardian }: { isGuardian: boolean }) {
   const { data: periods } = usePeriods();
   const { data: evaluations } = useEvaluations();
   const { data: scores } = usePortalScores();
+  const { data: attendance } = usePortalAttendance();
 
   if (isLoading) return <LoadingState />;
   if (error) return <p className="text-sm text-destructive">No se pudieron cargar las calificaciones.</p>;
@@ -43,7 +44,6 @@ export function MyGradesView({ isGuardian }: { isGuardian: boolean }) {
   const sectionNameById = new Map(sections?.map((s) => [s.id, s.name]));
   const yearNameById = new Map(years?.map((y) => [y.id, y.name]));
   const subjectNameById = new Map(subjects?.map((s) => [s.id, s.name]));
-  const periodNameById = new Map(periods?.map((p) => [p.id, p.name]));
 
   return (
     <div className="space-y-4">
@@ -58,11 +58,12 @@ export function MyGradesView({ isGuardian }: { isGuardian: boolean }) {
               {sectionNameById.get(enrollment.sectionId) ?? enrollment.sectionId}
             </p>
           </div>
-          <StudentGradesList
+          <PeriodGradesTable
+            periods={(periods ?? []).filter((p) => p.academicYearId === enrollment.academicYearId)}
             scores={(scores ?? []).filter((s) => s.enrollmentId === enrollment.id)}
             evaluations={evaluations ?? []}
+            attendance={(attendance ?? []).filter((a) => a.enrollmentId === enrollment.id)}
             subjectNameById={subjectNameById}
-            periodNameById={periodNameById}
           />
         </Card>
       ))}
