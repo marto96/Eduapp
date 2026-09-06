@@ -469,6 +469,21 @@ export interface GradeWeightConfig {
   disciplinaWeight: number;
 }
 
+export type EmailTemplateType =
+  | 'solicitud_recibida'
+  | 'pago_aprobado'
+  | 'pago_rechazado'
+  | 'solicitud_aceptada'
+  | 'solicitud_rechazada'
+  | 'recordatorio_pension';
+
+export interface EmailTemplateSummary {
+  type: EmailTemplateType;
+  subject: string;
+  body: string;
+  isCustom: boolean;
+}
+
 export interface GradebookStudentRow {
   enrollmentId: string;
   studentId: string;

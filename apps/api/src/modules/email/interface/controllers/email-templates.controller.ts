@@ -21,5 +21,6 @@ export class EmailTemplatesController {
   @Patch(':type')
   async update(@Param('type') type: EmailTemplateType, @Body() dto: UpdateEmailTemplateDto) {
     await this.updateTemplate.execute(type, dto);
+    return { ok: true };
   }
 }
