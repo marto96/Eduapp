@@ -5,6 +5,7 @@ import { GradeScoreRepositoryPort } from '../ports/grade-score.repository.port';
 import { GradeScore } from '../../domain/entities/grade-score.entity';
 import { EnrollmentRepositoryPort } from '../../../enrollment/application/ports/enrollment.repository.port';
 import { EnrollmentAccessService } from '../../../enrollment/application/services/enrollment-access.service';
+import { NotifyNewGradeService } from '../services/notify-new-grade.service';
 import { JwtPayload } from '../../../../core/auth/jwt-payload.interface';
 
 export interface RecordScoresEntry {
@@ -24,6 +25,7 @@ export class RecordScoresUseCase {
     @Inject(GradeScoreRepositoryPort) private readonly gradeScores: GradeScoreRepositoryPort,
     @Inject(EnrollmentRepositoryPort) private readonly enrollments: EnrollmentRepositoryPort,
     private readonly enrollmentAccess: EnrollmentAccessService,
+    private readonly notifyNewGrade: NotifyNewGradeService,
   ) {}
 
   async execute(input: RecordScoresInput, currentUser: JwtPayload): Promise<GradeScore[]> {
@@ -60,11 +62,22 @@ export class RecordScoresUseCase {
       );
     }
 
+    const existingScores = await this.gradeScores.findAll({ evaluationId: input.evaluationId });
+    const existingEnrollmentIds = new Set(existingScores.map((s) => s.enrollmentId));
+    const newEntries = input.scores.filter((s) => !existingEnrollmentIds.has(s.enrollmentId));
+
     const records = input.scores.map(
       (entry) => new GradeScore(randomUUID(), input.evaluationId, entry.enrollmentId, entry.score),
     );
 
     await this.gradeScores.upsertMany(records);
+
+    // Solo se avisa de notas NUEVAS, no de ediciones — mejor esfuerzo: un
+    // fallo al notificar no debe tumbar una nota que ya se guardó.
+    for (const entry of newEntries) {
+      await this.notifyNewGrade.notify(evaluation, entry.enrollmentId, entry.score, currentUser.sub);
+    }
+
     return records;
   }
 }

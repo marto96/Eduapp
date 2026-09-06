@@ -64,5 +64,6 @@ import { EnrollmentModule } from '../enrollment/enrollment.module';
     AudienceAccessService,
     { provide: MessageRepositoryPort, useClass: TypeOrmMessageRepository },
   ],
+  exports: [SendMessageUseCase],
 })
 export class CommunicationModule {}

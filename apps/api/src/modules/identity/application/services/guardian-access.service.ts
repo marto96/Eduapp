@@ -11,4 +11,9 @@ export class GuardianAccessService {
     const links = await this.guardians.findAll({ guardianUserId });
     return links.filter((link) => link.status === 'approved').map((link) => link.studentUserId);
   }
+
+  async getGuardianIds(studentUserId: string): Promise<string[]> {
+    const links = await this.guardians.findAll({ studentUserId });
+    return links.filter((link) => link.status === 'approved').map((link) => link.guardianUserId);
+  }
 }
