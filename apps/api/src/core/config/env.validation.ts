@@ -47,4 +47,10 @@ export const envValidationSchema = Joi.object({
     .allow('')
     .default('')
     .when('NODE_ENV', { is: 'production', then: Joi.string().required() }),
+
+  // API key de Resend (prefijo re_). En dev/test se puede dejar el
+  // default — ResendEmailGateway solo se ejecuta si un flujo real intenta
+  // enviar un correo, y en test los envíos van mockeados.
+  RESEND_API_KEY: Joi.string().default('re_test_0000000000000000000000'),
+  RESEND_FROM_ADDRESS: Joi.string().email().default('no-reply@eduapp.test'),
 }).unknown(true);
