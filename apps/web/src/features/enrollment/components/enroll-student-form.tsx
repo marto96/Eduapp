@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
+import { UserPlus } from 'lucide-react';
 import { useEnrollStudent } from '../use-enrollments';
 import { useCreateUser, useUsers } from '@/features/users/use-users';
 import { useAcademicYears } from '@/features/academic/use-academic-years';
@@ -94,6 +95,7 @@ export function EnrollStudentForm({
     if (matchedUserId) {
       setMode('existing');
       setStudentId(matchedUserId);
+      setDialogOpen(true);
       return;
     }
     const prefill = readAdmissionPrefill(admissionId);
@@ -135,6 +137,7 @@ export function EnrollStudentForm({
         await linkEnrollment.mutateAsync({ id: admissionId, enrollmentId: enrollment.id });
       }
       setStudentId('');
+      setDialogOpen(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No se pudo matricular al estudiante');
     }
@@ -169,251 +172,251 @@ export function EnrollStudentForm({
     }
   }
 
+  function handleCloseDialog() {
+    setDialogOpen(false);
+    setError(null);
+  }
+
   return (
     <div className="space-y-3">
-      <div className="flex gap-4 text-sm">
-        <label className="flex items-center gap-1.5">
-          <input
-            type="radio"
-            checked={mode === 'existing'}
-            onChange={() => setMode('existing')}
-          />
-          Estudiante existente
-        </label>
-        <label className="flex items-center gap-1.5">
-          <input
-            type="radio"
-            checked={mode === 'new'}
-            onChange={() => {
-              setMode('new');
-              setDialogOpen(true);
-            }}
-          />
-          Estudiante nuevo
-        </label>
-      </div>
-
-      {mode === 'existing' ? (
-        <form onSubmit={handleSubmitExisting} className="flex flex-wrap items-end gap-3">
-          <div className="space-y-1.5">
-            <Label htmlFor="studentId">Estudiante</Label>
-            <select
-              id="studentId"
-              required
-              value={studentId}
-              onChange={(e) => setStudentId(e.target.value)}
-              className="flex h-10 w-48 rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
-            >
-              <option value="" disabled>
-                Selecciona un estudiante
-              </option>
-              {students?.map((student) => (
-                <option key={student.id} value={student.id}>
-                  {student.fullName}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="academicYearId">Año lectivo</Label>
-            <select
-              id="academicYearId"
-              required
-              value={academicYearId}
-              onChange={(e) => setAcademicYearId(e.target.value)}
-              className="flex h-10 w-40 rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
-            >
-              <option value="" disabled>
-                Selecciona un año
-              </option>
-              {years?.map((year) => (
-                <option key={year.id} value={year.id}>
-                  {year.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="sectionId">Sección</Label>
-            <select
-              id="sectionId"
-              required
-              value={sectionId}
-              onChange={(e) => setSectionId(e.target.value)}
-              className="flex h-10 w-40 rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
-            >
-              <option value="" disabled>
-                Selecciona una sección
-              </option>
-              {sections?.map((section) => (
-                <option key={section.id} value={section.id}>
-                  {section.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <Button type="submit" disabled={isPending || missingPrereqs}>
-            {isPending ? 'Matriculando...' : 'Matricular'}
-          </Button>
-        </form>
-      ) : (
-        <Button type="button" onClick={() => setDialogOpen(true)} disabled={missingPrereqs}>
-          Matricular estudiante nuevo
-        </Button>
-      )}
+      <Button type="button" onClick={() => setDialogOpen(true)} disabled={missingPrereqs}>
+        <UserPlus className="mr-2 h-4 w-4" />
+        Nueva matrícula
+      </Button>
 
       {missingPrereqs && (
         <p className="text-sm text-muted-foreground">
           Necesitás al menos un año lectivo y una sección creados.
         </p>
       )}
-      {mode === 'existing' && error && <p className="text-sm text-destructive">{error}</p>}
 
-      <Dialog
-        open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
-        title="Matricular estudiante nuevo"
-      >
-        <form onSubmit={handleSubmitNew} className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label htmlFor="new-firstName">Nombre</Label>
-              <Input
-                id="new-firstName"
-                required
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="new-lastName">Apellido</Label>
-              <Input
-                id="new-lastName"
-                required
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="new-email">Email</Label>
-              <Input
-                id="new-email"
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="new-password">Contraseña</Label>
-              <Input
-                id="new-password"
-                type="password"
-                required
-                minLength={8}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="new-birthDate">Fecha de nacimiento</Label>
-              <Input
-                id="new-birthDate"
-                type="date"
-                required
-                max={today}
-                value={birthDate}
-                onChange={(e) => setBirthDate(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="new-documentType">Tipo de documento</Label>
-              <select
-                id="new-documentType"
-                required
-                value={documentType}
-                onChange={(e) => setDocumentType(e.target.value as IdentityDocumentType)}
-                className="flex h-10 w-full rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
-              >
-                <option value="" disabled>
-                  Selecciona un tipo
-                </option>
-                {DOCUMENT_TYPE_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="new-documentNumber">Número de documento</Label>
-              <Input
-                id="new-documentNumber"
-                required
-                minLength={3}
-                value={documentNumber}
-                onChange={(e) => setDocumentNumber(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="new-address">Dirección</Label>
-              <Input
-                id="new-address"
-                required
-                minLength={3}
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-              />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="new-academicYearId">Año lectivo</Label>
-              <select
-                id="new-academicYearId"
-                required
-                value={academicYearId}
-                onChange={(e) => setAcademicYearId(e.target.value)}
-                className="flex h-10 w-full rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
-              >
-                <option value="" disabled>
-                  Selecciona un año
-                </option>
-                {years?.map((year) => (
-                  <option key={year.id} value={year.id}>
-                    {year.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="new-sectionId">Sección</Label>
-              <select
-                id="new-sectionId"
-                required
-                value={sectionId}
-                onChange={(e) => setSectionId(e.target.value)}
-                className="flex h-10 w-full rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
-              >
-                <option value="" disabled>
-                  Selecciona una sección
-                </option>
-                {sections?.map((section) => (
-                  <option key={section.id} value={section.id}>
-                    {section.name}
-                  </option>
-                ))}
-              </select>
-            </div>
+      <Dialog open={dialogOpen} onClose={handleCloseDialog} title="Nueva matrícula" className="max-w-2xl">
+        <div className="space-y-4">
+          <div className="flex gap-4 text-sm">
+            <label className="flex items-center gap-1.5">
+              <input type="radio" checked={mode === 'existing'} onChange={() => setMode('existing')} />
+              Estudiante existente
+            </label>
+            <label className="flex items-center gap-1.5">
+              <input type="radio" checked={mode === 'new'} onChange={() => setMode('new')} />
+              Estudiante nuevo
+            </label>
           </div>
-          {error && <p className="text-sm text-destructive">{error}</p>}
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="ghost" onClick={() => setDialogOpen(false)}>
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={isPending}>
-              {isPending ? 'Matriculando...' : 'Matricular'}
-            </Button>
-          </div>
-        </form>
+
+          {mode === 'existing' ? (
+            <form onSubmit={handleSubmitExisting} className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="col-span-2 space-y-1.5">
+                  <Label htmlFor="studentId">Estudiante</Label>
+                  <select
+                    id="studentId"
+                    required
+                    value={studentId}
+                    onChange={(e) => setStudentId(e.target.value)}
+                    className="flex h-10 w-full rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
+                  >
+                    <option value="" disabled>
+                      Selecciona un estudiante
+                    </option>
+                    {students?.map((student) => (
+                      <option key={student.id} value={student.id}>
+                        {student.fullName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="academicYearId">Año lectivo</Label>
+                  <select
+                    id="academicYearId"
+                    required
+                    value={academicYearId}
+                    onChange={(e) => setAcademicYearId(e.target.value)}
+                    className="flex h-10 w-full rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
+                  >
+                    <option value="" disabled>
+                      Selecciona un año
+                    </option>
+                    {years?.map((year) => (
+                      <option key={year.id} value={year.id}>
+                        {year.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="sectionId">Sección</Label>
+                  <select
+                    id="sectionId"
+                    required
+                    value={sectionId}
+                    onChange={(e) => setSectionId(e.target.value)}
+                    className="flex h-10 w-full rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
+                  >
+                    <option value="" disabled>
+                      Selecciona una sección
+                    </option>
+                    {sections?.map((section) => (
+                      <option key={section.id} value={section.id}>
+                        {section.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              {error && <p className="text-sm text-destructive">{error}</p>}
+              <div className="flex justify-end gap-2">
+                <Button type="button" variant="ghost" onClick={handleCloseDialog}>
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={isPending}>
+                  {isPending ? 'Matriculando...' : 'Matricular'}
+                </Button>
+              </div>
+            </form>
+          ) : (
+            <form onSubmit={handleSubmitNew} className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="new-firstName">Nombre</Label>
+                  <Input
+                    id="new-firstName"
+                    required
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="new-lastName">Apellido</Label>
+                  <Input
+                    id="new-lastName"
+                    required
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="new-email">Email</Label>
+                  <Input
+                    id="new-email"
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="new-password">Contraseña</Label>
+                  <Input
+                    id="new-password"
+                    type="password"
+                    required
+                    minLength={8}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="new-birthDate">Fecha de nacimiento</Label>
+                  <Input
+                    id="new-birthDate"
+                    type="date"
+                    required
+                    max={today}
+                    value={birthDate}
+                    onChange={(e) => setBirthDate(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="new-documentType">Tipo de documento</Label>
+                  <select
+                    id="new-documentType"
+                    required
+                    value={documentType}
+                    onChange={(e) => setDocumentType(e.target.value as IdentityDocumentType)}
+                    className="flex h-10 w-full rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
+                  >
+                    <option value="" disabled>
+                      Selecciona un tipo
+                    </option>
+                    {DOCUMENT_TYPE_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="new-documentNumber">Número de documento</Label>
+                  <Input
+                    id="new-documentNumber"
+                    required
+                    minLength={3}
+                    value={documentNumber}
+                    onChange={(e) => setDocumentNumber(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="new-address">Dirección</Label>
+                  <Input
+                    id="new-address"
+                    required
+                    minLength={3}
+                    value={address}
+                    onChange={(e) => setAddress(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="new-academicYearId">Año lectivo</Label>
+                  <select
+                    id="new-academicYearId"
+                    required
+                    value={academicYearId}
+                    onChange={(e) => setAcademicYearId(e.target.value)}
+                    className="flex h-10 w-full rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
+                  >
+                    <option value="" disabled>
+                      Selecciona un año
+                    </option>
+                    {years?.map((year) => (
+                      <option key={year.id} value={year.id}>
+                        {year.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="new-sectionId">Sección</Label>
+                  <select
+                    id="new-sectionId"
+                    required
+                    value={sectionId}
+                    onChange={(e) => setSectionId(e.target.value)}
+                    className="flex h-10 w-full rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
+                  >
+                    <option value="" disabled>
+                      Selecciona una sección
+                    </option>
+                    {sections?.map((section) => (
+                      <option key={section.id} value={section.id}>
+                        {section.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              {error && <p className="text-sm text-destructive">{error}</p>}
+              <div className="flex justify-end gap-2">
+                <Button type="button" variant="ghost" onClick={handleCloseDialog}>
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={isPending}>
+                  {isPending ? 'Matriculando...' : 'Matricular'}
+                </Button>
+              </div>
+            </form>
+          )}
+        </div>
       </Dialog>
     </div>
   );

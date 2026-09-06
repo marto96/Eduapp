@@ -1,7 +1,7 @@
 'use client';
 
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { Enrollment, PaginatedResult } from '@eduapp/shared-types';
+import type { Enrollment, PaginatedResult, DistributeSectionsResultRow } from '@eduapp/shared-types';
 
 export interface EnrollmentFilter {
   sectionId?: string;
@@ -127,6 +127,36 @@ export function useReassignEnrollmentSection() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: reassignEnrollmentSection,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['enrollments'] }),
+  });
+}
+
+export interface DistributeGradeIntoSectionsInput {
+  gradeId: string;
+  academicYearId: string;
+  sectionIds: string[];
+}
+
+async function distributeGradeIntoSections(
+  input: DistributeGradeIntoSectionsInput,
+): Promise<DistributeSectionsResultRow[]> {
+  const { gradeId, ...body } = input;
+  const res = await fetch(`/api/enrollments/grades/${gradeId}/distribute-sections`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const errBody = await res.json().catch(() => null);
+    throw new Error(errBody?.message ?? 'No se pudo repartir el grado');
+  }
+  return res.json();
+}
+
+export function useDistributeGradeIntoSections() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: distributeGradeIntoSections,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['enrollments'] }),
   });
 }

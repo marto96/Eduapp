@@ -1,5 +1,6 @@
 import { EnrollmentsList } from '@/features/enrollment/components/enrollments-list';
 import { EnrollStudentForm } from '@/features/enrollment/components/enroll-student-form';
+import { DistributeSectionsButton } from '@/features/enrollment/components/distribute-sections-modal';
 import { getCurrentUser } from '@/lib/server-api';
 import { canManageEnrollment } from '@/lib/permissions';
 
@@ -23,10 +24,13 @@ export default async function EnrollmentPage({
       </div>
 
       {canManage && (
-        <EnrollStudentForm
-          admissionId={searchParams.admissionId}
-          matchedUserId={searchParams.matchedUserId || undefined}
-        />
+        <div className="flex flex-wrap gap-3">
+          <EnrollStudentForm
+            admissionId={searchParams.admissionId}
+            matchedUserId={searchParams.matchedUserId || undefined}
+          />
+          <DistributeSectionsButton />
+        </div>
       )}
       <EnrollmentsList canManage={canManage} />
     </main>

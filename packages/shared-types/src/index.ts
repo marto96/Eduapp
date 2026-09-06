@@ -40,6 +40,18 @@ export interface GradeAdmissionAvailability {
   closed: boolean;
 }
 
+export interface DistributeSectionsResultRow {
+  studentId: string;
+  studentName: string;
+  enrollmentId: string;
+  previousSectionId: string;
+  previousSectionName: string;
+  newSectionId: string;
+  newSectionName: string;
+  average: number | null;
+  isReturning: boolean;
+}
+
 export interface Grade {
   id: string;
   name: string;

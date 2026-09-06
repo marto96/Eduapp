@@ -14,6 +14,9 @@ import { GetGradebookUseCase } from './application/use-cases/get-gradebook.use-c
 import { GetSubjectPeriodDetailUseCase } from './application/use-cases/get-subject-period-detail.use-case';
 import { CreateGradeUseCase } from './application/use-cases/create-grade.use-case';
 import { GradeWeightConfigService } from './application/services/grade-weight-config.service';
+import { SectionDistributionController } from './interface/controllers/section-distribution.controller';
+import { StudentYearAverageService } from './application/services/student-year-average.service';
+import { DistributeGradeIntoSectionsUseCase } from './application/use-cases/distribute-grade-into-sections.use-case';
 import { EvaluationRepositoryPort } from './application/ports/evaluation.repository.port';
 import { GradeScoreRepositoryPort } from './application/ports/grade-score.repository.port';
 import { GradeWeightConfigRepositoryPort } from './application/ports/grade-weight-config.repository.port';
@@ -30,7 +33,7 @@ import { IdentityModule } from '../identity/identity.module';
 
 @Module({
   imports: [EnrollmentModule, AcademicModule, AttendanceModule, ScheduleModule, IdentityModule],
-  controllers: [EvaluationsController, ScoresController, GradeWeightConfigController, GradebookController],
+  controllers: [EvaluationsController, ScoresController, GradeWeightConfigController, GradebookController, SectionDistributionController],
   providers: [
     CreateEvaluationUseCase,
     ListEvaluationsUseCase,
@@ -43,6 +46,8 @@ import { IdentityModule } from '../identity/identity.module';
     GetSubjectPeriodDetailUseCase,
     CreateGradeUseCase,
     GradeWeightConfigService,
+    StudentYearAverageService,
+    DistributeGradeIntoSectionsUseCase,
     { provide: EvaluationRepositoryPort, useClass: TypeOrmEvaluationRepository },
     { provide: GradeScoreRepositoryPort, useClass: TypeOrmGradeScoreRepository },
     { provide: GradeWeightConfigRepositoryPort, useClass: TypeOrmGradeWeightConfigRepository },
