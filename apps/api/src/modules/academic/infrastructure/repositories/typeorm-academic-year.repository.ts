@@ -31,6 +31,7 @@ export class TypeOrmAcademicYearRepository extends AcademicYearRepositoryPort {
       startDate: year.startDate,
       endDate: year.endDate,
       status: year.status,
+      admissionsOpen: year.admissionsOpen,
     });
   }
 
@@ -39,6 +40,6 @@ export class TypeOrmAcademicYearRepository extends AcademicYearRepositoryPort {
   }
 
   private toDomain(row: AcademicYearOrmEntity): AcademicYear {
-    return new AcademicYear(row.id, row.name, row.startDate, row.endDate, row.status);
+    return new AcademicYear(row.id, row.name, row.startDate, row.endDate, row.status, row.admissionsOpen);
   }
 }

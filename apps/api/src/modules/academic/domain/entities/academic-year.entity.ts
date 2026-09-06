@@ -5,6 +5,7 @@ export class AcademicYear {
     public startDate: string,
     public endDate: string,
     public status: 'active' | 'closed',
+    public admissionsOpen: boolean = false,
   ) {
     if (startDate >= endDate) {
       throw new Error('La fecha de inicio debe ser anterior a la fecha de fin');
@@ -22,5 +23,13 @@ export class AcademicYear {
 
   close(): void {
     this.status = 'closed';
+  }
+
+  openAdmissions(): void {
+    this.admissionsOpen = true;
+  }
+
+  closeAdmissions(): void {
+    this.admissionsOpen = false;
   }
 }

@@ -26,6 +26,18 @@ export interface AcademicYear {
   startDate: string;
   endDate: string;
   status: 'active' | 'closed';
+  admissionsOpen: boolean;
+}
+
+export interface AdmissionOpenYear {
+  id: string;
+  name: string;
+}
+
+export interface GradeAdmissionAvailability {
+  gradeId: string;
+  gradeName: string;
+  closed: boolean;
 }
 
 export interface Grade {

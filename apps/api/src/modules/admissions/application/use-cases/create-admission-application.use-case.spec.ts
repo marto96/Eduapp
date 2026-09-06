@@ -2,6 +2,7 @@ import { NotFoundException, ConflictException } from '@nestjs/common';
 import { CreateAdmissionApplicationUseCase } from './create-admission-application.use-case';
 import { AdmissionApplicationRepositoryPort } from '../ports/admission-application.repository.port';
 import { AdmissionPaymentAttemptRepositoryPort } from '../ports/admission-payment-attempt.repository.port';
+import { AdmissionGradeClosureRepositoryPort } from '../ports/admission-grade-closure.repository.port';
 import { GradeRepositoryPort } from '../../../academic/application/ports/grade.repository.port';
 import { AcademicYearRepositoryPort } from '../../../academic/application/ports/academic-year.repository.port';
 import { FeeScheduleRepositoryPort } from '../../../finance/application/ports/fee-schedule.repository.port';
@@ -10,6 +11,7 @@ import { Grade } from '../../../academic/domain/entities/grade.entity';
 import { AcademicYear } from '../../../academic/domain/entities/academic-year.entity';
 import { FeeSchedule } from '../../../finance/domain/entities/fee-schedule.entity';
 import { AdmissionApplication } from '../../domain/entities/admission-application.entity';
+import { AdmissionGradeClosure } from '../../domain/entities/admission-grade-closure.entity';
 
 describe('CreateAdmissionApplicationUseCase', () => {
   const applications: jest.Mocked<AdmissionApplicationRepositoryPort> = {
@@ -22,6 +24,12 @@ describe('CreateAdmissionApplicationUseCase', () => {
   const attempts: jest.Mocked<AdmissionPaymentAttemptRepositoryPort> = {
     findById: jest.fn(),
     save: jest.fn(),
+  };
+  const gradeClosures: jest.Mocked<AdmissionGradeClosureRepositoryPort> = {
+    findByGradeAndYear: jest.fn(),
+    findByYear: jest.fn(),
+    save: jest.fn(),
+    deleteByGradeAndYear: jest.fn(),
   };
   const grades: jest.Mocked<GradeRepositoryPort> = {
     findAll: jest.fn(),
@@ -49,6 +57,7 @@ describe('CreateAdmissionApplicationUseCase', () => {
   const useCase = new CreateAdmissionApplicationUseCase(
     applications,
     attempts,
+    gradeClosures,
     grades,
     academicYears,
     feeSchedules,
@@ -63,6 +72,7 @@ describe('CreateAdmissionApplicationUseCase', () => {
     studentDocumentNumber: '1098765432',
     studentAddress: 'Calle 1 # 2-3',
     gradeId: 'grade-1',
+    academicYearId: 'year-2026',
     guardianName: 'María Pérez',
     guardianEmail: 'maria@test.com',
     guardianPhone: '3001234567',
@@ -71,9 +81,10 @@ describe('CreateAdmissionApplicationUseCase', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     grades.findById.mockResolvedValue(new Grade('grade-1', 'Sexto', 'Bachillerato', 7));
-    academicYears.findAll.mockResolvedValue([
-      new AcademicYear('year-2026', '2026', '2026-01-01', '2026-12-15', 'active'),
-    ]);
+    academicYears.findById.mockResolvedValue(
+      new AcademicYear('year-2026', '2026', '2026-01-01', '2026-12-15', 'active', true),
+    );
+    gradeClosures.findByGradeAndYear.mockResolvedValue(null);
     applications.findPendingByDocumentNumber.mockResolvedValue(null);
     feeSchedules.findOne.mockResolvedValue(
       new FeeSchedule('fs-1', 'grade-1', 'year-2026', 'solicitud_admision', 150000),
@@ -91,12 +102,27 @@ describe('CreateAdmissionApplicationUseCase', () => {
     expect(applications.save).not.toHaveBeenCalled();
   });
 
-  it('rechaza si no hay un año lectivo activo', async () => {
-    academicYears.findAll.mockResolvedValue([
-      new AcademicYear('year-2025', '2025', '2025-01-01', '2025-12-15', 'closed'),
-    ]);
+  it('rechaza si el año lectivo indicado no existe', async () => {
+    academicYears.findById.mockResolvedValue(null);
 
     await expect(useCase.execute(input)).rejects.toThrow(NotFoundException);
+  });
+
+  it('rechaza si el año lectivo indicado no tiene admisiones abiertas', async () => {
+    academicYears.findById.mockResolvedValue(
+      new AcademicYear('year-2026', '2026', '2026-01-01', '2026-12-15', 'active', false),
+    );
+
+    await expect(useCase.execute(input)).rejects.toThrow(NotFoundException);
+  });
+
+  it('rechaza si el grado está cerrado por cupo lleno para ese año', async () => {
+    gradeClosures.findByGradeAndYear.mockResolvedValue(
+      new AdmissionGradeClosure('closure-1', 'grade-1', 'year-2026', '2026-09-01T00:00:00.000Z'),
+    );
+
+    await expect(useCase.execute(input)).rejects.toThrow(ConflictException);
+    expect(applications.save).not.toHaveBeenCalled();
   });
 
   it('rechaza si ya hay una solicitud en curso para ese documento', async () => {

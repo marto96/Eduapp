@@ -9,6 +9,7 @@ import { ListAcademicYearsUseCase } from './application/use-cases/list-academic-
 import { GetAcademicYearUseCase } from './application/use-cases/get-academic-year.use-case';
 import { EditAcademicYearUseCase } from './application/use-cases/edit-academic-year.use-case';
 import { DeleteAcademicYearUseCase } from './application/use-cases/delete-academic-year.use-case';
+import { SetAdmissionsOpenUseCase } from './application/use-cases/set-admissions-open.use-case';
 import { CreateGradeUseCase } from './application/use-cases/create-grade.use-case';
 import { EditGradeUseCase } from './application/use-cases/edit-grade.use-case';
 import { DeleteGradeUseCase } from './application/use-cases/delete-grade.use-case';
@@ -41,6 +42,7 @@ import { TypeOrmPeriodRepository } from './infrastructure/repositories/typeorm-p
     GetAcademicYearUseCase,
     EditAcademicYearUseCase,
     DeleteAcademicYearUseCase,
+    SetAdmissionsOpenUseCase,
     CreateGradeUseCase,
     EditGradeUseCase,
     DeleteGradeUseCase,

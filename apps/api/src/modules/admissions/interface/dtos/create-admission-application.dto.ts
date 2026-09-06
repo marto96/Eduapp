@@ -33,6 +33,9 @@ export class CreateAdmissionApplicationDto {
   @IsUUID()
   gradeId: string;
 
+  @IsUUID()
+  academicYearId: string;
+
   @IsString()
   @MinLength(1)
   @MaxLength(150)

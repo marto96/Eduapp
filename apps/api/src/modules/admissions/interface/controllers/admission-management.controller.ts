@@ -5,9 +5,12 @@ import { RecordAdmissionInterviewUseCase } from '../../application/use-cases/rec
 import { AcceptAdmissionApplicationUseCase } from '../../application/use-cases/accept-admission-application.use-case';
 import { RejectAdmissionApplicationUseCase } from '../../application/use-cases/reject-admission-application.use-case';
 import { LinkAdmissionEnrollmentUseCase } from '../../application/use-cases/link-admission-enrollment.use-case';
+import { ListGradeAdmissionAvailabilityUseCase } from '../../application/use-cases/list-grade-admission-availability.use-case';
+import { SetAdmissionGradeClosedUseCase } from '../../application/use-cases/set-admission-grade-closed.use-case';
 import { RecordAdmissionInterviewDto } from '../dtos/record-admission-interview.dto';
 import { RejectAdmissionApplicationDto } from '../dtos/reject-admission-application.dto';
 import { LinkAdmissionEnrollmentDto } from '../dtos/link-admission-enrollment.dto';
+import { SetAdmissionGradeClosedDto } from '../dtos/set-admission-grade-closed.dto';
 import { AdmissionStatus } from '../../domain/entities/admission-application.entity';
 
 @Controller('admissions/applications')
@@ -19,6 +22,8 @@ export class AdmissionManagementController {
     private readonly acceptApplication: AcceptAdmissionApplicationUseCase,
     private readonly rejectApplication: RejectAdmissionApplicationUseCase,
     private readonly linkEnrollment: LinkAdmissionEnrollmentUseCase,
+    private readonly listGradeAvailability: ListGradeAdmissionAvailabilityUseCase,
+    private readonly setGradeClosed: SetAdmissionGradeClosedUseCase,
   ) {}
 
   @Get()
@@ -57,5 +62,16 @@ export class AdmissionManagementController {
   @Patch(':id/link-enrollment')
   async link(@Param('id') id: string, @Body() dto: LinkAdmissionEnrollmentDto) {
     return this.linkEnrollment.execute(id, dto.enrollmentId);
+  }
+
+  @Get('grade-availability')
+  async gradeAvailability(@Query('academicYearId') academicYearId: string) {
+    return this.listGradeAvailability.execute(academicYearId);
+  }
+
+  @Patch('grade-availability/:gradeId')
+  async setGradeAvailability(@Param('gradeId') gradeId: string, @Body() dto: SetAdmissionGradeClosedDto) {
+    await this.setGradeClosed.execute(gradeId, dto.academicYearId, dto.closed);
+    return { gradeId, academicYearId: dto.academicYearId, closed: dto.closed };
   }
 }

@@ -6,6 +6,7 @@ import type {
   AdmissionApplication,
   AdmissionStatus,
   AdmissionStatusResponse,
+  GradeAdmissionAvailability,
   IdentityDocumentType,
   PaginatedResult,
 } from '@eduapp/shared-types';
@@ -18,6 +19,7 @@ export interface CreateAdmissionApplicationInput {
   studentDocumentNumber: string;
   studentAddress: string;
   gradeId: string;
+  academicYearId: string;
   guardianName: string;
   guardianEmail: string;
   guardianPhone: string;
@@ -189,5 +191,54 @@ export function useLinkAdmissionEnrollment() {
   return useMutation({
     mutationFn: linkAdmissionEnrollment,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admission-applications'] }),
+  });
+}
+
+async function fetchGradeAdmissionAvailability(
+  academicYearId: string,
+): Promise<GradeAdmissionAvailability[]> {
+  const res = await fetch(
+    `/api/admissions/management/grade-availability?academicYearId=${encodeURIComponent(academicYearId)}`,
+  );
+  if (!res.ok) throw new Error('No se pudo cargar la disponibilidad de cupos');
+  return res.json();
+}
+
+export function useGradeAdmissionAvailability(academicYearId: string) {
+  return useQuery({
+    queryKey: ['grade-admission-availability', academicYearId],
+    queryFn: () => fetchGradeAdmissionAvailability(academicYearId),
+    enabled: academicYearId.trim().length > 0,
+  });
+}
+
+async function setAdmissionGradeClosed({
+  gradeId,
+  academicYearId,
+  closed,
+}: {
+  gradeId: string;
+  academicYearId: string;
+  closed: boolean;
+}): Promise<void> {
+  const res = await fetch(`/api/admissions/management/grade-availability/${gradeId}`, {
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ academicYearId, closed }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.message ?? 'No se pudo actualizar el cupo de ese grado');
+  }
+}
+
+export function useSetAdmissionGradeClosed() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: setAdmissionGradeClosed,
+    onSuccess: (_data, variables) =>
+      queryClient.invalidateQueries({
+        queryKey: ['grade-admission-availability', variables.academicYearId],
+      }),
   });
 }

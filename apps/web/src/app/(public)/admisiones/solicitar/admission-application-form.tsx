@@ -5,8 +5,9 @@ import { useCreateAdmissionApplication } from '@/features/admissions/use-admissi
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { LoadingState } from '@/components/ui/loading-state';
 import { Spinner } from '@/components/ui/spinner';
-import type { Grade, IdentityDocumentType } from '@eduapp/shared-types';
+import type { AdmissionOpenYear, Grade, IdentityDocumentType } from '@eduapp/shared-types';
 
 const DOCUMENT_TYPE_OPTIONS: { value: IdentityDocumentType; label: string }[] = [
   { value: 'RC', label: 'Registro Civil' },
@@ -21,6 +22,9 @@ const today = new Date().toISOString().slice(0, 10);
 export function AdmissionApplicationForm() {
   const createApplication = useCreateAdmissionApplication();
   const [grades, setGrades] = useState<Grade[]>([]);
+  const [openYears, setOpenYears] = useState<AdmissionOpenYear[]>([]);
+  const [isLoadingOptions, setIsLoadingOptions] = useState(true);
+  const [academicYearId, setAcademicYearId] = useState('');
   const [studentFirstName, setStudentFirstName] = useState('');
   const [studentLastName, setStudentLastName] = useState('');
   const [studentBirthDate, setStudentBirthDate] = useState('');
@@ -36,15 +40,24 @@ export function AdmissionApplicationForm() {
   );
 
   useEffect(() => {
-    fetch('/api/public/grades')
-      .then((res) => res.json())
-      .then(setGrades)
-      .catch(() => setGrades([]));
+    Promise.all([
+      fetch('/api/public/grades')
+        .then((res) => res.json())
+        .then(setGrades)
+        .catch(() => setGrades([])),
+      fetch('/api/public/admission-years')
+        .then((res) => res.json())
+        .then((years: AdmissionOpenYear[]) => {
+          setOpenYears(years);
+          if (years.length === 1) setAcademicYearId(years[0].id);
+        })
+        .catch(() => setOpenYears([])),
+    ]).finally(() => setIsLoadingOptions(false));
   }, []);
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    if (!studentDocumentType || !gradeId) return;
+    if (!studentDocumentType || !gradeId || !academicYearId) return;
     createApplication.mutate(
       {
         studentFirstName,
@@ -54,6 +67,7 @@ export function AdmissionApplicationForm() {
         studentDocumentNumber,
         studentAddress,
         gradeId,
+        academicYearId,
         guardianName,
         guardianEmail,
         guardianPhone,
@@ -62,6 +76,10 @@ export function AdmissionApplicationForm() {
         onSuccess: (result) => setSubmitted(result),
       },
     );
+  }
+
+  if (isLoadingOptions) {
+    return <LoadingState label="Cargando formulario..." className="justify-center py-8" />;
   }
 
   if (submitted) {
@@ -141,6 +159,27 @@ export function AdmissionApplicationForm() {
             ))}
           </select>
         </div>
+        {openYears.length > 1 && (
+          <div className="space-y-1.5">
+            <Label htmlFor="academicYearId">Año lectivo</Label>
+            <select
+              id="academicYearId"
+              required
+              value={academicYearId}
+              onChange={(e) => setAcademicYearId(e.target.value)}
+              className="flex h-10 w-full rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
+            >
+              <option value="" disabled>
+                Selecciona un año lectivo
+              </option>
+              {openYears.map((year) => (
+                <option key={year.id} value={year.id}>
+                  {year.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <div className="space-y-1.5">
           <Label htmlFor="studentDocumentType">Tipo de documento</Label>
           <select
@@ -215,11 +254,21 @@ export function AdmissionApplicationForm() {
         </div>
       </div>
 
+      {openYears.length === 0 && (
+        <p className="text-sm text-destructive">
+          No hay admisiones abiertas en este momento. Vuelve a intentarlo más adelante.
+        </p>
+      )}
+
       {createApplication.isError && (
         <p className="text-sm text-destructive">{createApplication.error.message}</p>
       )}
 
-      <Button type="submit" disabled={createApplication.isPending} className="w-full">
+      <Button
+        type="submit"
+        disabled={createApplication.isPending || !academicYearId}
+        className="w-full"
+      >
         {createApplication.isPending && <Spinner className="mr-2 h-4 w-4" />}
         {createApplication.isPending ? 'Enviando...' : 'Enviar solicitud y pagar'}
       </Button>
