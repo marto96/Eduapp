@@ -10,6 +10,6 @@ import { tenantDataSourceProvider } from './tenant-datasource.provider';
 @Global()
 @Module({
   providers: [TenantConnectionProvider, tenantDataSourceProvider],
-  exports: [tenantDataSourceProvider],
+  exports: [TenantConnectionProvider, tenantDataSourceProvider],
 })
 export class DatabaseModule {}

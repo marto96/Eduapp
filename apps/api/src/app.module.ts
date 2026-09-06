@@ -1,6 +1,7 @@
 import { MiddlewareConsumer, Module, NestModule, RequestMethod } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ScheduleModule as CronScheduleModule } from '@nestjs/schedule';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'node:path';
 import { envValidationSchema } from './core/config/env.validation';
@@ -35,6 +36,7 @@ import { AuditModule } from './modules/audit/audit.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, validationSchema: envValidationSchema }),
+    CronScheduleModule.forRoot(),
     // Única conexión "fija" del proceso: schema `public` (registro de tenants).
     // Las conexiones de tenant se abren dinámicamente, ver core/database/DatabaseModule.
     TypeOrmModule.forRoot({ ...platformDataSourceOptions, name: 'platform' }),

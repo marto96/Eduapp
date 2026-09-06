@@ -35,12 +35,15 @@ import { TypeOrmRecordApprovedPayment } from './infrastructure/repositories/type
 import { TypeOrmFeeScheduleRepository } from './infrastructure/repositories/typeorm-fee-schedule.repository';
 import { TypeOrmPensionReminderLogRepository } from './infrastructure/repositories/typeorm-pension-reminder-log.repository';
 import { WompiPaymentGateway } from './infrastructure/payment-gateway/wompi-payment-gateway';
+import { SendPensionReminderTask } from './application/services/send-pension-reminder.task';
 import { EnrollmentModule } from '../enrollment/enrollment.module';
 import { IdentityModule } from '../identity/identity.module';
 import { AcademicModule } from '../academic/academic.module';
+import { PlatformModule } from '../platform/platform.module';
+import { EmailModule } from '../email/email.module';
 
 @Module({
-  imports: [EnrollmentModule, IdentityModule, AcademicModule],
+  imports: [EnrollmentModule, IdentityModule, AcademicModule, PlatformModule, EmailModule],
   controllers: [
     ChargesController,
     PaymentsController,
@@ -64,6 +67,7 @@ import { AcademicModule } from '../academic/academic.module';
     CreateFeeScheduleUseCase,
     EditFeeScheduleUseCase,
     ListFeeSchedulesUseCase,
+    SendPensionReminderTask,
     { provide: ChargeRepositoryPort, useClass: TypeOrmChargeRepository },
     { provide: PaymentRepositoryPort, useClass: TypeOrmPaymentRepository },
     { provide: BankTransactionRepositoryPort, useClass: TypeOrmBankTransactionRepository },
