@@ -7,6 +7,7 @@ import { EmailTemplateService } from './application/services/email-template.serv
 import { SendTemplatedEmailUseCase } from './application/use-cases/send-templated-email.use-case';
 import { ListEmailTemplatesUseCase } from './application/use-cases/list-email-templates.use-case';
 import { UpdateEmailTemplateUseCase } from './application/use-cases/update-email-template.use-case';
+import { SendTestEmailUseCase } from './application/use-cases/send-test-email.use-case';
 import { EmailTemplatesController } from './interface/controllers/email-templates.controller';
 
 @Module({
@@ -18,6 +19,7 @@ import { EmailTemplatesController } from './interface/controllers/email-template
     SendTemplatedEmailUseCase,
     ListEmailTemplatesUseCase,
     UpdateEmailTemplateUseCase,
+    SendTestEmailUseCase,
   ],
   exports: [EmailPort, EmailTemplateRepositoryPort, SendTemplatedEmailUseCase],
 })
