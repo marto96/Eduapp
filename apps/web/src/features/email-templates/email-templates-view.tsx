@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { LoadingState } from '@/components/ui/loading-state';
 import { TemplateBodyEditor } from './template-body-editor';
+import { TestEmailDialog } from './test-email-dialog';
 import type { EmailTemplateType } from '@eduapp/shared-types';
 
 const LABELS: Record<EmailTemplateType, string> = {
@@ -32,6 +33,7 @@ export function EmailTemplatesView() {
   const { data: templates, isLoading } = useEmailTemplates();
   const updateTemplate = useUpdateEmailTemplate();
   const [editing, setEditing] = useState<{ type: EmailTemplateType; subject: string; body: string } | null>(null);
+  const [testing, setTesting] = useState<EmailTemplateType | null>(null);
 
   if (isLoading) return <LoadingState label="Cargando plantillas..." />;
 
@@ -83,17 +85,23 @@ export function EmailTemplatesView() {
           ) : (
             <div className="mt-2">
               <p className="text-sm text-muted-foreground">{template.subject}</p>
-              <Button
-                variant="ghost"
-                className="mt-2 h-auto px-0"
-                onClick={() => setEditing({ type: template.type, subject: template.subject, body: template.body })}
-              >
-                Editar
-              </Button>
+              <div className="mt-2 flex gap-3">
+                <Button
+                  variant="ghost"
+                  className="h-auto px-0"
+                  onClick={() => setEditing({ type: template.type, subject: template.subject, body: template.body })}
+                >
+                  Editar
+                </Button>
+                <Button variant="ghost" className="h-auto px-0" onClick={() => setTesting(template.type)}>
+                  Probar
+                </Button>
+              </div>
             </div>
           )}
         </Card>
       ))}
+      {testing && <TestEmailDialog type={testing} onClose={() => setTesting(null)} />}
     </div>
   );
 }

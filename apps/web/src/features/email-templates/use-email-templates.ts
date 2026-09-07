@@ -38,3 +38,24 @@ export function useUpdateEmailTemplate() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['email-templates'] }),
   });
 }
+
+export interface SendTestEmailInput {
+  type: EmailTemplateType;
+  to: string;
+}
+
+async function sendTestEmail(input: SendTestEmailInput): Promise<void> {
+  const res = await fetch(`/api/email-templates/${input.type}/test`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ to: input.to }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.message ?? 'No se pudo enviar el correo de prueba');
+  }
+}
+
+export function useSendTestEmail() {
+  return useMutation({ mutationFn: sendTestEmail });
+}
