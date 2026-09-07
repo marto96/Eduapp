@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { LoadingState } from '@/components/ui/loading-state';
+import { TemplateBodyEditor } from './template-body-editor';
 import type { EmailTemplateType } from '@eduapp/shared-types';
 
 const LABELS: Record<EmailTemplateType, string> = {
@@ -55,17 +56,13 @@ export function EmailTemplatesView() {
                 />
               </div>
               <div className="space-y-1">
-                <Label htmlFor={`${template.type}-body`}>Cuerpo</Label>
-                <textarea
-                  id={`${template.type}-body`}
-                  className="min-h-32 w-full rounded border border-border bg-surface p-2 text-sm"
+                <Label>Cuerpo</Label>
+                <TemplateBodyEditor
                   value={editing.body}
-                  onChange={(e) => setEditing({ ...editing, body: e.target.value })}
+                  onChange={(html) => setEditing({ ...editing, body: html })}
+                  placeholders={PLACEHOLDERS[template.type]}
                 />
               </div>
-              <p className="text-xs text-muted-foreground">
-                Placeholders disponibles: {PLACEHOLDERS[template.type].join(', ')}
-              </p>
               <div className="flex gap-2">
                 <Button
                   disabled={updateTemplate.isPending}
