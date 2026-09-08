@@ -1,8 +1,11 @@
 'use client';
 
-import { useSubjectPeriodDetail } from '../use-gradebook';
+import { FormEvent, useEffect, useState } from 'react';
+import { useSubjectPeriodDetail, useRecordGradeRecovery } from '../use-gradebook';
 import { Dialog } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { LoadingState } from '@/components/ui/loading-state';
 import type { GradeCategory } from '@eduapp/shared-types';
 
@@ -27,6 +30,21 @@ export function SubjectPeriodDetailModal({
 }) {
   const open = enrollmentId !== null && subjectId !== null && periodId !== null;
   const { data: detail, isLoading, error } = useSubjectPeriodDetail(enrollmentId, subjectId, periodId);
+  const recordRecovery = useRecordGradeRecovery();
+  const [recoveryScore, setRecoveryScore] = useState('');
+
+  useEffect(() => {
+    setRecoveryScore('');
+  }, [enrollmentId, subjectId, periodId]);
+
+  function handleRecoverySubmit(event: FormEvent) {
+    event.preventDefault();
+    if (!enrollmentId || !subjectId || !periodId || recoveryScore.trim() === '') return;
+    recordRecovery.mutate(
+      { enrollmentId, subjectId, periodId, score: Number(recoveryScore) },
+      { onSuccess: () => setRecoveryScore('') },
+    );
+  }
 
   return (
     <Dialog
@@ -74,6 +92,38 @@ export function SubjectPeriodDetailModal({
               )}
             </div>
           ))}
+
+          {detail.isRecovered ? (
+            <p className="rounded border border-border bg-muted/40 p-3 text-sm">
+              <span className="font-medium">Recuperada</span> — nota registrada:{' '}
+              {detail.grade === null ? '-' : detail.grade.toFixed(2)}
+            </p>
+          ) : (
+            detail.grade !== null &&
+            detail.grade < detail.minPassingGrade && (
+              <form onSubmit={handleRecoverySubmit} className="space-y-2 rounded border border-border p-3">
+                <Label htmlFor="recovery-score">Registrar recuperación</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="recovery-score"
+                    type="number"
+                    min={0}
+                    max={5}
+                    step="0.1"
+                    required
+                    value={recoveryScore}
+                    onChange={(e) => setRecoveryScore(e.target.value)}
+                  />
+                  <Button type="submit" disabled={recordRecovery.isPending}>
+                    {recordRecovery.isPending ? 'Guardando...' : 'Guardar'}
+                  </Button>
+                </div>
+                {recordRecovery.isError && (
+                  <p className="text-sm text-destructive">{recordRecovery.error.message}</p>
+                )}
+              </form>
+            )
+          )}
 
           <Button type="button" onClick={onAddGrade} className="w-full">
             Agregar nota

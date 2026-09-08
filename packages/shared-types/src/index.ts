@@ -550,7 +550,17 @@ export interface SubjectPeriodDetailResponse {
   periodName: string;
   grade: number | null;
   isPartial: boolean;
+  isRecovered: boolean;
+  minPassingGrade: number;
   categories: GradebookCategoryBreakdown[];
+}
+
+export interface GradeRecovery {
+  id: string;
+  enrollmentId: string;
+  subjectId: string;
+  periodId: string;
+  score: number;
 }
 
 export interface CreateGradeInput {

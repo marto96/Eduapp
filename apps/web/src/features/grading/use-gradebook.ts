@@ -7,6 +7,7 @@ import type {
   SubjectPeriodDetailResponse,
   CreateGradeInput,
   GradeScore,
+  GradeRecovery,
   PaginatedResult,
 } from '@eduapp/shared-types';
 import { toQueryString } from '@/lib/utils';
@@ -97,6 +98,40 @@ export function useCreateGrade() {
       queryClient.invalidateQueries({ queryKey: ['gradebook', variables.enrollmentId] });
       queryClient.invalidateQueries({ queryKey: ['gradebook-subject-period', variables.enrollmentId] });
       queryClient.invalidateQueries({ queryKey: ['evaluations'] });
+    },
+  });
+}
+
+export interface RecordGradeRecoveryMutationInput {
+  enrollmentId: string;
+  subjectId: string;
+  periodId: string;
+  score: number;
+}
+
+async function recordGradeRecovery({
+  enrollmentId,
+  ...input
+}: RecordGradeRecoveryMutationInput): Promise<GradeRecovery> {
+  const res = await fetch(`/api/grading/gradebook/${enrollmentId}/recovery`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.message ?? 'No se pudo registrar la recuperación');
+  }
+  return res.json();
+}
+
+export function useRecordGradeRecovery() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: recordGradeRecovery,
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['gradebook', variables.enrollmentId] });
+      queryClient.invalidateQueries({ queryKey: ['gradebook-subject-period', variables.enrollmentId] });
     },
   });
 }
