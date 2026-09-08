@@ -9,6 +9,10 @@ import { GetTenantUseCase } from './application/use-cases/get-tenant.use-case';
 import { UpdateTenantUseCase } from './application/use-cases/update-tenant.use-case';
 import { UpdateTenantLogoUseCase } from './application/use-cases/update-tenant-logo.use-case';
 import { AuthenticatePlatformAdminUseCase } from './application/use-cases/authenticate-platform-admin.use-case';
+import { SetupPlatformAdminTotpUseCase } from './application/use-cases/setup-platform-admin-totp.use-case';
+import { ConfirmPlatformAdminTotpUseCase } from './application/use-cases/confirm-platform-admin-totp.use-case';
+import { VerifyPlatformAdminTotpUseCase } from './application/use-cases/verify-platform-admin-totp.use-case';
+import { TotpService } from './infrastructure/totp.service';
 import { TenantRepositoryPort } from './application/ports/tenant.repository.port';
 import { SchemaProvisionerPort } from './application/ports/schema-provisioner.port';
 import { PlatformAdminRepositoryPort } from './application/ports/platform-admin.repository.port';
@@ -31,6 +35,10 @@ import { BcryptPasswordHasher } from '../../core/security/bcrypt-password-hasher
     UpdateTenantUseCase,
     UpdateTenantLogoUseCase,
     AuthenticatePlatformAdminUseCase,
+    SetupPlatformAdminTotpUseCase,
+    ConfirmPlatformAdminTotpUseCase,
+    VerifyPlatformAdminTotpUseCase,
+    TotpService,
     { provide: TenantRepositoryPort, useClass: TypeOrmTenantRepository },
     { provide: SchemaProvisionerPort, useClass: SchemaProvisionerAdapter },
     { provide: PlatformAdminRepositoryPort, useClass: TypeOrmPlatformAdminRepository },

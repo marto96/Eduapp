@@ -17,6 +17,15 @@ export class PlatformAdminOrmEntity {
   @Column({ default: 'active' })
   status: 'active' | 'suspended';
 
+  @Column({ name: 'totp_secret', type: 'text', nullable: true })
+  totpSecret: string | null;
+
+  @Column({ name: 'totp_enabled', default: false })
+  totpEnabled: boolean;
+
+  @Column({ name: 'recovery_code_hashes', type: 'text', array: true, nullable: true })
+  recoveryCodeHashes: string[] | null;
+
   @Column({ name: 'created_at', type: 'timestamptz', default: () => 'now()' })
   createdAt: Date;
 }

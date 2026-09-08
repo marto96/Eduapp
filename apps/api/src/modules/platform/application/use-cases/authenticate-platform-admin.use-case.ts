@@ -3,7 +3,9 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { PlatformAdminRepositoryPort } from '../ports/platform-admin.repository.port';
 import { PasswordHasherPort } from '../../../../core/security/password-hasher.port';
-import { PlatformJwtPayload } from '../../../../core/auth/platform-jwt-payload.interface';
+import { PlatformJwtPayload, PlatformPendingTwoFactorJwtPayload } from '../../../../core/auth/platform-jwt-payload.interface';
+
+const PENDING_TWO_FACTOR_EXPIRES_IN = '5m';
 
 export interface AuthenticatePlatformAdminInput {
   email: string;
@@ -11,7 +13,10 @@ export interface AuthenticatePlatformAdminInput {
 }
 
 export interface AuthenticatePlatformAdminOutput {
-  accessToken: string;
+  /** Presente cuando el superadmin no tiene 2FA habilitado — login completo. */
+  accessToken?: string;
+  /** Presente cuando sí tiene 2FA habilitado — falta `POST /platform/auth/login/verify-2fa`. */
+  pendingTwoFactorToken?: string;
 }
 
 @Injectable()
@@ -34,9 +39,23 @@ export class AuthenticatePlatformAdminUseCase {
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
+    const secret = this.config.get<string>('PLATFORM_JWT_SECRET');
+
+    if (admin.totpEnabled) {
+      const pendingPayload: PlatformPendingTwoFactorJwtPayload = {
+        sub: admin.id,
+        scope: 'platform-2fa-pending',
+      };
+      const pendingTwoFactorToken = this.jwt.sign(pendingPayload, {
+        secret,
+        expiresIn: PENDING_TWO_FACTOR_EXPIRES_IN,
+      });
+      return { pendingTwoFactorToken };
+    }
+
     const payload: PlatformJwtPayload = { sub: admin.id, email: admin.email, scope: 'platform' };
     const accessToken = this.jwt.sign(payload, {
-      secret: this.config.get<string>('PLATFORM_JWT_SECRET'),
+      secret,
       expiresIn: this.config.get<string>('PLATFORM_JWT_EXPIRES_IN'),
     });
 

@@ -16,7 +16,37 @@ export class TypeOrmPlatformAdminRepository extends PlatformAdminRepositoryPort 
 
   async findByEmail(email: string): Promise<PlatformAdmin | null> {
     const row = await this.repo.findOne({ where: { email } });
-    if (!row) return null;
-    return new PlatformAdmin(row.id, row.email, row.passwordHash, row.fullName, row.status);
+    return row ? this.toDomain(row) : null;
+  }
+
+  async findById(id: string): Promise<PlatformAdmin | null> {
+    const row = await this.repo.findOne({ where: { id } });
+    return row ? this.toDomain(row) : null;
+  }
+
+  async save(admin: PlatformAdmin): Promise<void> {
+    await this.repo.save({
+      id: admin.id,
+      email: admin.email,
+      passwordHash: admin.getPasswordHash(),
+      fullName: admin.fullName,
+      status: admin.status,
+      totpSecret: admin.getTotpSecret(),
+      totpEnabled: admin.totpEnabled,
+      recoveryCodeHashes: admin.getRecoveryCodeHashes(),
+    });
+  }
+
+  private toDomain(row: PlatformAdminOrmEntity): PlatformAdmin {
+    return new PlatformAdmin(
+      row.id,
+      row.email,
+      row.passwordHash,
+      row.fullName,
+      row.status,
+      row.totpSecret,
+      row.totpEnabled,
+      row.recoveryCodeHashes,
+    );
   }
 }

@@ -29,6 +29,7 @@ export async function platformApiFetch<T>(path: string, init?: RequestInit): Pro
 export interface PlatformAdmin {
   sub: string;
   email: string;
+  totpEnabled: boolean;
 }
 
 export function getCurrentPlatformAdmin(): Promise<PlatformAdmin | null> {
