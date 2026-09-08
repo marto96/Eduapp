@@ -28,9 +28,11 @@ agregar esa nota final — sin eso no hay dónde "colgar" la anotación.
   muestran ambas, solo la nota final con la anotación "(Recuperada)".
 - La nota de recuperación entra **tal cual** al cálculo del acumulado, sin
   tope ni ajuste.
-- El boletín en PDF pasa a mostrar la **nota final por materia y
-  periodo** (hoy ausente) además del detalle de evaluaciones que ya
-  tiene — necesario para que la recuperación se vea en algún lado.
+- El boletín en PDF pasa a mostrar **solo la nota final por materia y
+  periodo** (hoy ausente), agrupada por **área** (`Subject.area`, campo
+  ya existente) con el **promedio del área** también calculado — el
+  detalle de evaluaciones sueltas que hoy se lista desaparece del PDF
+  por completo (sigue disponible en la plataforma, en el gradebook).
 - Se registra desde el mismo lugar donde hoy se ve el detalle de una nota
   (`SubjectPeriodDetailModal`), con el mismo permiso que cargar notas.
 
@@ -146,7 +148,7 @@ Si `detail.isRecovered`, se muestra la anotación en vez del formulario:
 visualmente (ej. un badge o ícono junto al número, con `title="Nota
 recuperada"`) — mismo lugar donde hoy se marca `isPartial` con un punto.
 
-### 6. Boletín en PDF
+### 6. Boletín en PDF — solo nota final, agrupada por área
 
 `GenerateReportCardPdfUseCase` deja de armar sus propias filas planas por
 evaluación consultando los repositorios directo, y en su lugar **llama a
@@ -165,27 +167,73 @@ recuperación) en vez de duplicarlo. Esto requiere:
   una sección que no le corresponde recibe `ForbiddenException` en vez de
   generarlo — se documenta como corrección de un hueco existente, no como
   detalle menor.
+- **Simplificación de dependencias:** al delegar todo el cálculo a
+  `GetGradebookUseCase`, `GenerateReportCardPdfUseCase` deja de necesitar
+  `EvaluationRepositoryPort` y `GradeScoreRepositoryPort` inyectados
+  directo (ya no arma filas de evaluación) — se retiran del constructor.
+  `SubjectRepositoryPort`/`PeriodRepositoryPort` tampoco hacen falta ahí,
+  porque `GetGradebookUseCase` ya resuelve nombres de materia y periodo
+  internamente.
+- `GradebookSubjectRow` (la interfaz que devuelve `GetGradebookUseCase`)
+  suma un campo `subjectArea: string`, tomado de `Subject.area` (campo de
+  texto libre que ya existe en la entidad, sin migración nueva). El
+  gradebook en pantalla (`GradebookTable`) no cambia — sigue mostrando la
+  lista plana de materias tal cual hoy; el agrupamiento por área es
+  presentación exclusiva del PDF.
 
-El PDF, por materia y periodo, pasa a mostrar:
+**Contenido del PDF:** el detalle de evaluaciones sueltas (Actividad,
+Evaluación bimestral, Disciplina) **desaparece por completo** del
+boletín — deja de listarse incluso como respaldo. Por cada periodo, las
+materias se agrupan por área, y cada área muestra su propio promedio
+(media simple de las notas finales de las materias de esa área en ese
+periodo, **excluyendo** materias sin nota todavía — mismo criterio que
+`GradeCalculationService` ya usa para promediar categorías; si todas las
+materias del área están sin nota, el promedio del área es `null` → se
+muestra "-"). Una materia sin `area` asignada (dato legado) se agrupa
+bajo un bucket literal "Sin área", para que nunca desaparezca del
+boletín en silencio.
 
 ```
-Matemática — Primer periodo          Nota final: 3.2
-  Actividad          4/5
-  Actividad          3/5
-  Evaluación bimestral   2/5
+Primer periodo
+  Área de Ciencias                         Promedio área: 3.6
+    Matemática                                    3.8
+    Física                                        3.4 (Recuperada)
+  Área de Humanidades                      Promedio área: 4.1
+    Español                                       4.1
 ```
 
-y si el periodo fue recuperado:
+El generador (`ReportCardPdfGenerator`) cambia sus interfaces de entrada
+para reflejar esta forma — reemplaza `ReportCardScoreRow` (una fila por
+evaluación) por una jerarquía periodo → área → materia:
 
-```
-Matemática — Primer periodo          Nota final: 3.5 (Recuperada)
-  Actividad          4/5           ← detalle original, se mantiene visible
-  ...
+```ts
+export interface ReportCardSubjectRow {
+  subjectName: string;
+  grade: number | null;
+  isRecovered: boolean;
+}
+
+export interface ReportCardAreaGroup {
+  areaName: string;
+  subjects: ReportCardSubjectRow[];
+  areaAverage: number | null;
+}
+
+export interface ReportCardPeriodSection {
+  periodName: string;
+  areas: ReportCardAreaGroup[];
+}
+
+export interface ReportCardStudent {
+  studentName: string;
+  periods: ReportCardPeriodSection[];
+}
 ```
 
-El detalle de evaluaciones sueltas (lo que ya existía) se mantiene debajo
-de la nota final como información de respaldo — no se quita nada de lo que
-ya hay, se agrega la nota final que faltaba.
+`GenerateReportCardPdfUseCase` arma esta estructura a partir de la
+respuesta de `GetGradebookUseCase` (agrupando `subjects` por
+`subjectArea` para cada `periodId`), y el generador solo dibuja lo que
+recibe — sigue sin tocar reglas de negocio, igual que hoy.
 
 ## Casos límite
 
@@ -204,6 +252,11 @@ ya hay, se agrega la nota final que faltaba.
 - **Un colegio nunca configuró `minPassingGrade`:** `3.0` por defecto,
   igual que los pesos ya tienen sus defaults al crear la fila la primera
   vez.
+- **Una materia tiene `area` vacío o no configurado:** se agrupa bajo
+  "Sin área" en el boletín — nunca desaparece silenciosamente.
+- **Todas las materias de un área están sin nota en un periodo:** el
+  promedio del área es `null`, se muestra "-" (mismo criterio que una
+  materia individual sin nota).
 
 ## Testing
 
@@ -218,6 +271,10 @@ ya hay, se agrega la nota final que faltaba.
 - `GetSubjectPeriodDetailUseCase`: mismo reemplazo, más `minPassingGrade`
   expuesto correctamente.
 - `GenerateReportCardPdfUseCase`: ahora delega en `GetGradebookUseCase` —
-  test de que arma las filas del PDF a partir de esa respuesta (incluida
-  la anotación de recuperada), y que un docente sin acceso a la sección
+  test de que agrupa correctamente las materias por área dentro de cada
+  periodo (incluida la anotación de recuperada), que calcula el promedio
+  de área excluyendo materias sin nota, que una materia sin `area`
+  configurado cae en "Sin área", y que un docente sin acceso a la sección
   recibe `ForbiddenException`.
+- `ReportCardPdfGenerator`: test de que renderiza correctamente la
+  jerarquía periodo → área → materia con la nueva forma de entrada.
