@@ -10,6 +10,7 @@ import { PeriodRepositoryPort } from '../../../academic/application/ports/period
 import { ScheduleRepositoryPort } from '../../../schedule/application/ports/schedule.repository.port';
 import { EvaluationRepositoryPort } from '../ports/evaluation.repository.port';
 import { GradeScoreRepositoryPort } from '../ports/grade-score.repository.port';
+import { GradeRecoveryRepositoryPort } from '../ports/grade-recovery.repository.port';
 import { AttendanceRecordRepositoryPort } from '../../../attendance/application/ports/attendance-record.repository.port';
 import { GradeWeightConfigService } from '../services/grade-weight-config.service';
 import { GradeWeightConfigRepositoryPort } from '../ports/grade-weight-config.repository.port';
@@ -21,6 +22,7 @@ import { Period } from '../../../academic/domain/entities/period.entity';
 import { Schedule } from '../../../schedule/domain/entities/schedule.entity';
 import { Evaluation } from '../../domain/entities/evaluation.entity';
 import { GradeScore } from '../../domain/entities/grade-score.entity';
+import { GradeRecovery } from '../../domain/entities/grade-recovery.entity';
 import { AttendanceRecord } from '../../../attendance/domain/entities/attendance-record.entity';
 import { GradeWeightConfig } from '../../domain/entities/grade-weight-config.entity';
 import { JwtPayload } from '../../../../core/auth/jwt-payload.interface';
@@ -35,6 +37,7 @@ describe('GetGradebookUseCase', () => {
   const schedules = { findAll: jest.fn(), findById: jest.fn(), save: jest.fn() } as unknown as jest.Mocked<ScheduleRepositoryPort>;
   const evaluations = { findAll: jest.fn(), findById: jest.fn(), save: jest.fn() } as unknown as jest.Mocked<EvaluationRepositoryPort>;
   const scores = { findAll: jest.fn(), upsertMany: jest.fn() } as unknown as jest.Mocked<GradeScoreRepositoryPort>;
+  const recoveries = { findByKey: jest.fn(), findAll: jest.fn(), upsert: jest.fn() } as unknown as jest.Mocked<GradeRecoveryRepositoryPort>;
   const attendance = { findAll: jest.fn(), upsertMany: jest.fn() } as unknown as jest.Mocked<AttendanceRecordRepositoryPort>;
   const weightConfigRepo = { findFirst: jest.fn(), save: jest.fn() } as unknown as jest.Mocked<GradeWeightConfigRepositoryPort>;
   const weightConfigService = new GradeWeightConfigService(weightConfigRepo);
@@ -50,6 +53,7 @@ describe('GetGradebookUseCase', () => {
     schedules,
     evaluations,
     scores,
+    recoveries,
     attendance,
     weightConfigService,
     enrollmentAccess,
@@ -79,10 +83,11 @@ describe('GetGradebookUseCase', () => {
       new Evaluation('eval-1', 'subject-1', 'section-1', 'year-1', 'p1', 'actividad', 5, 'Taller 1'),
     ]);
     scores.findAll.mockResolvedValue([new GradeScore('score-1', 'eval-1', 'enr-1', 4)]);
+    recoveries.findAll.mockResolvedValue([]);
     attendance.findAll.mockResolvedValue([
       new AttendanceRecord('att-1', 'enr-1', 'sched-1', '2026-02-10', 'ausente'),
     ]);
-    weightConfigRepo.findFirst.mockResolvedValue(new GradeWeightConfig('cfg-1', 0.65, 0.25, 0.1));
+    weightConfigRepo.findFirst.mockResolvedValue(new GradeWeightConfig('cfg-1', 0.65, 0.25, 0.1, 3.0));
   });
 
   it('rechaza si la matrícula no existe', async () => {
@@ -97,7 +102,7 @@ describe('GetGradebookUseCase', () => {
     await expect(useCase.execute('enr-1', admin)).rejects.toThrow(ForbiddenException);
   });
 
-  it('arma el boletín con una materia, la nota del periodo con datos y "-" en el que no tiene evaluaciones', async () => {
+  it('arma el boletín con una materia, su área, la nota del periodo con datos y "-" en el que no tiene evaluaciones', async () => {
     const result = await useCase.execute('enr-1', admin);
 
     expect(result.studentName).toBe('Juan Pérez');
@@ -106,15 +111,38 @@ describe('GetGradebookUseCase', () => {
 
     const biologia = result.subjects[0];
     expect(biologia.subjectName).toBe('Biología');
-    expect(biologia.periods[0].grade).toBeCloseTo(4, 5); // única categoría con datos -> redistribuida
+    expect(biologia.subjectArea).toBe('Ciencias');
+    expect(biologia.periods[0].grade).toBeCloseTo(4, 5);
     expect(biologia.periods[0].isPartial).toBe(true);
+    expect(biologia.periods[0].isRecovered).toBe(false);
     expect(biologia.periods[0].absences).toBe(1);
-    expect(biologia.periods[1].grade).toBeNull(); // sin evaluaciones en p2
-    expect(biologia.periods[1].absences).toBe(0);
-    // Acumulada: (4*0.25 + 0*0.25) / (0.25+0.25) = 1 / 0.5 = 2 — se normaliza
-    // por la suma de los pesos de los periodos configurados (año todavía
-    // sin los 4 periodos completos), no por 1 (fix #7).
+    expect(biologia.periods[1].grade).toBeNull();
+    expect(biologia.periods[1].isRecovered).toBe(false);
     expect(biologia.accumulatedGrade).toBeCloseTo(2, 5);
     expect(biologia.accumulatedAbsences).toBe(1);
+  });
+
+  it('reemplaza la nota del periodo cuando hay una recuperación registrada', async () => {
+    recoveries.findAll.mockResolvedValue([new GradeRecovery('rec-1', 'enr-1', 'subject-1', 'p1', 3.5)]);
+
+    const result = await useCase.execute('enr-1', admin);
+
+    const biologia = result.subjects[0];
+    expect(biologia.periods[0].grade).toBe(3.5);
+    expect(biologia.periods[0].isPartial).toBe(false);
+    expect(biologia.periods[0].isRecovered).toBe(true);
+    // Acumulada: (3.5*0.25 + 0*0.25) / 0.5 = 1.75
+    expect(biologia.accumulatedGrade).toBeCloseTo(1.75, 5);
+  });
+
+  it('una recuperación de un periodo sin nota original no afecta otros periodos', async () => {
+    recoveries.findAll.mockResolvedValue([new GradeRecovery('rec-1', 'enr-1', 'subject-1', 'p2', 3.0)]);
+
+    const result = await useCase.execute('enr-1', admin);
+
+    const biologia = result.subjects[0];
+    expect(biologia.periods[0].isRecovered).toBe(false);
+    expect(biologia.periods[1].grade).toBe(3.0);
+    expect(biologia.periods[1].isRecovered).toBe(true);
   });
 });

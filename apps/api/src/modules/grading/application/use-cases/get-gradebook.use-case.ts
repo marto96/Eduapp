@@ -9,6 +9,7 @@ import { PeriodRepositoryPort } from '../../../academic/application/ports/period
 import { ScheduleRepositoryPort } from '../../../schedule/application/ports/schedule.repository.port';
 import { EvaluationRepositoryPort } from '../ports/evaluation.repository.port';
 import { GradeScoreRepositoryPort } from '../ports/grade-score.repository.port';
+import { GradeRecoveryRepositoryPort } from '../ports/grade-recovery.repository.port';
 import { AttendanceRecordRepositoryPort } from '../../../attendance/application/ports/attendance-record.repository.port';
 import { GradeWeightConfigService } from '../services/grade-weight-config.service';
 import { GradeCalculationService, EvaluationItem } from '../../domain/services/grade-calculation.service';
@@ -25,12 +26,14 @@ export interface GradebookPeriodCell {
   periodId: string;
   grade: number | null;
   isPartial: boolean;
+  isRecovered: boolean;
   absences: number;
 }
 
 export interface GradebookSubjectRow {
   subjectId: string;
   subjectName: string;
+  subjectArea: string;
   periods: GradebookPeriodCell[];
   accumulatedGrade: number;
   accumulatedAbsences: number;
@@ -57,6 +60,7 @@ export class GetGradebookUseCase {
     @Inject(ScheduleRepositoryPort) private readonly schedules: ScheduleRepositoryPort,
     @Inject(EvaluationRepositoryPort) private readonly evaluations: EvaluationRepositoryPort,
     @Inject(GradeScoreRepositoryPort) private readonly scores: GradeScoreRepositoryPort,
+    @Inject(GradeRecoveryRepositoryPort) private readonly recoveries: GradeRecoveryRepositoryPort,
     @Inject(AttendanceRecordRepositoryPort) private readonly attendance: AttendanceRecordRepositoryPort,
     private readonly weightConfigService: GradeWeightConfigService,
     private readonly enrollmentAccess: EnrollmentAccessService,
@@ -73,25 +77,41 @@ export class GetGradebookUseCase {
       throw new ForbiddenException('No tenés acceso al boletín de este estudiante');
     }
 
-    const [student, section, academicYear, periodsForYear, schedulesForSection, allSubjects, evaluationsForSection, scoresForEnrollment, attendanceForEnrollment, weights] =
-      await Promise.all([
-        this.users.findById(enrollment.studentId),
-        this.sections.findById(enrollment.sectionId),
-        this.academicYears.findById(enrollment.academicYearId),
-        this.periods.findAll({ academicYearId: enrollment.academicYearId }),
-        this.schedules.findAll({ sectionId: enrollment.sectionId, academicYearId: enrollment.academicYearId }),
-        this.subjects.findAll(),
-        this.evaluations.findAll({ sectionId: enrollment.sectionId, academicYearId: enrollment.academicYearId }),
-        this.scores.findAll({ enrollmentId }),
-        this.attendance.findAll({ enrollmentId }),
-        this.weightConfigService.getOrCreateDefault(),
-      ]);
+    const [
+      student,
+      section,
+      academicYear,
+      periodsForYear,
+      schedulesForSection,
+      allSubjects,
+      evaluationsForSection,
+      scoresForEnrollment,
+      recoveriesForEnrollment,
+      attendanceForEnrollment,
+      weights,
+    ] = await Promise.all([
+      this.users.findById(enrollment.studentId),
+      this.sections.findById(enrollment.sectionId),
+      this.academicYears.findById(enrollment.academicYearId),
+      this.periods.findAll({ academicYearId: enrollment.academicYearId }),
+      this.schedules.findAll({ sectionId: enrollment.sectionId, academicYearId: enrollment.academicYearId }),
+      this.subjects.findAll(),
+      this.evaluations.findAll({ sectionId: enrollment.sectionId, academicYearId: enrollment.academicYearId }),
+      this.scores.findAll({ enrollmentId }),
+      this.recoveries.findAll({ enrollmentId }),
+      this.attendance.findAll({ enrollmentId }),
+      this.weightConfigService.getOrCreateDefault(),
+    ]);
 
     const sortedPeriods = [...periodsForYear].sort((a, b) => a.order - b.order);
     const scheduleSubjectMap = new Map(schedulesForSection.map((s) => [s.id, s.subjectId]));
     const subjectIds = [...new Set(schedulesForSection.map((s) => s.subjectId))];
     const subjectNameById = new Map(allSubjects.map((s) => [s.id, s.name]));
+    const subjectAreaById = new Map(allSubjects.map((s) => [s.id, s.area]));
     const scoreByEvaluationId = new Map(scoresForEnrollment.map((s) => [s.evaluationId, s.score]));
+    const recoveryByKey = new Map(
+      recoveriesForEnrollment.map((r) => [`${r.subjectId}:${r.periodId}`, r]),
+    );
 
     const absenceRecords = attendanceForEnrollment.filter((r) => r.status === 'ausente');
     const absencesBySubjectPeriod = GradeCalculationService.countAbsencesBySubjectAndPeriod(
@@ -116,7 +136,12 @@ export class GetGradebookUseCase {
             }));
           const { grade, isPartial } = GradeCalculationService.computeSubjectPeriodGrade(items, weights);
           const absences = absencesBySubjectPeriod.get(subjectId)?.get(period.id) ?? 0;
-          return { periodId: period.id, grade, isPartial, absences };
+
+          const recovery = recoveryByKey.get(`${subjectId}:${period.id}`);
+          if (recovery) {
+            return { periodId: period.id, grade: recovery.score, isPartial: false, isRecovered: true, absences };
+          }
+          return { periodId: period.id, grade, isPartial, isRecovered: false, absences };
         });
 
         const accumulatedGrade = GradeCalculationService.computeAccumulatedGrade(
@@ -129,6 +154,7 @@ export class GetGradebookUseCase {
         return {
           subjectId,
           subjectName: subjectNameById.get(subjectId) ?? subjectId,
+          subjectArea: subjectAreaById.get(subjectId) ?? '',
           periods: periodCells,
           accumulatedGrade,
           accumulatedAbsences,
