@@ -1,6 +1,8 @@
 import { Controller, Get, Query, Res } from '@nestjs/common';
 import type { Response } from 'express';
 import { CheckPolicies } from '../../../../core/auth/casl/policies.decorator';
+import { CurrentUser } from '../../../../core/auth/current-user.decorator';
+import { JwtPayload } from '../../../../core/auth/jwt-payload.interface';
 import { GetEnrollmentReportUseCase } from '../../application/use-cases/get-enrollment-report.use-case';
 import { GetAttendanceReportUseCase } from '../../application/use-cases/get-attendance-report.use-case';
 import { GetFinanceReportUseCase } from '../../application/use-cases/get-finance-report.use-case';
@@ -42,12 +44,19 @@ export class ReportsController {
   // y calificaciones, no el de reportes institucionales.
   @Get('grading/report-card.pdf')
   @CheckPolicies((ability) => ability.can('manage', 'Grading'))
-  async reportCard(@Query() query: ReportCardQueryDto, @Res() res: Response) {
-    const buffer = await this.generateReportCardPdf.execute({
-      sectionId: query.sectionId,
-      academicYearId: query.academicYearId,
-      studentIds: query.studentId,
-    });
+  async reportCard(
+    @Query() query: ReportCardQueryDto,
+    @CurrentUser() user: JwtPayload,
+    @Res() res: Response,
+  ) {
+    const buffer = await this.generateReportCardPdf.execute(
+      {
+        sectionId: query.sectionId,
+        academicYearId: query.academicYearId,
+        studentIds: query.studentId,
+      },
+      user,
+    );
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', 'inline; filename="boletin.pdf"');
     res.send(buffer);

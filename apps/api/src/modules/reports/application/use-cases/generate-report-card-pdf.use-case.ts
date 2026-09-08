@@ -1,16 +1,18 @@
+import { existsSync } from 'node:fs';
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { EnrollmentRepositoryPort } from '../../../enrollment/application/ports/enrollment.repository.port';
-import { EvaluationRepositoryPort } from '../../../grading/application/ports/evaluation.repository.port';
-import { GradeScoreRepositoryPort } from '../../../grading/application/ports/grade-score.repository.port';
-import { SubjectRepositoryPort } from '../../../academic/application/ports/subject.repository.port';
-import { SectionRepositoryPort } from '../../../academic/application/ports/section.repository.port';
-import { AcademicYearRepositoryPort } from '../../../academic/application/ports/academic-year.repository.port';
-import { PeriodRepositoryPort } from '../../../academic/application/ports/period.repository.port';
-import { UserRepositoryPort } from '../../../identity/application/ports/user.repository.port';
-import { GradeCategory } from '../../../grading/domain/entities/grade-weight-config.entity';
+import { GetGradebookUseCase, GradebookResponse, GradebookSubjectRow } from '../../../grading/application/use-cases/get-gradebook.use-case';
 import { TenantRegistryService } from '../../../../core/tenant/tenant-registry.service';
 import { getCurrentTenant } from '../../../../core/tenant/tenant-context';
-import { ReportCardPdfGenerator, ReportCardStudent } from '../../infrastructure/pdf/report-card-pdf-generator';
+import {
+  ReportCardAreaGroup,
+  ReportCardPdfGenerator,
+  ReportCardPeriodColumn,
+  ReportCardStudent,
+  ReportCardSubjectRow,
+} from '../../infrastructure/pdf/report-card-pdf-generator';
+import { buildLogoDiskPath } from '../services/resolve-logo-path';
+import { JwtPayload } from '../../../../core/auth/jwt-payload.interface';
 
 export interface GenerateReportCardPdfInput {
   sectionId: string;
@@ -18,33 +20,30 @@ export interface GenerateReportCardPdfInput {
   studentIds?: string[];
 }
 
-const CATEGORY_LABELS: Record<GradeCategory, string> = {
-  actividad: 'Actividad',
-  evaluacion_bimestral: 'Evaluación bimestral',
-  disciplina: 'Disciplina',
-};
+const SIN_AREA = 'Sin área';
 
 /**
  * A diferencia de los documentos emitidos (registro histórico, PDF
  * persistido), el boletín se recalcula al vuelo con las notas actuales y
  * no se guarda en ningún lado — se genera y se devuelve el Buffer directo.
+ *
+ * Delega todo el cálculo de notas en `GetGradebookUseCase` (el mismo que
+ * usan el gradebook del docente y Calificaciones del estudiante) en vez de
+ * reimplementarlo — así la recuperación de materias, el acumulado y el
+ * chequeo de acceso por matrícula nunca pueden desalinearse entre
+ * pantallas. Efecto secundario intencional: un docente sin acceso a la
+ * sección ahora recibe `ForbiddenException` acá también.
  */
 @Injectable()
 export class GenerateReportCardPdfUseCase {
   constructor(
     @Inject(EnrollmentRepositoryPort) private readonly enrollments: EnrollmentRepositoryPort,
-    @Inject(EvaluationRepositoryPort) private readonly evaluations: EvaluationRepositoryPort,
-    @Inject(GradeScoreRepositoryPort) private readonly scores: GradeScoreRepositoryPort,
-    @Inject(SubjectRepositoryPort) private readonly subjects: SubjectRepositoryPort,
-    @Inject(SectionRepositoryPort) private readonly sections: SectionRepositoryPort,
-    @Inject(AcademicYearRepositoryPort) private readonly academicYears: AcademicYearRepositoryPort,
-    @Inject(PeriodRepositoryPort) private readonly periods: PeriodRepositoryPort,
-    @Inject(UserRepositoryPort) private readonly users: UserRepositoryPort,
+    private readonly getGradebook: GetGradebookUseCase,
     private readonly pdfGenerator: ReportCardPdfGenerator,
     private readonly tenantRegistry: TenantRegistryService,
   ) {}
 
-  async execute(input: GenerateReportCardPdfInput): Promise<Buffer> {
+  async execute(input: GenerateReportCardPdfInput, currentUser: JwtPayload): Promise<Buffer> {
     const allEnrollments = await this.enrollments.findAll({
       sectionId: input.sectionId,
       academicYearId: input.academicYearId,
@@ -57,52 +56,85 @@ export class GenerateReportCardPdfUseCase {
       throw new NotFoundException('No hay estudiantes matriculados en esa sección/año');
     }
 
-    const sectionEvaluations = await this.evaluations.findAll({
-      sectionId: input.sectionId,
-      academicYearId: input.academicYearId,
-    });
-    const evaluationById = new Map(sectionEvaluations.map((e) => [e.id, e]));
-
-    const allSubjects = await this.subjects.findAll();
-    const subjectNameById = new Map(allSubjects.map((s) => [s.id, s.name]));
-
-    const allPeriods = await this.periods.findAll({ academicYearId: input.academicYearId });
-    const periodNameById = new Map(allPeriods.map((p) => [p.id, p.name]));
-
-    const allSections = await this.sections.findAll();
-    const section = allSections.find((s) => s.id === input.sectionId);
-    const academicYear = await this.academicYears.findById(input.academicYearId);
-
     const { subdomain } = getCurrentTenant();
     const tenant = await this.tenantRegistry.resolveByHost(subdomain);
 
-    const students: ReportCardStudent[] = [];
-    for (const enrollment of targetEnrollments) {
-      const student = await this.users.findById(enrollment.studentId);
-      const enrollmentScores = await this.scores.findAll({ enrollmentId: enrollment.id });
-
-      const rows = enrollmentScores
-        .map((score) => {
-          const evaluation = evaluationById.get(score.evaluationId);
-          if (!evaluation) return null;
-          return {
-            subjectName: subjectNameById.get(evaluation.subjectId) ?? evaluation.subjectId,
-            period: periodNameById.get(evaluation.periodId) ?? evaluation.periodId,
-            type: CATEGORY_LABELS[evaluation.category],
-            score: score.score,
-            maxScore: evaluation.maxScore,
-          };
-        })
-        .filter((row): row is NonNullable<typeof row> => row !== null);
-
-      students.push({ studentName: student?.fullName ?? enrollment.studentId, rows });
+    // El logo se guarda como URL pública (LocalDiskFileStorage) pero
+    // `doc.image()` necesita una ruta de disco real — se resuelve acá y no
+    // en el generador, para que este último siga siendo puro pdfkit sin
+    // tocar el filesystem. Fallback silencioso: sin logo subido, o archivo
+    // borrado a mano, el boletín igual se genera (solo texto).
+    let institutionLogoPath: string | null = null;
+    if (tenant?.logoUrl) {
+      const candidate = buildLogoDiskPath(tenant.logoUrl, process.env.UPLOADS_DIR ?? 'uploads');
+      if (existsSync(candidate)) institutionLogoPath = candidate;
     }
+
+    const gradebooks = await Promise.all(
+      targetEnrollments.map((enrollment) => this.getGradebook.execute(enrollment.id, currentUser)),
+    );
+
+    const students: ReportCardStudent[] = gradebooks.map((gradebook) => this.buildReportCardStudent(gradebook));
+    const first = gradebooks[0];
 
     return this.pdfGenerator.generate({
       institutionName: tenant?.name ?? 'Skolaria',
-      sectionName: section?.name ?? input.sectionId,
-      academicYearName: academicYear?.name ?? input.academicYearId,
+      institutionColor: tenant?.primaryColor ?? null,
+      institutionLogoPath,
+      sectionName: first.sectionName,
+      academicYearName: first.academicYearName,
       students,
     });
+  }
+
+  private buildReportCardStudent(gradebook: GradebookResponse): ReportCardStudent {
+    const periods: ReportCardPeriodColumn[] = gradebook.periods.map((p) => ({
+      periodId: p.id,
+      periodName: p.name,
+    }));
+
+    const subjectsByArea = new Map<string, GradebookSubjectRow[]>();
+    for (const subject of gradebook.subjects) {
+      const areaName = subject.subjectArea.trim() ? subject.subjectArea : SIN_AREA;
+      const list = subjectsByArea.get(areaName) ?? [];
+      list.push(subject);
+      subjectsByArea.set(areaName, list);
+    }
+
+    const areas: ReportCardAreaGroup[] = [...subjectsByArea.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([areaName, subjectRows]) => this.buildAreaGroup(areaName, subjectRows, periods));
+
+    return { studentName: gradebook.studentName, periods, areas };
+  }
+
+  private buildAreaGroup(
+    areaName: string,
+    subjectRows: GradebookSubjectRow[],
+    periods: ReportCardPeriodColumn[],
+  ): ReportCardAreaGroup {
+    const subjects: ReportCardSubjectRow[] = subjectRows.map((row) => {
+      const allPeriodsNull = row.periods.every((cell) => cell.grade === null);
+      return {
+        subjectName: row.subjectName,
+        gradeByPeriodId: Object.fromEntries(row.periods.map((cell) => [cell.periodId, cell.grade])),
+        recoveredPeriodIds: new Set(row.periods.filter((cell) => cell.isRecovered).map((cell) => cell.periodId)),
+        finalGrade: allPeriodsNull ? null : row.accumulatedGrade,
+      };
+    });
+
+    const averageByPeriodId: Record<string, number | null> = {};
+    for (const period of periods) {
+      const grades = subjects
+        .map((s) => s.gradeByPeriodId[period.periodId])
+        .filter((g): g is number => g !== null && g !== undefined);
+      averageByPeriodId[period.periodId] =
+        grades.length === 0 ? null : grades.reduce((sum, g) => sum + g, 0) / grades.length;
+    }
+
+    const finals = subjects.map((s) => s.finalGrade).filter((g): g is number => g !== null);
+    const finalAverage = finals.length === 0 ? null : finals.reduce((sum, g) => sum + g, 0) / finals.length;
+
+    return { areaName, subjects, averageByPeriodId, finalAverage };
   }
 }

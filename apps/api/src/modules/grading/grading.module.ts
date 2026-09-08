@@ -61,6 +61,6 @@ import { CommunicationModule } from '../communication/communication.module';
     { provide: GradebookRepositoryPort, useClass: TypeOrmGradebookRepository },
     { provide: GradeRecoveryRepositoryPort, useClass: TypeOrmGradeRecoveryRepository },
   ],
-  exports: [EvaluationRepositoryPort, GradeScoreRepositoryPort],
+  exports: [EvaluationRepositoryPort, GradeScoreRepositoryPort, GetGradebookUseCase],
 })
 export class GradingModule {}
