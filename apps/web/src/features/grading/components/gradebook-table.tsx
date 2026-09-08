@@ -70,6 +70,14 @@ export function GradebookTable({
                         <span title={cell.isPartial ? 'Nota parcial: todavía faltan categorías por cargar' : undefined}>
                           {formatGrade(cell.grade)}
                           {cell.isPartial && <span className="text-muted-foreground">·</span>}
+                          {cell.isRecovered && (
+                            <span
+                              className="ml-1 rounded bg-primary/10 px-1 text-[10px] font-semibold text-primary"
+                              title="Nota recuperada"
+                            >
+                              R
+                            </span>
+                          )}
                         </span>
                       ) : cell.grade === null ? (
                         <button
@@ -88,6 +96,14 @@ export function GradebookTable({
                         >
                           {formatGrade(cell.grade)}
                           {cell.isPartial && <span className="text-muted-foreground">·</span>}
+                          {cell.isRecovered && (
+                            <span
+                              className="ml-1 rounded bg-primary/10 px-1 text-[10px] font-semibold text-primary"
+                              title="Nota recuperada"
+                            >
+                              R
+                            </span>
+                          )}
                         </button>
                       )}
                     </td>

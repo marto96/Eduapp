@@ -505,12 +505,14 @@ export interface GradebookPeriodCell {
   periodId: string;
   grade: number | null;
   isPartial: boolean;
+  isRecovered: boolean;
   absences: number;
 }
 
 export interface GradebookSubjectRow {
   subjectId: string;
   subjectName: string;
+  subjectArea: string;
   periods: GradebookPeriodCell[];
   accumulatedGrade: number;
   accumulatedAbsences: number;
