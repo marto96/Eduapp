@@ -6,9 +6,11 @@ import { ListGradebookStudentsUseCase } from '../../application/use-cases/list-g
 import { GetGradebookUseCase } from '../../application/use-cases/get-gradebook.use-case';
 import { GetSubjectPeriodDetailUseCase } from '../../application/use-cases/get-subject-period-detail.use-case';
 import { CreateGradeUseCase } from '../../application/use-cases/create-grade.use-case';
+import { RecordGradeRecoveryUseCase } from '../../application/use-cases/record-grade-recovery.use-case';
 import { ListGradebookStudentsQueryDto } from '../dtos/list-gradebook-students-query.dto';
 import { GetSubjectPeriodDetailQueryDto } from '../dtos/get-subject-period-detail-query.dto';
 import { CreateGradeDto } from '../dtos/create-grade.dto';
+import { RecordGradeRecoveryDto } from '../dtos/record-grade-recovery.dto';
 
 @Controller('grading/gradebook')
 export class GradebookController {
@@ -17,6 +19,7 @@ export class GradebookController {
     private readonly getGradebook: GetGradebookUseCase,
     private readonly getSubjectPeriodDetail: GetSubjectPeriodDetailUseCase,
     private readonly createGrade: CreateGradeUseCase,
+    private readonly recordGradeRecovery: RecordGradeRecoveryUseCase,
   ) {}
 
   @Get('students')
@@ -49,5 +52,18 @@ export class GradebookController {
     @CurrentUser() user: JwtPayload,
   ) {
     return this.createGrade.execute(enrollmentId, dto, user);
+  }
+
+  @Post(':enrollmentId/recovery')
+  @CheckPolicies((ability) => ability.can('create', 'Grading'))
+  async recordRecovery(
+    @Param('enrollmentId') enrollmentId: string,
+    @Body() dto: RecordGradeRecoveryDto,
+    @CurrentUser() user: JwtPayload,
+  ) {
+    return this.recordGradeRecovery.execute(
+      { enrollmentId, subjectId: dto.subjectId, periodId: dto.periodId, score: dto.score },
+      user,
+    );
   }
 }

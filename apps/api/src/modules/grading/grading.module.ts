@@ -13,6 +13,7 @@ import { ListGradebookStudentsUseCase } from './application/use-cases/list-grade
 import { GetGradebookUseCase } from './application/use-cases/get-gradebook.use-case';
 import { GetSubjectPeriodDetailUseCase } from './application/use-cases/get-subject-period-detail.use-case';
 import { CreateGradeUseCase } from './application/use-cases/create-grade.use-case';
+import { RecordGradeRecoveryUseCase } from './application/use-cases/record-grade-recovery.use-case';
 import { GradeWeightConfigService } from './application/services/grade-weight-config.service';
 import { NotifyNewGradeService } from './application/services/notify-new-grade.service';
 import { SectionDistributionController } from './interface/controllers/section-distribution.controller';
@@ -49,6 +50,7 @@ import { CommunicationModule } from '../communication/communication.module';
     GetGradebookUseCase,
     GetSubjectPeriodDetailUseCase,
     CreateGradeUseCase,
+    RecordGradeRecoveryUseCase,
     GradeWeightConfigService,
     NotifyNewGradeService,
     StudentYearAverageService,
