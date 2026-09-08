@@ -183,57 +183,89 @@ recuperación) en vez de duplicarlo. Esto requiere:
 
 **Contenido del PDF:** el detalle de evaluaciones sueltas (Actividad,
 Evaluación bimestral, Disciplina) **desaparece por completo** del
-boletín — deja de listarse incluso como respaldo. Por cada periodo, las
-materias se agrupan por área, y cada área muestra su propio promedio
-(media simple de las notas finales de las materias de esa área en ese
-periodo, **excluyendo** materias sin nota todavía — mismo criterio que
-`GradeCalculationService` ya usa para promediar categorías; si todas las
-materias del área están sin nota, el promedio del área es `null` → se
-muestra "-"). Una materia sin `area` asignada (dato legado) se agrupa
-bajo un bucket literal "Sin área", para que nunca desaparezca del
-boletín en silencio.
+boletín — deja de listarse incluso como respaldo. En vez de repetir un
+bloque completo por periodo, el boletín pasa a ser **una sola tabla por
+área**, con los **periodos como columnas** (una columna por cada periodo
+del año lectivo, en su `order`, más una columna final "Definitiva") y las
+**materias como filas** hacia abajo. Cada área agrega, debajo de sus
+materias, una fila de promedio por columna:
 
 ```
-Primer periodo
-  Área de Ciencias                         Promedio área: 3.6
-    Matemática                                    3.8
-    Física                                        3.4 (Recuperada)
-  Área de Humanidades                      Promedio área: 4.1
-    Español                                       4.1
+Área de Ciencias
+  Materia        P1     P2     P3     P4   Definitiva
+  Matemática     3.8    4.0    3.5    4.2      3.9
+  Física         3.4*   3.9    4.0    3.7      3.8
+  Promedio área  3.6    3.95   3.75   3.95      3.85
+
+Área de Humanidades
+  Materia        P1     P2     P3     P4   Definitiva
+  Español        4.1    4.0    4.3    4.2      4.15
+  Promedio área  4.1    4.0    4.3    4.2      4.15
+
+(* = recuperada)
 ```
+
+- Cada celda de periodo es la nota final de esa materia en ese periodo
+  (`GradebookPeriodCell.grade`, ya con el reemplazo de recuperación
+  aplicado — ver punto 4). Si `isRecovered` es `true` para esa celda, se
+  marca con `*` y se agrega la leyenda "(\* = recuperada)" al pie de la
+  tabla — no se repite la palabra completa en cada celda para no romper
+  el ancho de columna.
+- La columna "Definitiva" es `GradebookSubjectRow.accumulatedGrade` (ya
+  calculado hoy por `GetGradebookUseCase`, sin cambios).
+- El "Promedio área" por columna de periodo es la media simple de las
+  notas finales de las materias de esa área en ese periodo,
+  **excluyendo** materias sin nota todavía — mismo criterio que
+  `GradeCalculationService` ya usa para promediar categorías. El
+  "Promedio área" de la columna "Definitiva" es la media de los
+  `accumulatedGrade` de esas materias, con el mismo criterio de exclusión.
+  Si todas las materias del área están sin nota en una columna, el
+  promedio de esa columna es `null` → se muestra "-".
+- Una materia sin `area` asignada (dato legado) se agrupa bajo un bucket
+  literal "Sin área", para que nunca desaparezca del boletín en silencio.
+- El ancho de cada columna de periodo se calcula en función de
+  `periods.length` (mismo patrón que hoy usa anchos fijos para
+  asignatura/tipo/nota, pero repartiendo el ancho disponible entre la
+  cantidad real de periodos del año, en vez de un número fijo de columnas).
 
 El generador (`ReportCardPdfGenerator`) cambia sus interfaces de entrada
 para reflejar esta forma — reemplaza `ReportCardScoreRow` (una fila por
-evaluación) por una jerarquía periodo → área → materia:
+evaluación) por columnas de periodo compartidas y áreas con materias como
+filas:
 
 ```ts
+export interface ReportCardPeriodColumn {
+  periodId: string;
+  periodName: string;
+}
+
 export interface ReportCardSubjectRow {
   subjectName: string;
-  grade: number | null;
-  isRecovered: boolean;
+  gradeByPeriodId: Record<string, number | null>;
+  recoveredPeriodIds: Set<string>;
+  finalGrade: number | null;
 }
 
 export interface ReportCardAreaGroup {
   areaName: string;
   subjects: ReportCardSubjectRow[];
-  areaAverage: number | null;
-}
-
-export interface ReportCardPeriodSection {
-  periodName: string;
-  areas: ReportCardAreaGroup[];
+  averageByPeriodId: Record<string, number | null>;
+  finalAverage: number | null;
 }
 
 export interface ReportCardStudent {
   studentName: string;
-  periods: ReportCardPeriodSection[];
+  periods: ReportCardPeriodColumn[];
+  areas: ReportCardAreaGroup[];
 }
 ```
 
 `GenerateReportCardPdfUseCase` arma esta estructura a partir de la
-respuesta de `GetGradebookUseCase` (agrupando `subjects` por
-`subjectArea` para cada `periodId`), y el generador solo dibuja lo que
-recibe — sigue sin tocar reglas de negocio, igual que hoy.
+respuesta de `GetGradebookUseCase`: toma `periods` tal cual (ya viene
+ordenado por `order`), agrupa `subjects` por `subjectArea`, y por cada
+materia arma `gradeByPeriodId`/`recoveredPeriodIds` iterando sus
+`GradebookPeriodCell`. El generador solo dibuja lo que recibe — sigue sin
+tocar reglas de negocio, igual que hoy.
 
 ## Casos límite
 
@@ -257,6 +289,10 @@ recibe — sigue sin tocar reglas de negocio, igual que hoy.
 - **Todas las materias de un área están sin nota en un periodo:** el
   promedio del área es `null`, se muestra "-" (mismo criterio que una
   materia individual sin nota).
+- **El año lectivo tiene una cantidad distinta de periodos entre
+  secciones/colegios (ej. 4 bimestres vs. 3 trimestres):** la tabla no
+  asume una cantidad fija de columnas — usa `periods.length` tal cual
+  venga de `GetGradebookUseCase` para ese año lectivo.
 
 ## Testing
 
@@ -271,10 +307,12 @@ recibe — sigue sin tocar reglas de negocio, igual que hoy.
 - `GetSubjectPeriodDetailUseCase`: mismo reemplazo, más `minPassingGrade`
   expuesto correctamente.
 - `GenerateReportCardPdfUseCase`: ahora delega en `GetGradebookUseCase` —
-  test de que agrupa correctamente las materias por área dentro de cada
-  periodo (incluida la anotación de recuperada), que calcula el promedio
-  de área excluyendo materias sin nota, que una materia sin `area`
+  test de que agrupa correctamente las materias por área con una columna
+  por periodo (incluidas las marcas de recuperada por columna), que
+  calcula el promedio de área por columna excluyendo materias sin nota
+  (tanto por periodo como en "Definitiva"), que una materia sin `area`
   configurado cae en "Sin área", y que un docente sin acceso a la sección
   recibe `ForbiddenException`.
-- `ReportCardPdfGenerator`: test de que renderiza correctamente la
-  jerarquía periodo → área → materia con la nueva forma de entrada.
+- `ReportCardPdfGenerator`: test de que renderiza correctamente la tabla
+  área → materia con columnas dinámicas de periodo + "Definitiva", con la
+  nueva forma de entrada.
