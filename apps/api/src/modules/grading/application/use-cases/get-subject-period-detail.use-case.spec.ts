@@ -6,6 +6,7 @@ import { SubjectRepositoryPort } from '../../../academic/application/ports/subje
 import { PeriodRepositoryPort } from '../../../academic/application/ports/period.repository.port';
 import { EvaluationRepositoryPort } from '../ports/evaluation.repository.port';
 import { GradeScoreRepositoryPort } from '../ports/grade-score.repository.port';
+import { GradeRecoveryRepositoryPort } from '../ports/grade-recovery.repository.port';
 import { GradeWeightConfigService } from '../services/grade-weight-config.service';
 import { GradeWeightConfigRepositoryPort } from '../ports/grade-weight-config.repository.port';
 import { Enrollment } from '../../../enrollment/domain/entities/enrollment.entity';
@@ -13,6 +14,7 @@ import { Subject } from '../../../academic/domain/entities/subject.entity';
 import { Period } from '../../../academic/domain/entities/period.entity';
 import { Evaluation } from '../../domain/entities/evaluation.entity';
 import { GradeScore } from '../../domain/entities/grade-score.entity';
+import { GradeRecovery } from '../../domain/entities/grade-recovery.entity';
 import { GradeWeightConfig } from '../../domain/entities/grade-weight-config.entity';
 import { JwtPayload } from '../../../../core/auth/jwt-payload.interface';
 
@@ -22,6 +24,7 @@ describe('GetSubjectPeriodDetailUseCase', () => {
   const periods = { findAll: jest.fn(), findById: jest.fn(), save: jest.fn() } as unknown as jest.Mocked<PeriodRepositoryPort>;
   const evaluations = { findAll: jest.fn(), findById: jest.fn(), save: jest.fn() } as unknown as jest.Mocked<EvaluationRepositoryPort>;
   const scores = { findAll: jest.fn(), upsertMany: jest.fn() } as unknown as jest.Mocked<GradeScoreRepositoryPort>;
+  const recoveries = { findByKey: jest.fn(), findAll: jest.fn(), upsert: jest.fn() } as unknown as jest.Mocked<GradeRecoveryRepositoryPort>;
   const weightConfigRepo = { findFirst: jest.fn(), save: jest.fn() } as unknown as jest.Mocked<GradeWeightConfigRepositoryPort>;
   const weightConfigService = new GradeWeightConfigService(weightConfigRepo);
   const enrollmentAccess = { resolveAccessibleEnrollmentIds: jest.fn() } as unknown as EnrollmentAccessService;
@@ -32,6 +35,7 @@ describe('GetSubjectPeriodDetailUseCase', () => {
     periods,
     evaluations,
     scores,
+    recoveries,
     weightConfigService,
     enrollmentAccess,
   );
@@ -50,7 +54,8 @@ describe('GetSubjectPeriodDetailUseCase', () => {
       new Evaluation('eval-1', 'subject-1', 'section-1', 'year-1', 'p1', 'actividad', 5, 'Taller 1'),
     ]);
     scores.findAll.mockResolvedValue([new GradeScore('score-1', 'eval-1', 'enr-1', 4)]);
-    weightConfigRepo.findFirst.mockResolvedValue(new GradeWeightConfig('cfg-1', 0.65, 0.25, 0.1));
+    recoveries.findByKey.mockResolvedValue(null);
+    weightConfigRepo.findFirst.mockResolvedValue(new GradeWeightConfig('cfg-1', 0.65, 0.25, 0.1, 3.0));
   });
 
   it('rechaza si el periodo no existe o no es de ese año lectivo', async () => {
@@ -65,16 +70,28 @@ describe('GetSubjectPeriodDetailUseCase', () => {
     await expect(useCase.execute('enr-1', 'subject-x', 'p1', admin)).rejects.toThrow(NotFoundException);
   });
 
-  it('devuelve el desglose por categoría con la evaluación cargada', async () => {
+  it('devuelve el desglose por categoría con la evaluación cargada y la nota mínima', async () => {
     const result = await useCase.execute('enr-1', 'subject-1', 'p1', admin);
 
     expect(result.subjectName).toBe('Biología');
     expect(result.periodName).toBe('Primer periodo');
     expect(result.grade).toBeCloseTo(4, 5);
     expect(result.isPartial).toBe(true);
+    expect(result.isRecovered).toBe(false);
+    expect(result.minPassingGrade).toBe(3.0);
     const actividad = result.categories.find((c) => c.category === 'actividad')!;
     expect(actividad.items).toEqual([
       { evaluationId: 'eval-1', category: 'actividad', label: 'Taller 1', maxScore: 5, rawScore: 4, normalized: 4 },
     ]);
+  });
+
+  it('reemplaza la nota con la de recuperación cuando existe una para esa materia/periodo', async () => {
+    recoveries.findByKey.mockResolvedValue(new GradeRecovery('rec-1', 'enr-1', 'subject-1', 'p1', 3.5));
+
+    const result = await useCase.execute('enr-1', 'subject-1', 'p1', admin);
+
+    expect(result.grade).toBe(3.5);
+    expect(result.isPartial).toBe(false);
+    expect(result.isRecovered).toBe(true);
   });
 });

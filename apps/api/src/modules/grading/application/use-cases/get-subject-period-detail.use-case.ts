@@ -5,6 +5,7 @@ import { SubjectRepositoryPort } from '../../../academic/application/ports/subje
 import { PeriodRepositoryPort } from '../../../academic/application/ports/period.repository.port';
 import { EvaluationRepositoryPort } from '../ports/evaluation.repository.port';
 import { GradeScoreRepositoryPort } from '../ports/grade-score.repository.port';
+import { GradeRecoveryRepositoryPort } from '../ports/grade-recovery.repository.port';
 import { GradeWeightConfigService } from '../services/grade-weight-config.service';
 import {
   CategoryBreakdown,
@@ -20,6 +21,8 @@ export interface SubjectPeriodDetailResponse {
   periodName: string;
   grade: number | null;
   isPartial: boolean;
+  isRecovered: boolean;
+  minPassingGrade: number;
   categories: CategoryBreakdown[];
 }
 
@@ -31,6 +34,7 @@ export class GetSubjectPeriodDetailUseCase {
     @Inject(PeriodRepositoryPort) private readonly periods: PeriodRepositoryPort,
     @Inject(EvaluationRepositoryPort) private readonly evaluations: EvaluationRepositoryPort,
     @Inject(GradeScoreRepositoryPort) private readonly scores: GradeScoreRepositoryPort,
+    @Inject(GradeRecoveryRepositoryPort) private readonly recoveries: GradeRecoveryRepositoryPort,
     private readonly weightConfigService: GradeWeightConfigService,
     private readonly enrollmentAccess: EnrollmentAccessService,
   ) {}
@@ -56,7 +60,7 @@ export class GetSubjectPeriodDetailUseCase {
       throw new NotFoundException(`No existe el periodo "${periodId}" para ese año lectivo`);
     }
 
-    const [allSubjects, subjectEvaluations, scoresForEnrollment, weights] = await Promise.all([
+    const [allSubjects, subjectEvaluations, scoresForEnrollment, recovery, weights] = await Promise.all([
       this.subjects.findAll(),
       this.evaluations.findAll({
         sectionId: enrollment.sectionId,
@@ -65,6 +69,7 @@ export class GetSubjectPeriodDetailUseCase {
         periodId,
       }),
       this.scores.findAll({ enrollmentId }),
+      this.recoveries.findByKey(enrollmentId, subjectId, periodId),
       this.weightConfigService.getOrCreateDefault(),
     ]);
 
@@ -82,8 +87,20 @@ export class GetSubjectPeriodDetailUseCase {
       rawScore: scoreByEvaluationId.get(e.id) ?? null,
     }));
 
-    const { grade, isPartial, categories } = GradeCalculationService.computeSubjectPeriodGrade(items, weights);
+    const computed = GradeCalculationService.computeSubjectPeriodGrade(items, weights);
+    const grade = recovery ? recovery.score : computed.grade;
+    const isPartial = recovery ? false : computed.isPartial;
 
-    return { subjectId, subjectName: subject.name, periodId, periodName: period.name, grade, isPartial, categories };
+    return {
+      subjectId,
+      subjectName: subject.name,
+      periodId,
+      periodName: period.name,
+      grade,
+      isPartial,
+      isRecovered: recovery !== null,
+      minPassingGrade: weights.minPassingGrade,
+      categories: computed.categories,
+    };
   }
 }
