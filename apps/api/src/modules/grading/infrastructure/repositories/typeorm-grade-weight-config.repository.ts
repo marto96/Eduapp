@@ -25,6 +25,7 @@ export class TypeOrmGradeWeightConfigRepository extends GradeWeightConfigReposit
       actividadWeight: config.actividadWeight,
       evaluacionBimestralWeight: config.evaluacionBimestralWeight,
       disciplinaWeight: config.disciplinaWeight,
+      minPassingGrade: config.minPassingGrade,
     });
   }
 
@@ -34,6 +35,7 @@ export class TypeOrmGradeWeightConfigRepository extends GradeWeightConfigReposit
       row.actividadWeight,
       row.evaluacionBimestralWeight,
       row.disciplinaWeight,
+      row.minPassingGrade,
     );
   }
 }

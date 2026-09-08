@@ -6,6 +6,7 @@ export interface EditGradeWeightConfigInput {
   actividadWeight: number;
   evaluacionBimestralWeight: number;
   disciplinaWeight: number;
+  minPassingGrade: number;
 }
 
 @Injectable()
@@ -15,7 +16,12 @@ export class EditGradeWeightConfigUseCase {
   async execute(input: EditGradeWeightConfigInput): Promise<GradeWeightConfig> {
     const config = await this.configService.getOrCreateDefault();
     try {
-      config.edit(input.actividadWeight, input.evaluacionBimestralWeight, input.disciplinaWeight);
+      config.edit(
+        input.actividadWeight,
+        input.evaluacionBimestralWeight,
+        input.disciplinaWeight,
+        input.minPassingGrade,
+      );
     } catch (err) {
       throw new BadRequestException((err as Error).message);
     }

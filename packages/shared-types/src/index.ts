@@ -467,6 +467,7 @@ export interface GradeWeightConfig {
   actividadWeight: number;
   evaluacionBimestralWeight: number;
   disciplinaWeight: number;
+  minPassingGrade: number;
 }
 
 export type EmailTemplateType =

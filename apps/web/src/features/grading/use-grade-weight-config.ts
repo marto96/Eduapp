@@ -13,6 +13,7 @@ export interface EditGradeWeightConfigInput {
   actividadWeight: number;
   evaluacionBimestralWeight: number;
   disciplinaWeight: number;
+  minPassingGrade: number;
 }
 
 async function editGradeWeightConfig(input: EditGradeWeightConfigInput): Promise<GradeWeightConfig> {

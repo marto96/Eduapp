@@ -14,6 +14,9 @@ export class GradeWeightConfigOrmEntity {
   @Column({ name: 'disciplina_weight', type: 'real' })
   disciplinaWeight: number;
 
+  @Column({ name: 'min_passing_grade', type: 'real', default: 3.0 })
+  minPassingGrade: number;
+
   @Column({ name: 'created_at', type: 'timestamptz', default: () => 'now()' })
   createdAt: Date;
 

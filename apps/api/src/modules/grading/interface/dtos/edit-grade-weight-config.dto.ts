@@ -15,4 +15,9 @@ export class EditGradeWeightConfigDto {
   @Min(0.01)
   @Max(0.99)
   disciplinaWeight: number;
+
+  @IsNumber()
+  @Min(0.1)
+  @Max(5)
+  minPassingGrade: number;
 }

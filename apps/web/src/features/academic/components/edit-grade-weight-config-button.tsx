@@ -21,12 +21,14 @@ export function EditGradeWeightConfigButton() {
   const [actividad, setActividad] = useState('');
   const [evaluacionBimestral, setEvaluacionBimestral] = useState('');
   const [disciplina, setDisciplina] = useState('');
+  const [minPassingGrade, setMinPassingGrade] = useState('');
 
   useEffect(() => {
     if (!config) return;
     setActividad(String(Math.round(config.actividadWeight * 100)));
     setEvaluacionBimestral(String(Math.round(config.evaluacionBimestralWeight * 100)));
     setDisciplina(String(Math.round(config.disciplinaWeight * 100)));
+    setMinPassingGrade(String(config.minPassingGrade));
   }, [config]);
 
   const totalPercent =
@@ -40,6 +42,7 @@ export function EditGradeWeightConfigButton() {
         actividadWeight: Number(actividad) / 100,
         evaluacionBimestralWeight: Number(evaluacionBimestral) / 100,
         disciplinaWeight: Number(disciplina) / 100,
+        minPassingGrade: Number(minPassingGrade),
       },
       { onSuccess: () => setOpen(false) },
     );
@@ -93,6 +96,19 @@ export function EditGradeWeightConfigButton() {
                 max={100}
                 value={disciplina}
                 onChange={(e) => setDisciplina(e.target.value)}
+                className="w-24"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="minPassingGrade">Nota mínima aprobatoria</Label>
+              <Input
+                id="minPassingGrade"
+                type="number"
+                min={0.1}
+                max={5}
+                step="0.1"
+                value={minPassingGrade}
+                onChange={(e) => setMinPassingGrade(e.target.value)}
                 className="w-24"
               />
             </div>
