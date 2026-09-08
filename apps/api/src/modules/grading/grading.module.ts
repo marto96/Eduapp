@@ -22,10 +22,12 @@ import { EvaluationRepositoryPort } from './application/ports/evaluation.reposit
 import { GradeScoreRepositoryPort } from './application/ports/grade-score.repository.port';
 import { GradeWeightConfigRepositoryPort } from './application/ports/grade-weight-config.repository.port';
 import { GradebookRepositoryPort } from './application/ports/gradebook.repository.port';
+import { GradeRecoveryRepositoryPort } from './application/ports/grade-recovery.repository.port';
 import { TypeOrmEvaluationRepository } from './infrastructure/repositories/typeorm-evaluation.repository';
 import { TypeOrmGradeScoreRepository } from './infrastructure/repositories/typeorm-grade-score.repository';
 import { TypeOrmGradeWeightConfigRepository } from './infrastructure/repositories/typeorm-grade-weight-config.repository';
 import { TypeOrmGradebookRepository } from './infrastructure/repositories/typeorm-gradebook.repository';
+import { TypeOrmGradeRecoveryRepository } from './infrastructure/repositories/typeorm-grade-recovery.repository';
 import { EnrollmentModule } from '../enrollment/enrollment.module';
 import { AcademicModule } from '../academic/academic.module';
 import { AttendanceModule } from '../attendance/attendance.module';
@@ -55,6 +57,7 @@ import { CommunicationModule } from '../communication/communication.module';
     { provide: GradeScoreRepositoryPort, useClass: TypeOrmGradeScoreRepository },
     { provide: GradeWeightConfigRepositoryPort, useClass: TypeOrmGradeWeightConfigRepository },
     { provide: GradebookRepositoryPort, useClass: TypeOrmGradebookRepository },
+    { provide: GradeRecoveryRepositoryPort, useClass: TypeOrmGradeRecoveryRepository },
   ],
   exports: [EvaluationRepositoryPort, GradeScoreRepositoryPort],
 })
