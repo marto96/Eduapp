@@ -3,7 +3,7 @@
 import { FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useCreatePlatformTenant } from '../use-platform-tenants';
-import { AVAILABLE_MODULES } from '../modules';
+import { AVAILABLE_MODULES, MODULE_LABELS } from '../modules';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -99,7 +99,7 @@ export function CreateTenantForm() {
                 checked={enabledModules.includes(moduleName)}
                 onChange={() => toggleModule(moduleName)}
               />
-              {moduleName}
+              {MODULE_LABELS[moduleName] ?? moduleName}
             </label>
           ))}
         </div>
