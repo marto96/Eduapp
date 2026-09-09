@@ -166,3 +166,22 @@ export function useReactivatePlatformTenantUser() {
       queryClient.invalidateQueries({ queryKey: ['platform-tenant-users', { tenantId: variables.tenantId }] }),
   });
 }
+
+async function impersonatePlatformTenantUser({
+  tenantId,
+  id,
+}: {
+  tenantId: string;
+  id: string;
+}): Promise<{ handoffUrl: string }> {
+  const res = await fetch(`/api/platform/tenants/${tenantId}/users/${id}/impersonate`, { method: 'POST' });
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.message ?? 'No se pudo iniciar la impersonación');
+  }
+  return res.json();
+}
+
+export function useImpersonatePlatformTenantUser() {
+  return useMutation({ mutationFn: impersonatePlatformTenantUser });
+}

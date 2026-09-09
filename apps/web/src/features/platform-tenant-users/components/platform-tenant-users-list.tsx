@@ -1,12 +1,13 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Ban, KeyRound, Pencil } from 'lucide-react';
+import { Ban, KeyRound, LogIn, Pencil } from 'lucide-react';
 import {
   usePlatformTenantUsers,
   useResetPlatformTenantUserPassword,
   useDeactivatePlatformTenantUser,
   useReactivatePlatformTenantUser,
+  useImpersonatePlatformTenantUser,
 } from '../use-platform-tenant-users';
 import { EditPlatformTenantUserModal } from './edit-platform-tenant-user-modal';
 import { Card } from '@/components/ui/card';
@@ -56,11 +57,13 @@ export function PlatformTenantUsersList({ tenantId }: { tenantId: string }) {
   const resetPassword = useResetPlatformTenantUserPassword();
   const deactivateUser = useDeactivatePlatformTenantUser();
   const reactivateUser = useReactivatePlatformTenantUser();
+  const impersonateUser = useImpersonatePlatformTenantUser();
   const [revealed, setRevealed] = useState<{ userId: string; password: string } | null>(null);
   const [editingUser, setEditingUser] = useState<TenantUser | null>(null);
   const [deactivatingUser, setDeactivatingUser] = useState<TenantUser | null>(null);
   const [resetErrorUserId, setResetErrorUserId] = useState<string | null>(null);
   const [reactivateErrorUserId, setReactivateErrorUserId] = useState<string | null>(null);
+  const [impersonateErrorUserId, setImpersonateErrorUserId] = useState<string | null>(null);
 
   const filters = (
     <Input
@@ -111,6 +114,19 @@ export function PlatformTenantUsersList({ tenantId }: { tenantId: string }) {
     );
   }
 
+  function handleImpersonate(userId: string) {
+    setImpersonateErrorUserId(null);
+    impersonateUser.mutate(
+      { tenantId, id: userId },
+      {
+        onSuccess: ({ handoffUrl }) => {
+          window.location.href = handoffUrl;
+        },
+        onError: () => setImpersonateErrorUserId(userId),
+      },
+    );
+  }
+
   function confirmDeactivate() {
     if (!deactivatingUser) return;
     deactivateUser.mutate({ tenantId, id: deactivatingUser.id }, { onSuccess: () => setDeactivatingUser(null) });
@@ -151,6 +167,18 @@ export function PlatformTenantUsersList({ tenantId }: { tenantId: string }) {
                 >
                   <Pencil className="h-4 w-4" />
                 </button>
+                {user.status === 'active' && (
+                  <button
+                    type="button"
+                    title="Entrar como este usuario"
+                    aria-label="Entrar como este usuario"
+                    className="rounded p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-50"
+                    disabled={impersonateUser.isPending}
+                    onClick={() => handleImpersonate(user.id)}
+                  >
+                    <LogIn className="h-4 w-4" />
+                  </button>
+                )}
                 {user.status === 'suspended' ? (
                   <button
                     type="button"
@@ -191,6 +219,9 @@ export function PlatformTenantUsersList({ tenantId }: { tenantId: string }) {
             )}
             {reactivateErrorUserId === user.id && reactivateUser.isError && (
               <p className="mt-2 text-sm text-destructive">{reactivateUser.error.message}</p>
+            )}
+            {impersonateErrorUserId === user.id && impersonateUser.isError && (
+              <p className="mt-2 text-sm text-destructive">{impersonateUser.error.message}</p>
             )}
           </Card>
         ))}
