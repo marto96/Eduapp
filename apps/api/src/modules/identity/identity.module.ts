@@ -6,6 +6,7 @@ import { AuthenticateUserUseCase } from './application/use-cases/authenticate-us
 import { RefreshTokenUseCase } from './application/use-cases/refresh-token.use-case';
 import { LogoutUseCase } from './application/use-cases/logout.use-case';
 import { GetCurrentUserUseCase } from './application/use-cases/get-current-user.use-case';
+import { ConsumeImpersonationUseCase } from './application/use-cases/consume-impersonation.use-case';
 import { CreateUserUseCase } from './application/use-cases/create-user.use-case';
 import { ListUsersUseCase } from './application/use-cases/list-users.use-case';
 import { ResetUserPasswordUseCase } from './application/use-cases/reset-user-password.use-case';
@@ -37,6 +38,7 @@ import { BcryptPasswordHasher } from '../../core/security/bcrypt-password-hasher
     RefreshTokenUseCase,
     LogoutUseCase,
     GetCurrentUserUseCase,
+    ConsumeImpersonationUseCase,
     CreateUserUseCase,
     ListUsersUseCase,
     ResetUserPasswordUseCase,

@@ -8,8 +8,10 @@ import { AuthenticateUserUseCase } from '../../application/use-cases/authenticat
 import { RefreshTokenUseCase } from '../../application/use-cases/refresh-token.use-case';
 import { GetCurrentUserUseCase } from '../../application/use-cases/get-current-user.use-case';
 import { LogoutUseCase } from '../../application/use-cases/logout.use-case';
+import { ConsumeImpersonationUseCase } from '../../application/use-cases/consume-impersonation.use-case';
 import { LoginDto } from '../dtos/login.dto';
 import { RefreshTokenDto } from '../dtos/refresh-token.dto';
+import { ConsumeImpersonationDto } from '../dtos/consume-impersonation.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -18,6 +20,7 @@ export class AuthController {
     private readonly refreshToken: RefreshTokenUseCase,
     private readonly getCurrentUser: GetCurrentUserUseCase,
     private readonly logout: LogoutUseCase,
+    private readonly consumeImpersonation: ConsumeImpersonationUseCase,
   ) {}
 
   @Public()
@@ -34,6 +37,14 @@ export class AuthController {
   @HttpCode(200)
   async refresh(@Body() dto: RefreshTokenDto) {
     return this.refreshToken.execute(dto.refreshToken);
+  }
+
+  @Public()
+  @AuditSkip()
+  @Post('impersonate/consume')
+  @HttpCode(200)
+  async consumeImpersonationCode(@Body() dto: ConsumeImpersonationDto) {
+    return this.consumeImpersonation.execute(dto.code);
   }
 
   // Autogestión: sin @CheckPolicies a propósito — el refresh token a
@@ -56,6 +67,8 @@ export class AuthController {
       email: user.email,
       fullName: user.fullName,
       roles: user.roles,
+      impersonatedBy: currentUser.impersonatedBy ?? null,
+      tenantId: currentUser.tenantId,
     };
   }
 }
