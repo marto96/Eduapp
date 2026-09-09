@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Ban, KeyRound, LogIn, Pencil } from 'lucide-react';
+import { Ban, KeyRound, LogIn, Pencil, Plus } from 'lucide-react';
 import {
   usePlatformTenantUsers,
   useResetPlatformTenantUserPassword,
@@ -9,7 +9,9 @@ import {
   useReactivatePlatformTenantUser,
   useImpersonatePlatformTenantUser,
 } from '../use-platform-tenant-users';
+import { CreatePlatformTenantUserForm } from './create-platform-tenant-user-form';
 import { EditPlatformTenantUserModal } from './edit-platform-tenant-user-modal';
+import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { LoadingState } from '@/components/ui/loading-state';
@@ -37,6 +39,7 @@ export function PlatformTenantUsersList({ tenantId }: { tenantId: string }) {
   const [committedSearch, setCommittedSearch] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
 
   useEffect(() => {
     const timeout = setTimeout(() => setCommittedSearch(searchInput), SEARCH_DEBOUNCE_MS);
@@ -65,31 +68,43 @@ export function PlatformTenantUsersList({ tenantId }: { tenantId: string }) {
   const [reactivateErrorUserId, setReactivateErrorUserId] = useState<string | null>(null);
   const [impersonateErrorUserId, setImpersonateErrorUserId] = useState<string | null>(null);
 
-  const filters = (
-    <Input
-      placeholder="Buscar por nombre o email..."
-      value={searchInput}
-      onChange={(e) => setSearchInput(e.target.value)}
-      className="w-72"
-    />
+  const header = (
+    <div className="flex items-center justify-between gap-3">
+      <Input
+        placeholder="Buscar por nombre o email..."
+        value={searchInput}
+        onChange={(e) => setSearchInput(e.target.value)}
+        className="w-72"
+      />
+      <Button type="button" onClick={() => setIsCreateOpen(true)}>
+        <Plus className="mr-1.5 h-4 w-4" />
+        Crear usuario
+      </Button>
+    </div>
+  );
+
+  const createModal = (
+    <CreatePlatformTenantUserForm tenantId={tenantId} open={isCreateOpen} onClose={() => setIsCreateOpen(false)} />
   );
 
   if (isLoading) return <LoadingState />;
   if (error) {
     return (
       <div className="space-y-3">
-        {filters}
+        {header}
         <p className="text-sm text-destructive">No se pudieron cargar los usuarios.</p>
+        {createModal}
       </div>
     );
   }
   if (!users || users.length === 0) {
     return (
       <div className="space-y-3">
-        {filters}
+        {header}
         <p className="text-sm text-muted-foreground">
           {committedSearch ? 'No hay usuarios que coincidan con la búsqueda.' : 'Todavía no hay usuarios.'}
         </p>
+        {createModal}
       </div>
     );
   }
@@ -134,7 +149,7 @@ export function PlatformTenantUsersList({ tenantId }: { tenantId: string }) {
 
   return (
     <div className="space-y-3">
-      {filters}
+      {header}
       <ul className="max-h-[65vh] space-y-2 overflow-y-auto pr-1">
         {users.map((user) => (
           <Card key={user.id} className="py-3">
@@ -236,6 +251,7 @@ export function PlatformTenantUsersList({ tenantId }: { tenantId: string }) {
           onPageSizeChange={setPageSize}
         />
       )}
+      {createModal}
       <EditPlatformTenantUserModal tenantId={tenantId} user={editingUser} onClose={() => setEditingUser(null)} />
       <ConfirmDialog
         open={deactivatingUser !== null}

@@ -2,13 +2,19 @@
 
 import { FormEvent, useEffect, useState } from 'react';
 import { usePlatformTenant, useUpdatePlatformTenant } from '../use-platform-tenants';
-import { AVAILABLE_MODULES } from '../modules';
+import { AVAILABLE_MODULES, MODULE_LABELS } from '../modules';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { LoadingState } from '@/components/ui/loading-state';
 
-export function EditTenantForm({ tenantId }: { tenantId: string }) {
+export function EditTenantForm({
+  tenantId,
+  onSuccess,
+}: {
+  tenantId: string;
+  onSuccess?: () => void;
+}) {
   const { data: tenant, isLoading, error } = usePlatformTenant(tenantId);
   const updateTenant = useUpdatePlatformTenant();
 
@@ -35,13 +41,16 @@ export function EditTenantForm({ tenantId }: { tenantId: string }) {
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    updateTenant.mutate({
-      id: tenantId,
-      name,
-      customDomain: customDomain || undefined,
-      primaryColor,
-      enabledModules,
-    });
+    updateTenant.mutate(
+      {
+        id: tenantId,
+        name,
+        customDomain: customDomain || undefined,
+        primaryColor,
+        enabledModules,
+      },
+      { onSuccess },
+    );
   }
 
   if (isLoading) return <LoadingState />;
@@ -98,7 +107,7 @@ export function EditTenantForm({ tenantId }: { tenantId: string }) {
                 checked={enabledModules.includes(moduleName)}
                 onChange={() => toggleModule(moduleName)}
               />
-              {moduleName}
+              {MODULE_LABELS[moduleName] ?? moduleName}
             </label>
           ))}
         </div>
