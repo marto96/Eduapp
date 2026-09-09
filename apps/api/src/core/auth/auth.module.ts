@@ -29,9 +29,17 @@ import { PoliciesGuard } from './casl/policies.guard';
         signOptions: { expiresIn: config.get<string>('JWT_ACCESS_EXPIRES_IN') },
       }),
     }),
-    // Límite general de API (20 req/min por IP); endpoints puntuales como
-    // /auth/login lo endurecen con @Throttle propio.
-    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 20 }]),
+    // Límite general de API por IP — 20 req/min en producción, más alto en
+    // dev/test para no trabar las pruebas manuales (ver THROTTLE_LIMIT en
+    // env.validation.ts). Endpoints puntuales como /auth/login lo endurecen
+    // igual con @Throttle propio.
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => [
+        { ttl: config.get<number>('THROTTLE_TTL_MS')!, limit: config.get<number>('THROTTLE_LIMIT')! },
+      ],
+    }),
   ],
   providers: [
     JwtStrategy,

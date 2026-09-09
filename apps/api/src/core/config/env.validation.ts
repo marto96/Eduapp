@@ -21,6 +21,15 @@ export const envValidationSchema = Joi.object({
   PLATFORM_JWT_SECRET: Joi.string().min(16).required(),
   PLATFORM_JWT_EXPIRES_IN: Joi.string().default('8h'),
 
+  // Límite global de requests (ThrottlerGuard, apps/api/src/core/auth/auth.module.ts).
+  // En producción protege de verdad contra fuerza bruta; en dev/test un
+  // límite tan bajo solo generaba fricción probando manualmente (varias
+  // llamadas se agrupan fácil al cargar una sola pantalla).
+  THROTTLE_TTL_MS: Joi.number().default(60_000),
+  THROTTLE_LIMIT: Joi.number()
+    .default(300)
+    .when('NODE_ENV', { is: 'production', then: Joi.number().default(20) }),
+
   // Impersonación de tenant desde el panel de superadmin: duración de la
   // sesión emitida (sin refresh token — al vencer no se puede renovar) y
   // dominio base para armar la URL de handoff de cada tenant (sin
