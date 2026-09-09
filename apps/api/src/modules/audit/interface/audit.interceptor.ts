@@ -81,6 +81,7 @@ export class AuditInterceptor implements NestInterceptor {
       actorId: user?.sub ?? null,
       actorEmail: user?.email ?? null,
       actorRoles: user?.roles ?? null,
+      impersonatedBy: user?.impersonatedBy ?? null,
       method,
       route: request.originalUrl.split('?')[0],
       resourceId: request.params?.id ?? resourceIdFromRead ?? null,

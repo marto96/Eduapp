@@ -19,5 +19,6 @@ export class AuditLog {
     public readonly kind: AuditLogKind,
     public readonly ipAddress: string | null,
     public readonly createdAt: Date,
+    public readonly impersonatedBy: string | null,
   ) {}
 }

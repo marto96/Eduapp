@@ -70,6 +70,7 @@ export class TypeOrmAuditLogRepository extends AuditLogRepositoryPort {
       row.kind,
       row.ipAddress,
       row.createdAt,
+      row.impersonatedBy,
     );
   }
 }

@@ -23,6 +23,7 @@ describe('ListAuditLogsUseCase', () => {
     'write',
     '127.0.0.1',
     new Date('2026-09-05T10:00:00Z'),
+    null,
   );
 
   beforeEach(() => jest.clearAllMocks());

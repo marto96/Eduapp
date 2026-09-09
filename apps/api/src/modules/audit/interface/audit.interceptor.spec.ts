@@ -35,7 +35,7 @@ describe('AuditInterceptor', () => {
     url?: string;
     params?: Record<string, string>;
     query?: Record<string, string>;
-    user?: { sub: string; email: string; roles: string[] };
+    user?: { sub: string; email: string; roles: string[]; impersonatedBy?: string };
   }): ExecutionContext {
     const request = {
       method: overrides.method,
@@ -258,6 +258,42 @@ describe('AuditInterceptor', () => {
         expect(recordAuditLog.execute).not.toHaveBeenCalled();
         expect(warnSpy).toHaveBeenCalled();
         warnSpy.mockRestore();
+        done();
+      });
+    });
+  });
+
+  it('incluye impersonatedBy en el log cuando el JWT actual viene de una sesión impersonada', (done) => {
+    const context = buildContext({
+      method: 'PATCH',
+      url: '/users/user-1',
+      params: { id: 'user-1' },
+      user: { sub: 'user-1', email: 'a@a.com', roles: ['docente'], impersonatedBy: 'admin-1' },
+    });
+
+    interceptor.intercept(context, buildHandler({ ok: true })).subscribe(() => {
+      setImmediate(() => {
+        expect(recordAuditLog.execute).toHaveBeenCalledWith(
+          expect.objectContaining({ impersonatedBy: 'admin-1' }),
+        );
+        done();
+      });
+    });
+  });
+
+  it('deja impersonatedBy en null cuando la sesión no es una impersonación', (done) => {
+    const context = buildContext({
+      method: 'DELETE',
+      url: '/academic/sections/sec-1',
+      params: { id: 'sec-1' },
+      user: { sub: 'user-1', email: 'admin@test.com', roles: ['admin_institucion'] },
+    });
+
+    interceptor.intercept(context, buildHandler({ ok: true })).subscribe(() => {
+      setImmediate(() => {
+        expect(recordAuditLog.execute).toHaveBeenCalledWith(
+          expect.objectContaining({ impersonatedBy: null }),
+        );
         done();
       });
     });

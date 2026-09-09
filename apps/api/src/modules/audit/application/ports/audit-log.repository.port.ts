@@ -12,6 +12,7 @@ export interface RecordAuditLogEntry {
   success: boolean;
   kind: AuditLogKind;
   ipAddress: string | null;
+  impersonatedBy?: string | null;
 }
 
 export interface AuditLogFilter {

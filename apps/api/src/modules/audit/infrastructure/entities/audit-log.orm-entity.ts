@@ -36,6 +36,9 @@ export class AuditLogOrmEntity {
   @Column({ name: 'ip_address', type: 'varchar', nullable: true })
   ipAddress: string | null;
 
+  @Column({ name: 'impersonated_by', type: 'uuid', nullable: true })
+  impersonatedBy: string | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 }
