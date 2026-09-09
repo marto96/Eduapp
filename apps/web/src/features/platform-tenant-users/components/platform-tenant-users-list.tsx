@@ -59,6 +59,8 @@ export function PlatformTenantUsersList({ tenantId }: { tenantId: string }) {
   const [revealed, setRevealed] = useState<{ userId: string; password: string } | null>(null);
   const [editingUser, setEditingUser] = useState<TenantUser | null>(null);
   const [deactivatingUser, setDeactivatingUser] = useState<TenantUser | null>(null);
+  const [resetErrorUserId, setResetErrorUserId] = useState<string | null>(null);
+  const [reactivateErrorUserId, setReactivateErrorUserId] = useState<string | null>(null);
 
   const filters = (
     <Input
@@ -91,9 +93,21 @@ export function PlatformTenantUsersList({ tenantId }: { tenantId: string }) {
 
   function handleReset(userId: string) {
     setRevealed(null);
+    setResetErrorUserId(null);
     resetPassword.mutate(
       { tenantId, id: userId },
-      { onSuccess: ({ temporaryPassword }) => setRevealed({ userId, password: temporaryPassword }) },
+      {
+        onSuccess: ({ temporaryPassword }) => setRevealed({ userId, password: temporaryPassword }),
+        onError: () => setResetErrorUserId(userId),
+      },
+    );
+  }
+
+  function handleReactivate(userId: string) {
+    setReactivateErrorUserId(null);
+    reactivateUser.mutate(
+      { tenantId, id: userId },
+      { onError: () => setReactivateErrorUserId(userId) },
     );
   }
 
@@ -140,9 +154,9 @@ export function PlatformTenantUsersList({ tenantId }: { tenantId: string }) {
                 {user.status === 'suspended' ? (
                   <button
                     type="button"
-                    className="text-xs text-primary underline hover:text-primary/80"
+                    className="text-xs text-primary underline hover:text-primary/80 disabled:opacity-50"
                     disabled={reactivateUser.isPending}
-                    onClick={() => reactivateUser.mutate({ tenantId, id: user.id })}
+                    onClick={() => handleReactivate(user.id)}
                   >
                     Reactivar
                   </button>
@@ -171,6 +185,12 @@ export function PlatformTenantUsersList({ tenantId }: { tenantId: string }) {
                   Cerrar
                 </button>
               </div>
+            )}
+            {resetErrorUserId === user.id && resetPassword.isError && (
+              <p className="mt-2 text-sm text-destructive">{resetPassword.error.message}</p>
+            )}
+            {reactivateErrorUserId === user.id && reactivateUser.isError && (
+              <p className="mt-2 text-sm text-destructive">{reactivateUser.error.message}</p>
             )}
           </Card>
         ))}
