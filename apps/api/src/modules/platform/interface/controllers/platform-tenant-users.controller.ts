@@ -8,6 +8,7 @@ import { PlatformEditTenantUserUseCase } from '../../application/use-cases/platf
 import { PlatformDeactivateTenantUserUseCase } from '../../application/use-cases/platform-deactivate-tenant-user.use-case';
 import { PlatformReactivateTenantUserUseCase } from '../../application/use-cases/platform-reactivate-tenant-user.use-case';
 import { PlatformResetTenantUserPasswordUseCase } from '../../application/use-cases/platform-reset-tenant-user-password.use-case';
+import { PlatformImpersonateTenantUserUseCase } from '../../application/use-cases/platform-impersonate-tenant-user.use-case';
 import { CreateUserDto } from '../../../identity/interface/dtos/create-user.dto';
 import { EditUserDto } from '../../../identity/interface/dtos/edit-user.dto';
 import { ListUsersQueryDto } from '../../../identity/interface/dtos/list-users-query.dto';
@@ -46,6 +47,7 @@ export class PlatformTenantUsersController {
     private readonly deactivateUser: PlatformDeactivateTenantUserUseCase,
     private readonly reactivateUser: PlatformReactivateTenantUserUseCase,
     private readonly resetPassword: PlatformResetTenantUserPasswordUseCase,
+    private readonly impersonateUser: PlatformImpersonateTenantUserUseCase,
   ) {}
 
   @Post()
@@ -103,5 +105,14 @@ export class PlatformTenantUsersController {
   ) {
     const user = await this.reactivateUser.execute(tenantId, id, req.platformAdmin);
     return toResponse(user);
+  }
+
+  @Post(':id/impersonate')
+  async impersonate(
+    @Param('tenantId') tenantId: string,
+    @Param('id') id: string,
+    @Req() req: Request & { platformAdmin: PlatformJwtPayload },
+  ) {
+    return this.impersonateUser.execute(tenantId, id, req.platformAdmin);
   }
 }

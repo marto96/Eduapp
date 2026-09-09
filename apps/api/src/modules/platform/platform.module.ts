@@ -19,6 +19,7 @@ import { PlatformEditTenantUserUseCase } from './application/use-cases/platform-
 import { PlatformDeactivateTenantUserUseCase } from './application/use-cases/platform-deactivate-tenant-user.use-case';
 import { PlatformReactivateTenantUserUseCase } from './application/use-cases/platform-reactivate-tenant-user.use-case';
 import { PlatformResetTenantUserPasswordUseCase } from './application/use-cases/platform-reset-tenant-user-password.use-case';
+import { PlatformImpersonateTenantUserUseCase } from './application/use-cases/platform-impersonate-tenant-user.use-case';
 import { TotpService } from './infrastructure/totp.service';
 import { TenantRepositoryPort } from './application/ports/tenant.repository.port';
 import { SchemaProvisionerPort } from './application/ports/schema-provisioner.port';
@@ -51,6 +52,7 @@ import { BcryptPasswordHasher } from '../../core/security/bcrypt-password-hasher
     PlatformDeactivateTenantUserUseCase,
     PlatformReactivateTenantUserUseCase,
     PlatformResetTenantUserPasswordUseCase,
+    PlatformImpersonateTenantUserUseCase,
     TotpService,
     { provide: TenantRepositoryPort, useClass: TypeOrmTenantRepository },
     { provide: SchemaProvisionerPort, useClass: SchemaProvisionerAdapter },

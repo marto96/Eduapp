@@ -21,6 +21,13 @@ export const envValidationSchema = Joi.object({
   PLATFORM_JWT_SECRET: Joi.string().min(16).required(),
   PLATFORM_JWT_EXPIRES_IN: Joi.string().default('8h'),
 
+  // Impersonación de tenant desde el panel de superadmin: duración de la
+  // sesión emitida (sin refresh token — al vencer no se puede renovar) y
+  // dominio base para armar la URL de handoff de cada tenant (sin
+  // protocolo; en dev es el host:puerto del propio frontend).
+  IMPERSONATION_SESSION_EXPIRES_IN: Joi.string().default('45m'),
+  TENANT_BASE_DOMAIN: Joi.string().default('localhost:3000'),
+
   UPLOADS_DIR: Joi.string().default('./uploads'),
   PRIVATE_UPLOADS_DIR: Joi.string().default('./private-uploads'),
   API_PUBLIC_URL: Joi.string().uri().default('http://localhost:3001'),
