@@ -1,22 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { platformApiFetch } from '@/lib/platform-api';
+import { platformApiFetchWithStatus } from '@/lib/platform-api';
 import type { PaginatedResult, TenantUser } from '@eduapp/shared-types';
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   const qs = req.nextUrl.searchParams.toString();
-  const result = await platformApiFetch<PaginatedResult<TenantUser>>(
+  const { status, body } = await platformApiFetchWithStatus<PaginatedResult<TenantUser>>(
     `/platform/tenants/${params.id}/users${qs ? `?${qs}` : ''}`,
   );
-  if (result === null) return NextResponse.json({ message: 'No se pudieron cargar los usuarios' }, { status: 400 });
-  return NextResponse.json(result);
+  if (status < 200 || status >= 300) {
+    const message = (body as { message?: string } | null)?.message ?? 'No se pudieron cargar los usuarios';
+    return NextResponse.json({ message }, { status });
+  }
+  return NextResponse.json(body);
 }
 
 export async function POST(req: NextRequest, { params }: { params: { id: string } }) {
-  const body = await req.json();
-  const user = await platformApiFetch<TenantUser>(`/platform/tenants/${params.id}/users`, {
+  const reqBody = await req.json();
+  const { status, body } = await platformApiFetchWithStatus<TenantUser>(`/platform/tenants/${params.id}/users`, {
     method: 'POST',
-    body: JSON.stringify(body),
+    body: JSON.stringify(reqBody),
   });
-  if (user === null) return NextResponse.json({ message: 'No se pudo crear el usuario' }, { status: 400 });
-  return NextResponse.json(user, { status: 201 });
+  if (status < 200 || status >= 300) {
+    const message = (body as { message?: string } | null)?.message ?? 'No se pudo crear el usuario';
+    return NextResponse.json({ message }, { status });
+  }
+  return NextResponse.json(body, { status: 201 });
 }

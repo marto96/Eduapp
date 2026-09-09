@@ -22,7 +22,7 @@ export async function recordPlatformAudit(
   try {
     const auditLogs = new TypeOrmAuditLogRepository(dataSource);
     await auditLogs.record({
-      actorId: `platform-admin:${platformAdmin.sub}`,
+      actorId: platformAdmin.sub,
       actorEmail: platformAdmin.email,
       actorRoles: ['platform_admin'],
       method: action,
@@ -34,6 +34,9 @@ export async function recordPlatformAudit(
       ipAddress: null,
     });
   } catch (err) {
-    logger.warn(`No se pudo registrar la auditoría de una acción de plataforma: ${(err as Error).message}`);
+    logger.error(
+      `No se pudo registrar la auditoría de una acción de plataforma (action=${action}, subject=${subject}, resourceId=${resourceId}): ${(err as Error).message}`,
+      (err as Error).stack,
+    );
   }
 }

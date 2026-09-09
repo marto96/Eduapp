@@ -26,6 +26,34 @@ export async function platformApiFetch<T>(path: string, init?: RequestInit): Pro
   return res.json() as Promise<T>;
 }
 
+/**
+ * Igual que `platformApiFetch`, pero sin colapsar los fallos a `null`:
+ * devuelve el status HTTP real y el body parseado, ok o no. Se usa en rutas
+ * BFF que necesitan propagar mensajes de error reales del backend (ej.
+ * validaciones de los casos de uso de `identity` reutilizados por el panel
+ * de superadmin) en vez de un mensaje genérico fijo.
+ */
+export async function platformApiFetchWithStatus<T>(
+  path: string,
+  init?: RequestInit,
+): Promise<{ status: number; body: T | { message?: string } | null }> {
+  const token = cookies().get('platform_access_token')?.value;
+  if (!token) return { status: 401, body: { message: 'No autorizado' } };
+
+  const res = await fetch(`${API_URL}${path}`, {
+    ...init,
+    headers: {
+      'content-type': 'application/json',
+      authorization: `Bearer ${token}`,
+      ...init?.headers,
+    },
+    cache: 'no-store',
+  });
+
+  const body = await res.json().catch(() => null);
+  return { status: res.status, body };
+}
+
 export interface PlatformAdmin {
   sub: string;
   email: string;

@@ -11,7 +11,7 @@ describe('recordPlatformAudit', () => {
 
   beforeEach(() => jest.clearAllMocks());
 
-  it('registra el audit log con el actor prefijado como platform-admin', async () => {
+  it('registra el audit log con el actorId como el uuid crudo del admin', async () => {
     const record = jest.fn().mockResolvedValue(undefined);
     (TypeOrmAuditLogRepository as jest.Mock).mockImplementation(() => ({ record }));
 
@@ -19,8 +19,9 @@ describe('recordPlatformAudit', () => {
 
     expect(record).toHaveBeenCalledWith(
       expect.objectContaining({
-        actorId: 'platform-admin:admin-1',
+        actorId: 'admin-1',
         actorEmail: 'super@eduapp.test',
+        actorRoles: ['platform_admin'],
         resourceId: 'user-1',
         success: true,
         kind: 'write',
