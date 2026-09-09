@@ -11,6 +11,8 @@ export interface AuthenticatedUser {
   email: string;
   fullName: string;
   roles: string[];
+  impersonatedBy: string | null;
+  tenantId: string;
 }
 
 export interface PaginatedResult<T> {
