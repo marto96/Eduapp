@@ -108,7 +108,10 @@ async function resetPlatformTenantUserPassword({
   id: string;
 }): Promise<{ temporaryPassword: string }> {
   const res = await fetch(`/api/platform/tenants/${tenantId}/users/${id}/reset-password`, { method: 'PATCH' });
-  if (!res.ok) throw new Error('No se pudo resetear la contraseña');
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.message ?? 'No se pudo resetear la contraseña');
+  }
   return res.json();
 }
 
