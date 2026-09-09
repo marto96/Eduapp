@@ -39,5 +39,6 @@ export async function GET(req: NextRequest) {
     sameSite: 'lax',
     path: '/',
   });
+  response.cookies.delete('refresh_token');
   return response;
 }
