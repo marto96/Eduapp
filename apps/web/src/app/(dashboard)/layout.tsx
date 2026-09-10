@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
 import { Sidebar } from '@/components/sidebar';
 import { PageTitle } from '@/components/page-title';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -21,13 +22,24 @@ export default async function DashboardLayout({ children }: { children: React.Re
             <div className="flex items-center gap-3">
               <ThemeToggle />
               <div className="h-8 w-px bg-border" />
-              <div className="text-right">
-                <p className="text-sm font-medium leading-tight">{user.fullName}</p>
-                <p className="text-xs text-muted-foreground">{formatRoles(user.roles)}</p>
-              </div>
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/20 text-xs font-medium text-primary">
-                {getInitials(user.fullName)}
-              </div>
+              <Link href="/profile" className="flex items-center gap-3">
+                <div className="text-right">
+                  <p className="text-sm font-medium leading-tight">{user.fullName}</p>
+                  <p className="text-xs text-muted-foreground">{formatRoles(user.roles)}</p>
+                </div>
+                {user.photoUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={user.photoUrl}
+                    alt={user.fullName}
+                    className="h-9 w-9 shrink-0 rounded-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/20 text-xs font-medium text-primary">
+                    {getInitials(user.fullName)}
+                  </div>
+                )}
+              </Link>
             </div>
           </header>
           {children}
