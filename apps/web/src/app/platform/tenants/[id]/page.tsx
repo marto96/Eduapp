@@ -1,9 +1,17 @@
+import Link from 'next/link';
 import { LogoUploadForm } from '@/features/platform-tenants/components/logo-upload-form';
 import { PlatformTenantUsersList } from '@/features/platform-tenant-users/components/platform-tenant-users-list';
+import { Button } from '@/components/ui/button';
 
 export default function EditPlatformTenantPage({ params }: { params: { id: string } }) {
   return (
     <main className="space-y-8 p-6">
+      <div className="flex justify-end">
+        <Link href={`/platform/tenants/${params.id}/audit`}>
+          <Button variant="secondary">Ver auditoría</Button>
+        </Link>
+      </div>
+
       <section className="space-y-3">
         <h2 className="text-lg font-medium">Logo</h2>
         <LogoUploadForm tenantId={params.id} />
