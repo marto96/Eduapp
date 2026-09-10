@@ -76,6 +76,8 @@ export class TypeOrmUserRepository extends UserRepositoryPort {
       documentType: user.documentType,
       documentNumber: user.documentNumber,
       address: user.address,
+      phone: user.phone,
+      photoUrl: user.photoUrl,
     });
   }
 
@@ -94,6 +96,8 @@ export class TypeOrmUserRepository extends UserRepositoryPort {
       row.documentType as DocumentType | null,
       row.documentNumber,
       row.address,
+      row.phone,
+      row.photoUrl,
     );
   }
 }

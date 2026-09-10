@@ -50,4 +50,10 @@ export class UserOrmEntity {
 
   @Column({ type: 'text', nullable: true })
   address: string | null;
+
+  @Column({ type: 'varchar', nullable: true })
+  phone: string | null;
+
+  @Column({ name: 'photo_url', type: 'text', nullable: true })
+  photoUrl: string | null;
 }

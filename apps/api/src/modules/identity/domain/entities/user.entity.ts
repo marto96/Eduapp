@@ -32,6 +32,8 @@ export class User {
     public documentType: DocumentType | null = null,
     public documentNumber: string | null = null,
     public address: string | null = null,
+    public phone: string | null = null,
+    public photoUrl: string | null = null,
   ) {}
 
   get fullName(): string {
@@ -70,6 +72,31 @@ export class User {
     this.documentType = input.documentType ?? null;
     this.documentNumber = input.documentNumber ?? null;
     this.address = input.address ?? null;
+  }
+
+  /**
+   * A diferencia de `edit()` (admin editando a otro usuario, con email y
+   * roles incluidos), este método solo puede tocar los datos básicos del
+   * propio usuario — estructuralmente no puede escalar privilegios ni
+   * cambiar el email, aunque el DTO que lo llama tuviera esos campos por
+   * error.
+   */
+  editProfile(input: {
+    firstName: string;
+    lastName: string;
+    birthDate?: string | null;
+    documentType?: DocumentType | null;
+    documentNumber?: string | null;
+    address?: string | null;
+    phone?: string | null;
+  }): void {
+    this.firstName = input.firstName;
+    this.lastName = input.lastName;
+    this.birthDate = input.birthDate ?? null;
+    this.documentType = input.documentType ?? null;
+    this.documentNumber = input.documentNumber ?? null;
+    this.address = input.address ?? null;
+    this.phone = input.phone ?? null;
   }
 
   getPasswordHash(): string {
