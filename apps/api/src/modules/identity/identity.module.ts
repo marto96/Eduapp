@@ -11,6 +11,8 @@ import { CreateUserUseCase } from './application/use-cases/create-user.use-case'
 import { ListUsersUseCase } from './application/use-cases/list-users.use-case';
 import { ResetUserPasswordUseCase } from './application/use-cases/reset-user-password.use-case';
 import { EditUserUseCase } from './application/use-cases/edit-user.use-case';
+import { EditMyProfileUseCase } from './application/use-cases/edit-my-profile.use-case';
+import { UploadMyProfilePhotoUseCase } from './application/use-cases/upload-my-profile-photo.use-case';
 import { DeactivateUserUseCase } from './application/use-cases/deactivate-user.use-case';
 import { ReactivateUserUseCase } from './application/use-cases/reactivate-user.use-case';
 import { LinkGuardianUseCase } from './application/use-cases/link-guardian.use-case';
@@ -43,6 +45,8 @@ import { BcryptPasswordHasher } from '../../core/security/bcrypt-password-hasher
     ListUsersUseCase,
     ResetUserPasswordUseCase,
     EditUserUseCase,
+    EditMyProfileUseCase,
+    UploadMyProfilePhotoUseCase,
     DeactivateUserUseCase,
     ReactivateUserUseCase,
     LinkGuardianUseCase,

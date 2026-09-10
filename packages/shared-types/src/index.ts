@@ -10,9 +10,17 @@ export interface AuthenticatedUser {
   id: string;
   email: string;
   fullName: string;
+  firstName: string;
+  lastName: string;
   roles: string[];
   impersonatedBy: string | null;
   tenantId: string;
+  phone: string | null;
+  photoUrl: string | null;
+  birthDate: string | null;
+  documentType: string | null;
+  documentNumber: string | null;
+  address: string | null;
 }
 
 export interface PaginatedResult<T> {
