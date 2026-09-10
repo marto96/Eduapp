@@ -9,6 +9,8 @@ import { QuickStatsWidget } from '@/features/dashboard/components/quick-stats-wi
 import { PendingChargesWidget } from '@/features/dashboard/components/pending-charges-widget';
 import { TodayScheduleWidget } from '@/features/dashboard/components/today-schedule-widget';
 import { MyLoansWidget } from '@/features/dashboard/components/my-loans-widget';
+import { StudentGradesChartWidget } from '@/features/dashboard/components/student-grades-chart-widget';
+import { StudentAttendanceChartWidget } from '@/features/dashboard/components/student-attendance-chart-widget';
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();
@@ -52,6 +54,13 @@ export default async function DashboardPage() {
           </Link>
         )}
       </div>
+
+      {isEstudiante && (
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <StudentGradesChartWidget />
+          <StudentAttendanceChartWidget />
+        </div>
+      )}
     </main>
   );
 }

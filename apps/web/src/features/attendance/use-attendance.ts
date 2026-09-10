@@ -39,6 +39,17 @@ export function useAttendance(filter: AttendanceFilter, enabled: boolean) {
   });
 }
 
+async function fetchMyAttendance(): Promise<AttendanceRecord[]> {
+  const res = await fetch('/api/attendance');
+  if (!res.ok) throw new Error('No se pudo cargar la asistencia');
+  return res.json();
+}
+
+/** Sin filtro: el backend ya devuelve solo la asistencia que este usuario puede ver. */
+export function useMyAttendance() {
+  return useQuery({ queryKey: ['my-attendance'], queryFn: fetchMyAttendance });
+}
+
 export function useRecordAttendance() {
   const queryClient = useQueryClient();
   return useMutation({
