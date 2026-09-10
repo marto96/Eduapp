@@ -24,7 +24,10 @@ export class PlatformExportTenantAuditLogsUseCase {
 
     return withTenantSchemaConnection(tenant.schemaName, async (dataSource) => {
       const auditLogs = new TypeOrmAuditLogRepository(dataSource);
-      const { items } = await auditLogs.findAll(filter, { page: 1, pageSize: EXPORT_MAX_ROWS });
+      const { items } = await auditLogs.findAll(
+        { ...filter, search: filter.search?.trim() || undefined },
+        { page: 1, pageSize: EXPORT_MAX_ROWS },
+      );
       return toCsv(items);
     });
   }
