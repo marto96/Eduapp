@@ -23,8 +23,6 @@ import {
   ClipboardCheck,
   Building2,
   MessagesSquare,
-  ScrollText,
-  Mail,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -92,8 +90,6 @@ export const NAV_ITEMS: NavItem[] = [
       { href: '/hr', label: 'RRHH', icon: Briefcase, roles: ADMIN_SECRETARIA },
       { href: '/documents', label: 'Documentos', icon: FileText, roles: ADMIN_SECRETARIA },
       { href: '/users', label: 'Usuarios', icon: Users, roles: ADMIN },
-      { href: '/audit', label: 'Auditoría', icon: ScrollText, roles: ['admin_institucion'] },
-      { href: '/email-templates', label: 'Plantillas de correo', icon: Mail, roles: ADMIN },
     ],
   },
   {

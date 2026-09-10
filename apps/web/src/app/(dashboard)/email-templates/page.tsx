@@ -1,6 +1,14 @@
+import { redirect } from 'next/navigation';
 import { EmailTemplatesView } from '@/features/email-templates/email-templates-view';
+import { getCurrentUser } from '@/lib/server-api';
+import { canManageEmailTemplates } from '@/lib/permissions';
 
-export default function EmailTemplatesPage() {
+export default async function EmailTemplatesPage() {
+  const user = await getCurrentUser();
+  if (!canManageEmailTemplates(user?.roles ?? [])) {
+    redirect('/dashboard');
+  }
+
   return (
     <main className="space-y-6 p-6">
       <div>

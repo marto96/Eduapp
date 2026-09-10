@@ -17,6 +17,14 @@ export class AbilityFactory {
 
     if (roles.includes('admin_institucion')) {
       can('manage', 'all');
+      // Excepción explícita al `can('manage', 'all')` de arriba: auditoría y
+      // plantillas de correo quedan reservadas al superadmin de plataforma
+      // nada más (ver PlatformTenantAuditController, que expone la vista
+      // cross-tenant) — ningún rol de tenant, ni siquiera admin_institucion,
+      // las administra desde acá. Un `cannot` agregado después de un `can`
+      // lo overridea para esa acción+sujeto puntual, sin tocar el resto.
+      cannot('read', 'AuditLog');
+      cannot('manage', 'EmailTemplate');
     }
 
     if (roles.includes('directivo')) {
@@ -43,25 +51,18 @@ export class AbilityFactory {
         'Loan',
         'Report',
         'Admission',
-        'EmailTemplate',
       ]);
       can('read', 'all');
       // Excepción explícita al `can('read', 'all')` de arriba: 'all' en CASL
       // matchea cualquier subject check (incluido 'AuditLog'), así que sin
-      // este `cannot` directivo podría leer /audit-logs pese a que ningún
-      // rol que no sea admin_institucion lo lista explícitamente. Un
-      // `cannot` agregado después de un `can` lo overridea para ese
-      // action+subject puntual, sin tocar el resto de subjects que
-      // directivo sí puede leer.
-      //
-      // Guardado detrás de `!admin_institucion`: CASL resuelve la última
-      // regla que matchea, así que un usuario con AMBOS roles (combinación
-      // real y creable desde Usuarios) vería este `cannot` pisar el
-      // `can('manage', 'all')` del bloque admin_institucion de arriba pese a
-      // ser admin — el carve-out es solo para directivo "puro".
-      if (!roles.includes('admin_institucion')) {
-        cannot('read', 'AuditLog');
-      }
+      // este `cannot` directivo podría leer /audit-logs. Auditoría y
+      // plantillas de correo (esta última nunca estuvo en el `can('manage',
+      // [...])` de arriba desde este cambio) quedan reservadas al superadmin
+      // de plataforma — mismo criterio que el carve-out de admin_institucion
+      // más arriba, ya no hace falta protegerlo detrás de un chequeo de
+      // roles combinados: ambos roles quedan sin acceso por igual.
+      cannot('read', 'AuditLog');
+      cannot('manage', 'EmailTemplate');
     }
 
     if (roles.includes('docente')) {

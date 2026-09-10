@@ -118,16 +118,16 @@ describe('AbilityFactory', () => {
     expect(ability.can('manage', 'VirtualClass')).toBe(true);
   });
 
-  it('solo admin_institucion puede read AuditLog; directivo (y otros roles) quedan excluidos pese al can(\'read\', \'all\') genérico', () => {
-    expect(factory.createForUser(payload(['admin_institucion'])).can('read', 'AuditLog')).toBe(true);
+  it('ningún rol de tenant puede read AuditLog — queda reservado al superadmin de plataforma, ni admin_institucion lo tiene pese al can(\'manage\', \'all\') genérico', () => {
+    expect(factory.createForUser(payload(['admin_institucion'])).can('read', 'AuditLog')).toBe(false);
     expect(factory.createForUser(payload(['directivo'])).can('read', 'AuditLog')).toBe(false);
     expect(factory.createForUser(payload(['docente'])).can('read', 'AuditLog')).toBe(false);
     expect(factory.createForUser(payload(['secretaria'])).can('read', 'AuditLog')).toBe(false);
   });
 
-  it('admin_institucion + directivo puede read AuditLog (admin no queda pisado por el cannot de directivo)', () => {
+  it('admin_institucion + directivo tampoco puede read AuditLog (ninguno de los dos roles lo tiene, combinados o no)', () => {
     const ability = factory.createForUser(payload(['admin_institucion', 'directivo']));
-    expect(ability.can('read', 'AuditLog')).toBe(true);
+    expect(ability.can('read', 'AuditLog')).toBe(false);
   });
 
   it('secretaria/estudiante/padre_tutor solo pueden read VirtualClass', () => {
@@ -137,13 +137,9 @@ describe('AbilityFactory', () => {
     expect(factory.createForUser(payload(['padre_tutor'])).can('read', 'VirtualClass')).toBe(true);
   });
 
-  it('directivo puede manage EmailTemplate', () => {
-    const ability = factory.createForUser(payload(['directivo']));
-    expect(ability.can('manage', 'EmailTemplate')).toBe(true);
-  });
-
-  it('docente no puede manage EmailTemplate', () => {
-    const ability = factory.createForUser(payload(['docente']));
-    expect(ability.can('manage', 'EmailTemplate')).toBe(false);
+  it('ningún rol de tenant puede manage EmailTemplate — queda reservado al superadmin de plataforma', () => {
+    expect(factory.createForUser(payload(['admin_institucion'])).can('manage', 'EmailTemplate')).toBe(false);
+    expect(factory.createForUser(payload(['directivo'])).can('manage', 'EmailTemplate')).toBe(false);
+    expect(factory.createForUser(payload(['docente'])).can('manage', 'EmailTemplate')).toBe(false);
   });
 });

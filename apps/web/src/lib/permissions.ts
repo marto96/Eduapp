@@ -28,14 +28,26 @@ export function canEditUsers(roles: string[]): boolean {
 }
 
 /**
- * Solo admin_institucion — ni siquiera directivo — puede ver el log de
- * auditoría: pierde el sentido si el rol que más acciones ejecuta también
- * es el único que revisa el rastro. Ver `AuditLogsController` en el
- * backend, mismo criterio (el subject CASL `'AuditLog'` no se le da a
- * `directivo`).
+ * Ningún rol de tenant ve el log de auditoría — queda reservado al
+ * superadmin de plataforma (ver `PlatformTenantAuditController`, la vista
+ * cross-tenant). Antes solo `admin_institucion` lo veía; se le sacó el
+ * acceso también a ese rol por la misma razón por la que nunca se le dio a
+ * `directivo`: pierde el sentido si el rol que más acciones ejecuta
+ * también es el único que revisa el rastro. Mismo criterio que el backend
+ * (`AbilityFactory`: `cannot('read', 'AuditLog')` para todos los roles de
+ * tenant).
  */
-export function canViewAuditLogs(roles: string[]): boolean {
-  return roles.includes('admin_institucion');
+export function canViewAuditLogs(_roles: string[]): boolean {
+  return false;
+}
+
+/**
+ * Ningún rol de tenant administra plantillas de correo — reservado al
+ * superadmin de plataforma. Mismo criterio que `canViewAuditLogs` (ver
+ * `AbilityFactory`: `cannot('manage', 'EmailTemplate')`).
+ */
+export function canManageEmailTemplates(_roles: string[]): boolean {
+  return false;
 }
 
 export function canManageEnrollment(roles: string[]): boolean {
