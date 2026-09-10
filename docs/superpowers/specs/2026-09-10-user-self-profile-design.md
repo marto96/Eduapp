@@ -40,6 +40,17 @@ foto de perfil, sin poder tocar su email ni sus roles.
   condicionada a "uno mismo" (todas las reglas son solo rol×sujeto) —
   introducir una sería precedente arquitectónico nuevo e innecesario
   para este caso, que se resuelve más simple por construcción.
+- **Auditoría:** corrección tras revisar el código (la suposición
+  inicial era incorrecta) — el interceptor global de auditoría marca
+  cualquier `POST`/`PATCH`/`PUT`/`DELETE` como escritura auditable
+  salvo que tenga el decorador `@AuditSkip()` explícito, y `POST
+  /auth/logout` no lo tiene, así que sí audita hoy (a diferencia de
+  `GET /auth/me`, que no audita por ser una lectura sin
+  `@AuditRead`). Se decide **no** agregar `@AuditSkip()` a los
+  endpoints nuevos: que quede una entrada "el usuario X editó su
+  propio perfil / subió una foto" es consistente con que toda otra
+  escritura sobre `users` ya audita (incluida la edición que hace un
+  admin), y no requiere código adicional.
 
 ## Arquitectura
 
@@ -132,9 +143,8 @@ más `phone?: string` (`@IsString`, opcional) — **sin** los campos
   igual que el logo del tenant hoy.
 - Mostrar la foto del usuario en otras partes de la app (listas de
   usuarios, mensajería, etc.) — queda para un trabajo futuro si se pide.
-- Historial de cambios de perfil o auditoría de estos endpoints — sigue
-  el mismo criterio que ya tiene `GET /auth/me`/`POST /auth/logout`
-  (autoservicio, no genera entradas de auditoría).
+- Historial de cambios de perfil dedicado (más allá del audit log
+  general) — no se agrega ninguna vista nueva para esto.
 
 ## Testing
 
