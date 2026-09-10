@@ -20,11 +20,12 @@ nada.
   no una pestaña más dentro de la página principal del tenant.
 - **Alcance de acciones:** solo lectura + exportar a CSV. Sin borrar,
   sin editar.
-- **Auto-auditoría:** cada vez que el superadmin ve o exporta la
-  auditoría de un tenant, esa acción queda registrada en el `audit_logs`
-  de **ese mismo tenant** como lectura sensible (`kind: 'sensitive_read'`)
-  — mismo criterio de trazabilidad que ya se aplica a crear/editar/
-  impersonar usuarios.
+- **Sin auto-auditoría:** ver o exportar la auditoría de un tenant NO
+  genera ninguna entrada nueva en `audit_logs`. Se confirmó
+  explícitamente con el usuario: `audit_logs` debe seguir guardando
+  solo lo que ya guarda hoy — creaciones, ediciones, eliminaciones, y
+  errores — nunca lecturas, ni siquiera las del propio superadmin.
+  (Revierte una decisión tomada antes en esta misma conversación.)
 - **Exportar:** CSV, con el filtro actual aplicado (búsqueda/tipo/fecha),
   ignorando la paginación de pantalla — si el filtro trae 340
   resultados repartidos en pantallas de 25, exporta las 340 filas en
@@ -55,9 +56,15 @@ instancia a mano `TypeOrmAuditLogRepository(dataSource)` para delegar
 en el `ListAuditLogsUseCase` **ya existente** (el mismo que usa
 `GET /audit-logs` del lado del tenant).
 
+Ninguno de los dos use-cases nuevos recibe `platformAdmin` ni llama a
+`recordPlatformAudit` — mismo criterio que ya tiene
+`PlatformListTenantUsersUseCase` (que tampoco lo recibe, precisamente
+porque las lecturas no auditan nada). `recordPlatformAudit` no se
+toca en absoluto en este spec.
+
 ### Vista paginada
 
-`PlatformListTenantAuditLogsUseCase.execute(tenantId, query, platformAdmin)`:
+`PlatformListTenantAuditLogsUseCase.execute(tenantId, query)`:
 1. Resuelve el tenant vía `TenantRepositoryPort.findById` → 404 si no existe.
 2. Abre la conexión puntual al schema.
 3. Instancia `TypeOrmAuditLogRepository(dataSource)` y delega en
@@ -65,17 +72,12 @@ en el `ListAuditLogsUseCase` **ya existente** (el mismo que usa
    `ListAuditLogsQuery` (`search?`, `kind?`, `from?`, `to?`, `page?`,
    `pageSize?`) y misma forma de respuesta (`{items, total, page,
    pageSize}`) que ya devuelve el endpoint del tenant.
-4. Registra la lectura como auditoría best-effort en el tenant
-   afectado (`recordPlatformAudit(dataSource, 'view-audit-log',
-   'AuditLog', null, platformAdmin, 'sensitive_read')` — sin
-   `resourceId` puntual, porque es un listado, no un registro
-   específico).
-5. Devuelve el resultado.
+4. Devuelve el resultado.
 
 ### Exportar CSV
 
-`PlatformExportTenantAuditLogsUseCase.execute(tenantId, filter,
-platformAdmin): Promise<string>` (devuelve el CSV como texto):
+`PlatformExportTenantAuditLogsUseCase.execute(tenantId, filter):
+Promise<string>` (devuelve el CSV como texto):
 1. Mismo paso 1-2 que arriba.
 2. En vez de pasar por `ListAuditLogsUseCase` (que normaliza/limita la
    paginación para la pantalla), llama directo a
@@ -85,21 +87,7 @@ platformAdmin): Promise<string>` (devuelve el CSV como texto):
 3. Convierte los `AuditLog[]` resultantes a CSV (columnas: fecha,
    email del actor, roles del actor, método, ruta, id de recurso,
    código de estado, éxito, tipo, ip, vía impersonación).
-4. Registra la exportación como auditoría best-effort
-   (`recordPlatformAudit(dataSource, 'export-audit-log', 'AuditLog',
-   null, platformAdmin, 'sensitive_read')`).
-5. Devuelve el CSV.
-
-### Extensión mínima de `recordPlatformAudit`
-
-Hoy graba todo con `kind: 'write'` fijo, con la firma
-`recordPlatformAudit(dataSource, action, subject, resourceId,
-platformAdmin)` (5 parámetros). Se le agrega un sexto parámetro
-opcional `kind: AuditLogKind = 'write'` al final — los 6 usos que ya
-existen (crear/editar/desactivar/reactivar/resetear/impersonar
-usuario) no se tocan, todos siguen grabando `'write'` por default;
-solo las dos llamadas nuevas de este spec pasan `'sensitive_read'`
-explícito.
+4. Devuelve el CSV.
 
 ## Superficie nueva
 
@@ -109,8 +97,9 @@ explícito.
   (`Content-Type: text/csv`, `Content-Disposition: attachment`).
 - Nuevo controlador `PlatformTenantAuditController`, mismo patrón de
   protección que el resto de plataforma (`@Public()` a nivel de clase
-  + `@UseGuards(PlatformAdminGuard)`).
-- `recordPlatformAudit` extendido con el parámetro `kind` opcional.
+  + `@UseGuards(PlatformAdminGuard)`) — igual que `list()` en
+  `PlatformTenantUsersController`, ninguno de los dos métodos necesita
+  leer `req.platformAdmin`.
 - `AuditLog` (shared-types) extendido con `impersonatedBy: string |
   null` — hoy ausente pese a existir en el backend desde el plan de
   impersonación.
@@ -144,18 +133,18 @@ explícito.
 ## Testing
 
 - Backend: tests unitarios para `PlatformListTenantAuditLogsUseCase`
-  (rechaza tenant inexistente, delega correctamente en
-  `ListAuditLogsUseCase`, audita la lectura) y
-  `PlatformExportTenantAuditLogsUseCase` (rechaza tenant inexistente,
-  llama a `findAll` con el tope de 10.000, arma el CSV con las
-  columnas correctas, audita la exportación). Test para la extensión
-  de `recordPlatformAudit` (el parámetro `kind` es opcional y
-  default `'write'`).
+  (rechaza tenant inexistente sin abrir conexión, delega correctamente
+  en `ListAuditLogsUseCase`) y `PlatformExportTenantAuditLogsUseCase`
+  (rechaza tenant inexistente, llama a `findAll` con el tope de
+  10.000, arma el CSV con las columnas correctas). Ninguno de los dos
+  debe llamar a `recordPlatformAudit` — vale la pena un test explícito
+  que lo confirme, dado que se revirtió esa decisión durante el
+  brainstorming.
 - Frontend: sin framework de test en `apps/web` (igual que las
   features anteriores) — verificación manual en navegador: entrar a
   la auditoría de un tenant desde la página del superadmin, filtrar
   por búsqueda, confirmar que el badge de impersonación aparece en las
   filas que corresponden, exportar CSV y confirmar que el archivo
   descargado tiene las filas esperadas, y confirmar en la base que
-  quedaron las dos entradas de auditoría (`view-audit-log` y
-  `export-audit-log`) en el tenant investigado.
+  **no** quedó ninguna entrada nueva en `audit_logs` de ese tenant por
+  haber visto/exportado la auditoría.
