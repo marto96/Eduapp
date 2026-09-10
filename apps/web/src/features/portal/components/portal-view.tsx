@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+import { cn } from '@/lib/utils';
 import { useEnrollments } from '@/features/enrollment/use-enrollments';
 import { useUsers } from '@/features/users/use-users';
 import { useSections } from '@/features/academic/use-sections';
@@ -13,9 +15,11 @@ import { useLoans } from '@/features/library/use-loans';
 import { useBooks } from '@/features/library/use-books';
 import { usePortalAttendance, usePortalScores } from '../use-portal-data';
 import { ChildSummaryCard } from './child-summary-card';
+import { FamilyFinanceSummary } from './family-finance-summary';
 import { LoadingState } from '@/components/ui/loading-state';
 
 export function PortalView({ isGuardian }: { isGuardian: boolean }) {
+  const [activeEnrollmentId, setActiveEnrollmentId] = useState<string | null>(null);
   const { data: enrollments, isLoading: loadingEnrollments, error } = useEnrollments();
   const { data: users, isLoading: loadingUsers } = useUsers();
   const { data: sections, isLoading: loadingSections } = useSections();
@@ -68,26 +72,54 @@ export function PortalView({ isGuardian }: { isGuardian: boolean }) {
   const periodNameById = new Map(periods?.map((p) => [p.id, p.name]));
   const bookById = new Map(books?.map((b) => [b.id, b]));
 
+  const activeEnrollment = enrollments.find((e) => e.id === activeEnrollmentId) ?? enrollments[0];
+
   return (
     <div className="space-y-4">
-      {enrollments.map((enrollment) => (
-        <ChildSummaryCard
-          key={enrollment.id}
-          enrollment={enrollment}
-          studentName={isGuardian ? userNameById.get(enrollment.studentId) : undefined}
-          sectionName={sectionNameById.get(enrollment.sectionId)}
-          yearName={yearNameById.get(enrollment.academicYearId)}
-          attendance={(attendance ?? []).filter((a) => a.enrollmentId === enrollment.id)}
-          scores={(scores ?? []).filter((s) => s.enrollmentId === enrollment.id)}
-          evaluations={evaluations ?? []}
-          subjectNameById={subjectNameById}
-          periodNameById={periodNameById}
-          charges={(charges ?? []).filter((c) => c.enrollmentId === enrollment.id)}
-          documents={(documents ?? []).filter((d) => d.enrollmentId === enrollment.id)}
-          loans={(loans ?? []).filter((l) => l.studentId === enrollment.studentId)}
-          bookById={bookById}
+      {isGuardian && enrollments.length > 1 && (
+        <FamilyFinanceSummary
+          enrollments={enrollments}
+          charges={charges ?? []}
+          studentNameById={userNameById}
         />
-      ))}
+      )}
+
+      {enrollments.length > 1 && (
+        <div className="flex gap-1 border-b border-border">
+          {enrollments.map((enrollment) => (
+            <button
+              key={enrollment.id}
+              type="button"
+              onClick={() => setActiveEnrollmentId(enrollment.id)}
+              className={cn(
+                'px-3 py-2 text-sm transition-colors',
+                activeEnrollment.id === enrollment.id
+                  ? 'border-b-2 border-primary text-primary'
+                  : 'text-muted-foreground hover:text-foreground',
+              )}
+            >
+              {isGuardian ? (userNameById.get(enrollment.studentId) ?? 'Estudiante') : 'Mi matrícula'}
+            </button>
+          ))}
+        </div>
+      )}
+
+      <ChildSummaryCard
+        key={activeEnrollment.id}
+        enrollment={activeEnrollment}
+        studentName={isGuardian ? userNameById.get(activeEnrollment.studentId) : undefined}
+        sectionName={sectionNameById.get(activeEnrollment.sectionId)}
+        yearName={yearNameById.get(activeEnrollment.academicYearId)}
+        attendance={(attendance ?? []).filter((a) => a.enrollmentId === activeEnrollment.id)}
+        scores={(scores ?? []).filter((s) => s.enrollmentId === activeEnrollment.id)}
+        evaluations={evaluations ?? []}
+        subjectNameById={subjectNameById}
+        periodNameById={periodNameById}
+        charges={(charges ?? []).filter((c) => c.enrollmentId === activeEnrollment.id)}
+        documents={(documents ?? []).filter((d) => d.enrollmentId === activeEnrollment.id)}
+        loans={(loans ?? []).filter((l) => l.studentId === activeEnrollment.studentId)}
+        bookById={bookById}
+      />
     </div>
   );
 }

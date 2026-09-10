@@ -4,6 +4,10 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { StudentGradesList } from '@/features/grading/components/student-grades-list';
 import { usePaymentCheckout } from '@/features/finance/use-payment-checkout';
+import { chargeDisplayStatus, CHARGE_DISPLAY_STATUS_CLASSES } from '@/features/finance/charge-display-status';
+import { PortalGradesChart } from './portal-grades-chart';
+import { PortalAttendanceChart } from './portal-attendance-chart';
+import { PortalPaymentsChart } from './portal-payments-chart';
 import { formatCurrency } from '@/lib/currency';
 import type {
   AttendanceRecord,
@@ -36,12 +40,6 @@ const DOCUMENT_TYPE_LABELS: Record<string, string> = {
   certificado_notas: 'Certificado de notas',
   constancia_buena_conducta: 'Constancia de buena conducta',
   otro: 'Otro',
-};
-
-const STATUS_CLASSES: Record<string, string> = {
-  pendiente: 'text-destructive',
-  parcial: 'text-foreground',
-  pagado: 'text-muted-foreground',
 };
 
 export function ChildSummaryCard({
@@ -91,6 +89,12 @@ export function ChildSummaryCard({
         </span>
       </div>
 
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <PortalGradesChart enrollmentId={enrollment.id} />
+        <PortalAttendanceChart attendance={attendance} />
+        <PortalPaymentsChart charges={charges} />
+      </div>
+
       <div>
         <p className="text-sm font-medium">Asistencia</p>
         {sortedAttendance.length === 0 ? (
@@ -122,23 +126,26 @@ export function ChildSummaryCard({
           <p className="text-sm text-muted-foreground">Sin cargos todavía.</p>
         ) : (
           <ul className="space-y-1 text-sm text-muted-foreground">
-            {charges.map((charge) => (
-              <li key={charge.id} className="flex items-center justify-between gap-2">
-                <span>
-                  {charge.description} — {formatCurrency(charge.paidAmount)}/{formatCurrency(charge.amount)}{' '}
-                  <span className={STATUS_CLASSES[charge.status]}>({charge.status})</span>
-                </span>
-                {(charge.status === 'pendiente' || charge.status === 'parcial') && (
-                  <Button
-                    variant="secondary"
-                    disabled={checkout.isPending}
-                    onClick={() => checkout.mutate(charge.id)}
-                  >
-                    Pagar
-                  </Button>
-                )}
-              </li>
-            ))}
+            {charges.map((charge) => {
+              const status = chargeDisplayStatus(charge);
+              return (
+                <li key={charge.id} className="flex items-center justify-between gap-2">
+                  <span>
+                    {charge.description} — {formatCurrency(charge.paidAmount)}/{formatCurrency(charge.amount)}{' '}
+                    <span className={CHARGE_DISPLAY_STATUS_CLASSES[status]}>({status})</span>
+                  </span>
+                  {(charge.status === 'pendiente' || charge.status === 'parcial') && (
+                    <Button
+                      variant="secondary"
+                      disabled={checkout.isPending}
+                      onClick={() => checkout.mutate(charge.id)}
+                    >
+                      Pagar
+                    </Button>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>
