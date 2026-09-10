@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { TenantsController } from './interface/controllers/tenants.controller';
 import { PlatformAuthController } from './interface/controllers/platform-auth.controller';
 import { PlatformTenantUsersController } from './interface/controllers/platform-tenant-users.controller';
+import { PlatformTenantAuditController } from './interface/controllers/platform-tenant-audit.controller';
 import { PlatformAdminGuard } from './interface/guards/platform-admin.guard';
 import { CreateTenantUseCase } from './application/use-cases/create-tenant.use-case';
 import { ListTenantsUseCase } from './application/use-cases/list-tenants.use-case';
@@ -20,6 +21,8 @@ import { PlatformDeactivateTenantUserUseCase } from './application/use-cases/pla
 import { PlatformReactivateTenantUserUseCase } from './application/use-cases/platform-reactivate-tenant-user.use-case';
 import { PlatformResetTenantUserPasswordUseCase } from './application/use-cases/platform-reset-tenant-user-password.use-case';
 import { PlatformImpersonateTenantUserUseCase } from './application/use-cases/platform-impersonate-tenant-user.use-case';
+import { PlatformListTenantAuditLogsUseCase } from './application/use-cases/platform-list-tenant-audit-logs.use-case';
+import { PlatformExportTenantAuditLogsUseCase } from './application/use-cases/platform-export-tenant-audit-logs.use-case';
 import { TotpService } from './infrastructure/totp.service';
 import { TenantRepositoryPort } from './application/ports/tenant.repository.port';
 import { SchemaProvisionerPort } from './application/ports/schema-provisioner.port';
@@ -34,7 +37,7 @@ import { BcryptPasswordHasher } from '../../core/security/bcrypt-password-hasher
 
 @Module({
   imports: [TypeOrmModule.forFeature([TenantOrmEntity, PlatformAdminOrmEntity], 'platform')],
-  controllers: [TenantsController, PlatformAuthController, PlatformTenantUsersController],
+  controllers: [TenantsController, PlatformAuthController, PlatformTenantUsersController, PlatformTenantAuditController],
   providers: [
     PlatformAdminGuard,
     CreateTenantUseCase,
@@ -53,6 +56,8 @@ import { BcryptPasswordHasher } from '../../core/security/bcrypt-password-hasher
     PlatformReactivateTenantUserUseCase,
     PlatformResetTenantUserPasswordUseCase,
     PlatformImpersonateTenantUserUseCase,
+    PlatformListTenantAuditLogsUseCase,
+    PlatformExportTenantAuditLogsUseCase,
     TotpService,
     { provide: TenantRepositoryPort, useClass: TypeOrmTenantRepository },
     { provide: SchemaProvisionerPort, useClass: SchemaProvisionerAdapter },
