@@ -11,10 +11,21 @@ const TENANT_SUBDOMAIN = process.env.NEXT_PUBLIC_TENANT_SUBDOMAIN ?? '';
  * `apps/web/src/middleware.ts` (no está en su `matcher`), así que no hay
  * chequeo de sesión que sortear acá.
  */
+/**
+ * `req.url` no refleja el subdominio real del tenant en este dev server
+ * (siempre cae al host base) — por eso las redirecciones de esta ruta se
+ * arman explícitamente contra el header `Host` de la request entrante, no
+ * contra `req.url`.
+ */
+function sameOriginUrl(req: NextRequest, path: string): URL {
+  const host = req.headers.get('host') ?? req.nextUrl.host;
+  return new URL(path, `${req.nextUrl.protocol}//${host}`);
+}
+
 export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get('code');
   if (!code) {
-    return NextResponse.redirect(new URL('/login', req.url));
+    return NextResponse.redirect(sameOriginUrl(req, '/login'));
   }
 
   const apiRes = await fetch(`${API_URL}/auth/impersonate/consume`, {
@@ -24,7 +35,7 @@ export async function GET(req: NextRequest) {
   });
 
   if (!apiRes.ok) {
-    const loginUrl = new URL('/login', req.url);
+    const loginUrl = sameOriginUrl(req, '/login');
     loginUrl.searchParams.set('error', 'impersonation_expired');
     return NextResponse.redirect(loginUrl);
   }
@@ -32,7 +43,7 @@ export async function GET(req: NextRequest) {
   const { accessToken } = await apiRes.json();
   const isProd = process.env.NODE_ENV === 'production';
 
-  const response = NextResponse.redirect(new URL('/dashboard', req.url));
+  const response = NextResponse.redirect(sameOriginUrl(req, '/dashboard'));
   response.cookies.set('access_token', accessToken, {
     httpOnly: true,
     secure: isProd,
