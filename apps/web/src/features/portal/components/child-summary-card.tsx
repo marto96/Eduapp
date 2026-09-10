@@ -1,5 +1,7 @@
 'use client';
 
+import { useState } from 'react';
+import { cn } from '@/lib/utils';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { StudentGradesList } from '@/features/grading/components/student-grades-list';
@@ -73,6 +75,17 @@ export function ChildSummaryCard({
 }) {
   const sortedAttendance = [...attendance].sort((a, b) => b.date.localeCompare(a.date));
   const checkout = usePaymentCheckout();
+  const [activeSection, setActiveSection] = useState<
+    'asistencia' | 'notas' | 'finanzas' | 'documentos' | 'prestamos'
+  >('asistencia');
+
+  const sections = [
+    { key: 'asistencia' as const, label: 'Asistencia' },
+    { key: 'notas' as const, label: 'Notas' },
+    { key: 'finanzas' as const, label: 'Finanzas' },
+    { key: 'documentos' as const, label: 'Documentos' },
+    { key: 'prestamos' as const, label: 'Préstamos' },
+  ];
 
   return (
     <Card className="space-y-4">
@@ -95,9 +108,26 @@ export function ChildSummaryCard({
         <PortalPaymentsChart charges={charges} />
       </div>
 
-      <div>
-        <p className="text-sm font-medium">Asistencia</p>
-        {sortedAttendance.length === 0 ? (
+      <div className="flex gap-1 border-b border-border">
+        {sections.map((section) => (
+          <button
+            key={section.key}
+            type="button"
+            onClick={() => setActiveSection(section.key)}
+            className={cn(
+              'px-3 py-2 text-sm transition-colors',
+              activeSection === section.key
+                ? 'border-b-2 border-primary text-primary'
+                : 'text-muted-foreground hover:text-foreground',
+            )}
+          >
+            {section.label}
+          </button>
+        ))}
+      </div>
+
+      {activeSection === 'asistencia' &&
+        (sortedAttendance.length === 0 ? (
           <p className="text-sm text-muted-foreground">Sin registros todavía.</p>
         ) : (
           <ul className="space-y-1 text-sm text-muted-foreground">
@@ -107,22 +137,19 @@ export function ChildSummaryCard({
               </li>
             ))}
           </ul>
-        )}
-      </div>
+        ))}
 
-      <div>
-        <p className="text-sm font-medium">Notas</p>
+      {activeSection === 'notas' && (
         <StudentGradesList
           scores={scores}
           evaluations={evaluations}
           subjectNameById={subjectNameById}
           periodNameById={periodNameById}
         />
-      </div>
+      )}
 
-      <div>
-        <p className="text-sm font-medium">Finanzas</p>
-        {charges.length === 0 ? (
+      {activeSection === 'finanzas' &&
+        (charges.length === 0 ? (
           <p className="text-sm text-muted-foreground">Sin cargos todavía.</p>
         ) : (
           <ul className="space-y-1 text-sm text-muted-foreground">
@@ -147,12 +174,10 @@ export function ChildSummaryCard({
               );
             })}
           </ul>
-        )}
-      </div>
+        ))}
 
-      <div>
-        <p className="text-sm font-medium">Documentos</p>
-        {documents.length === 0 ? (
+      {activeSection === 'documentos' &&
+        (documents.length === 0 ? (
           <p className="text-sm text-muted-foreground">Sin documentos emitidos.</p>
         ) : (
           <ul className="space-y-1 text-sm text-muted-foreground">
@@ -162,12 +187,10 @@ export function ChildSummaryCard({
               </li>
             ))}
           </ul>
-        )}
-      </div>
+        ))}
 
-      <div>
-        <p className="text-sm font-medium">Préstamos</p>
-        {loans.length === 0 ? (
+      {activeSection === 'prestamos' &&
+        (loans.length === 0 ? (
           <p className="text-sm text-muted-foreground">Sin préstamos de biblioteca.</p>
         ) : (
           <ul className="space-y-1 text-sm text-muted-foreground">
@@ -180,8 +203,7 @@ export function ChildSummaryCard({
               </li>
             ))}
           </ul>
-        )}
-      </div>
+        ))}
     </Card>
   );
 }
