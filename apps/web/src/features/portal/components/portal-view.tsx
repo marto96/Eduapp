@@ -16,19 +16,40 @@ import { ChildSummaryCard } from './child-summary-card';
 import { LoadingState } from '@/components/ui/loading-state';
 
 export function PortalView({ isGuardian }: { isGuardian: boolean }) {
-  const { data: enrollments, isLoading, error } = useEnrollments();
-  const { data: users } = useUsers();
-  const { data: sections } = useSections();
-  const { data: years } = useAcademicYears();
-  const { data: subjects } = useSubjects();
-  const { data: periods } = usePeriods();
-  const { data: evaluations } = useEvaluations();
-  const { data: attendance } = usePortalAttendance();
-  const { data: scores } = usePortalScores();
-  const { data: charges } = useCharges();
-  const { data: documents } = useDocuments();
-  const { data: loans } = useLoans();
-  const { data: books } = useBooks();
+  const { data: enrollments, isLoading: loadingEnrollments, error } = useEnrollments();
+  const { data: users, isLoading: loadingUsers } = useUsers();
+  const { data: sections, isLoading: loadingSections } = useSections();
+  const { data: years, isLoading: loadingYears } = useAcademicYears();
+  const { data: subjects, isLoading: loadingSubjects } = useSubjects();
+  const { data: periods, isLoading: loadingPeriods } = usePeriods();
+  const { data: evaluations, isLoading: loadingEvaluations } = useEvaluations();
+  const { data: attendance, isLoading: loadingAttendance } = usePortalAttendance();
+  const { data: scores, isLoading: loadingScores } = usePortalScores();
+  const { data: charges, isLoading: loadingCharges } = useCharges();
+  const { data: documents, isLoading: loadingDocuments } = useDocuments();
+  const { data: loans, isLoading: loadingLoans } = useLoans();
+  const { data: books, isLoading: loadingBooks } = useBooks();
+
+  // Cada hook de arriba es una query independiente — antes solo se esperaba
+  // a `enrollments`, así que si `charges`/`attendance`/etc tardaban más,
+  // la tarjeta se renderizaba igual con esos datos todavía en `undefined`
+  // y mostraba "sin registros" indistinguible de un valor realmente vacío
+  // (bug reportado: "no se ve el área de finanzas", que en realidad
+  // afectaba a todas las secciones por igual, no solo finanzas).
+  const isLoading =
+    loadingEnrollments ||
+    loadingUsers ||
+    loadingSections ||
+    loadingYears ||
+    loadingSubjects ||
+    loadingPeriods ||
+    loadingEvaluations ||
+    loadingAttendance ||
+    loadingScores ||
+    loadingCharges ||
+    loadingDocuments ||
+    loadingLoans ||
+    loadingBooks;
 
   if (isLoading) return <LoadingState />;
   if (error) return <p className="text-sm text-destructive">No se pudo cargar la información.</p>;
