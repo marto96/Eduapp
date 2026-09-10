@@ -122,6 +122,7 @@ export interface AuditLog {
   kind: AuditLogKind;
   ipAddress: string | null;
   createdAt: string;
+  impersonatedBy: string | null;
 }
 
 export type AdmissionStatus = 'pendiente_pago' | 'pendiente_entrevista' | 'aceptada' | 'rechazada';

@@ -33,7 +33,7 @@ const ROUTE_LABELS: { pattern: RegExp; label: (m: RegExpMatchArray) => string }[
   { pattern: /^GET \/finance\/charges/, label: () => 'Consultó cargos de un estudiante' },
 ];
 
-function describeAction(log: AuditLog): string {
+export function describeAction(log: AuditLog): string {
   const key = `${log.method} ${log.route}`;
   for (const entry of ROUTE_LABELS) {
     const match = key.match(entry.pattern);
