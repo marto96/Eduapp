@@ -58,7 +58,7 @@ export function VirtualClassControls({
           className="h-8 px-3 text-xs"
           disabled={joinVirtualClass.isPending}
           onClick={() => {
-            const win = window.open('', '_blank', 'noopener,noreferrer');
+            const win = window.open('', '_blank');
             joinVirtualClass.mutate(schedule.id, {
               onSuccess: (room) => {
                 if (win) win.location.href = room.roomUrl;
