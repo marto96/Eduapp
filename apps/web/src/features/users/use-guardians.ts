@@ -1,12 +1,27 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { GuardianLink } from '@eduapp/shared-types';
+import type { GuardianLink, GuardianLinkCandidate } from '@eduapp/shared-types';
 
 async function fetchGuardians(): Promise<GuardianLink[]> {
   const res = await fetch('/api/guardians');
   if (!res.ok) throw new Error('No se pudieron cargar los vínculos');
   return res.json();
+}
+
+async function fetchGuardianLinkCandidates(search: string): Promise<GuardianLinkCandidate[]> {
+  const qs = search ? `?search=${encodeURIComponent(search)}` : '';
+  const res = await fetch(`/api/guardians/candidates${qs}`);
+  if (!res.ok) throw new Error('No se pudieron buscar estudiantes');
+  return res.json();
+}
+
+/** `search` ya debería venir con debounce aplicado por quien llama este hook. */
+export function useGuardianLinkCandidates(search: string) {
+  return useQuery({
+    queryKey: ['guardian-link-candidates', search],
+    queryFn: () => fetchGuardianLinkCandidates(search),
+  });
 }
 
 async function fetchMyGuardianLinks(): Promise<GuardianLink[]> {

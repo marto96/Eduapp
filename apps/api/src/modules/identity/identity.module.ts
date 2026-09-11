@@ -19,12 +19,15 @@ import { LinkGuardianUseCase } from './application/use-cases/link-guardian.use-c
 import { ListGuardianLinksUseCase } from './application/use-cases/list-guardian-links.use-case';
 import { RequestGuardianLinkUseCase } from './application/use-cases/request-guardian-link.use-case';
 import { ApproveGuardianLinkUseCase } from './application/use-cases/approve-guardian-link.use-case';
+import { SearchGuardianLinkCandidatesUseCase } from './application/use-cases/search-guardian-link-candidates.use-case';
 import { GuardianAccessService } from './application/services/guardian-access.service';
 import { UserRepositoryPort } from './application/ports/user.repository.port';
 import { GuardianLinkRepositoryPort } from './application/ports/guardian-link.repository.port';
+import { GuardianLinkCandidateRepositoryPort } from './application/ports/guardian-link-candidate.repository.port';
 import { TokenIssuerPort } from './application/ports/token-issuer.port';
 import { TypeOrmUserRepository } from './infrastructure/repositories/typeorm-user.repository';
 import { TypeOrmGuardianLinkRepository } from './infrastructure/repositories/typeorm-guardian-link.repository';
+import { TypeOrmGuardianLinkCandidateRepository } from './infrastructure/repositories/typeorm-guardian-link-candidate.repository';
 import { JwtTokenIssuer } from './infrastructure/security/jwt-token-issuer';
 import { PasswordHasherPort } from '../../core/security/password-hasher.port';
 import { BcryptPasswordHasher } from '../../core/security/bcrypt-password-hasher';
@@ -53,9 +56,11 @@ import { BcryptPasswordHasher } from '../../core/security/bcrypt-password-hasher
     ListGuardianLinksUseCase,
     RequestGuardianLinkUseCase,
     ApproveGuardianLinkUseCase,
+    SearchGuardianLinkCandidatesUseCase,
     GuardianAccessService,
     { provide: UserRepositoryPort, useClass: TypeOrmUserRepository },
     { provide: GuardianLinkRepositoryPort, useClass: TypeOrmGuardianLinkRepository },
+    { provide: GuardianLinkCandidateRepositoryPort, useClass: TypeOrmGuardianLinkCandidateRepository },
     { provide: PasswordHasherPort, useClass: BcryptPasswordHasher },
     { provide: TokenIssuerPort, useClass: JwtTokenIssuer },
   ],

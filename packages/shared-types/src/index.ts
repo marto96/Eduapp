@@ -372,6 +372,16 @@ export interface GuardianLink {
   status: GuardianLinkStatus;
 }
 
+export interface GuardianLinkCandidate {
+  id: string;
+  fullName: string;
+  documentType: IdentityDocumentType | null;
+  documentNumber: string | null;
+  birthDate: string | null;
+  gradeName: string | null;
+  sectionName: string | null;
+}
+
 export type AnnouncementCategory = 'comunicado' | 'circular' | 'aviso';
 
 export interface Announcement {

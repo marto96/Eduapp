@@ -6,9 +6,11 @@ import { LinkGuardianUseCase } from '../../application/use-cases/link-guardian.u
 import { ListGuardianLinksUseCase } from '../../application/use-cases/list-guardian-links.use-case';
 import { RequestGuardianLinkUseCase } from '../../application/use-cases/request-guardian-link.use-case';
 import { ApproveGuardianLinkUseCase } from '../../application/use-cases/approve-guardian-link.use-case';
+import { SearchGuardianLinkCandidatesUseCase } from '../../application/use-cases/search-guardian-link-candidates.use-case';
 import { LinkGuardianDto } from '../dtos/link-guardian.dto';
 import { ListGuardiansQueryDto } from '../dtos/list-guardians-query.dto';
 import { RequestGuardianLinkDto } from '../dtos/request-guardian-link.dto';
+import { SearchGuardianLinkCandidatesQueryDto } from '../dtos/search-guardian-link-candidates-query.dto';
 
 @Controller('guardians')
 export class GuardiansController {
@@ -17,7 +19,18 @@ export class GuardiansController {
     private readonly listGuardianLinks: ListGuardianLinksUseCase,
     private readonly requestGuardianLink: RequestGuardianLinkUseCase,
     private readonly approveGuardianLink: ApproveGuardianLinkUseCase,
+    private readonly searchGuardianLinkCandidates: SearchGuardianLinkCandidatesUseCase,
   ) {}
+
+  // Buscador para el picker de "vincular hijo/a" (padre_tutor autogestionando
+  // su propia solicitud) y el modal de administración (admin/directivo
+  // vinculando en nombre de un padre). Misma condición de acceso que esos
+  // dos flujos ya usan por separado — ver POST /requests y POST más abajo.
+  @Get('candidates')
+  @CheckPolicies((ability) => ability.can('create', 'GuardianLink') || ability.can('manage', 'User'))
+  async searchCandidates(@Query() query: SearchGuardianLinkCandidatesQueryDto) {
+    return this.searchGuardianLinkCandidates.execute(query.search);
+  }
 
   @Post()
   @CheckPolicies((ability) => ability.can('manage', 'User'))

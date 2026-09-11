@@ -1,11 +1,12 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import { useState } from 'react';
+import type { GuardianLinkCandidate } from '@eduapp/shared-types';
 import { useGuardians, useLinkGuardian, useApproveGuardianLink } from '../use-guardians';
 import { useUsers } from '../use-users';
+import { StudentSearchCombobox } from './student-search-combobox';
 import { Dialog } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 
 export function LinkGuardianModal({
   guardianUserId,
@@ -21,21 +22,19 @@ export function LinkGuardianModal({
   const linkGuardian = useLinkGuardian();
   const approveGuardianLink = useApproveGuardianLink();
 
-  const [studentUserId, setStudentUserId] = useState('');
+  const [selected, setSelected] = useState<GuardianLinkCandidate | null>(null);
 
   const studentNameById = new Map(students?.map((u) => [u.id, u.fullName]));
   const guardianLinks = links?.filter((l) => l.guardianUserId === guardianUserId) ?? [];
   const linkedStudentIds = new Set(guardianLinks.map((l) => l.studentUserId));
-  const availableStudents = students?.filter((s) => !linkedStudentIds.has(s.id)) ?? [];
 
-  function handleSubmit(event: FormEvent) {
-    event.preventDefault();
-    if (!guardianUserId || !studentUserId) return;
-    linkGuardian.mutate({ guardianUserId, studentUserId }, { onSuccess: () => setStudentUserId('') });
+  function handleSubmit() {
+    if (!guardianUserId || !selected) return;
+    linkGuardian.mutate({ guardianUserId, studentUserId: selected.id }, { onSuccess: () => setSelected(null) });
   }
 
   function handleClose() {
-    setStudentUserId('');
+    setSelected(null);
     onClose();
   }
 
@@ -71,37 +70,22 @@ export function LinkGuardianModal({
           </ul>
         )}
 
-        <form onSubmit={handleSubmit} className="flex flex-wrap items-end gap-3 border-t border-border pt-3">
-          <div className="min-w-48 flex-1 space-y-1.5">
-            <Label htmlFor="studentUserId">Agregar estudiante</Label>
-            <select
-              id="studentUserId"
-              required
-              value={studentUserId}
-              onChange={(e) => setStudentUserId(e.target.value)}
-              className="flex h-10 w-full rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
-            >
-              <option value="" disabled>
-                Selecciona uno
-              </option>
-              {availableStudents.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.fullName}
-                </option>
-              ))}
-            </select>
+        <div className="space-y-3 border-t border-border pt-3">
+          <StudentSearchCombobox
+            label="Agregar estudiante"
+            selected={selected}
+            onSelect={setSelected}
+            onClear={() => setSelected(null)}
+            excludeIds={linkedStudentIds}
+          />
+          <div className="flex justify-end">
+            <Button type="button" disabled={!selected || linkGuardian.isPending} onClick={handleSubmit}>
+              {linkGuardian.isPending ? 'Vinculando...' : 'Vincular'}
+            </Button>
           </div>
-          <Button type="submit" disabled={linkGuardian.isPending || availableStudents.length === 0}>
-            {linkGuardian.isPending ? 'Vinculando...' : 'Vincular'}
-          </Button>
-        </form>
+        </div>
         {linkGuardian.isError && (
           <p className="text-sm text-destructive">No se pudo vincular (¿ese vínculo ya existe?).</p>
-        )}
-        {availableStudents.length === 0 && (
-          <p className="text-sm text-muted-foreground">
-            Ya está vinculado a todos los estudiantes disponibles.
-          </p>
         )}
       </div>
     </Dialog>
