@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { ChargesController } from './interface/controllers/charges.controller';
 import { PaymentsController } from './interface/controllers/payments.controller';
 import { BankTransactionsController } from './interface/controllers/bank-transactions.controller';
@@ -41,9 +41,17 @@ import { IdentityModule } from '../identity/identity.module';
 import { AcademicModule } from '../academic/academic.module';
 import { PlatformModule } from '../platform/platform.module';
 import { EmailModule } from '../email/email.module';
+import { DocumentsModule } from '../documents/documents.module';
 
 @Module({
-  imports: [EnrollmentModule, IdentityModule, AcademicModule, PlatformModule, EmailModule],
+  imports: [
+    EnrollmentModule,
+    IdentityModule,
+    AcademicModule,
+    PlatformModule,
+    EmailModule,
+    forwardRef(() => DocumentsModule),
+  ],
   controllers: [
     ChargesController,
     PaymentsController,
@@ -77,6 +85,6 @@ import { EmailModule } from '../email/email.module';
     { provide: FeeScheduleRepositoryPort, useClass: TypeOrmFeeScheduleRepository },
     { provide: PensionReminderLogRepositoryPort, useClass: TypeOrmPensionReminderLogRepository },
   ],
-  exports: [ChargeRepositoryPort, PaymentRepositoryPort, PaymentGatewayPort, FeeScheduleRepositoryPort],
+  exports: [ChargeRepositoryPort, PaymentRepositoryPort, PaymentGatewayPort, FeeScheduleRepositoryPort, CreateChargeUseCase],
 })
 export class FinanceModule {}

@@ -13,6 +13,8 @@ import { ListDocumentTypePricesUseCase } from '../../application/use-cases/list-
 import { SetDocumentTypePriceUseCase } from '../../application/use-cases/set-document-type-price.use-case';
 import { SetDocumentTypePriceDto } from '../dtos/set-document-type-price.dto';
 import { SetDocumentTypePriceParamDto } from '../dtos/set-document-type-price-param.dto';
+import { RequestDocumentUseCase } from '../../application/use-cases/request-document.use-case';
+import { RequestDocumentDto } from '../dtos/request-document.dto';
 
 @Controller('documents')
 export class DocumentsController {
@@ -23,12 +25,19 @@ export class DocumentsController {
     private readonly getDocumentPdf: GetDocumentPdfUseCase,
     private readonly listDocumentTypePrices: ListDocumentTypePricesUseCase,
     private readonly setDocumentTypePrice: SetDocumentTypePriceUseCase,
+    private readonly requestDocument: RequestDocumentUseCase,
   ) {}
 
   @Post()
   @CheckPolicies((ability) => ability.can('create', 'Document'))
   async create(@Body() dto: IssueDocumentDto, @CurrentUser() user: JwtPayload) {
     return this.issueDocument.execute({ ...dto, issuedBy: user.sub });
+  }
+
+  @Post('requests')
+  @CheckPolicies((ability) => ability.can('create', 'DocumentRequest'))
+  async request(@Body() dto: RequestDocumentDto, @CurrentUser() user: JwtPayload) {
+    return this.requestDocument.execute(dto, user);
   }
 
   @Get()

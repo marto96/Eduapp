@@ -23,6 +23,7 @@ export type AppSubjects =
   | 'Finance'
   | 'Hr'
   | 'Document'
+  | 'DocumentRequest'
   | 'Announcement'
   | 'Event'
   | 'Message'
