@@ -29,6 +29,7 @@ import { SurveyModule } from './modules/survey/survey.module';
 import { LibraryModule } from './modules/library/library.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { AuditModule } from './modules/audit/audit.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
 
 // A medida que se implementen los demás módulos (reports, etc.) se
 // importan acá siguiendo el mismo patrón que AcademicModule.
@@ -72,6 +73,7 @@ import { AuditModule } from './modules/audit/audit.module';
     LibraryModule,
     ReportsModule,
     AuditModule,
+    NotificationsModule,
   ],
 })
 export class AppModule implements NestModule {
