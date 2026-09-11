@@ -4,6 +4,7 @@ import { Sidebar } from '@/components/sidebar';
 import { PageTitle } from '@/components/page-title';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { ImpersonationBanner } from '@/components/impersonation-banner';
+import { NotificationBell } from '@/features/notifications/components/notification-bell';
 import { getCurrentUser, getTenantBranding } from '@/lib/server-api';
 import { formatRoles, getInitials } from '@/lib/roles';
 
@@ -20,6 +21,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           <header className="flex items-center justify-between gap-3 border-b border-border px-6 py-3">
             <PageTitle />
             <div className="flex items-center gap-3">
+              <NotificationBell />
               <ThemeToggle />
               <div className="h-8 w-px bg-border" />
               <Link href="/profile" className="flex items-center gap-3">
