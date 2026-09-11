@@ -20,18 +20,26 @@
   --muted-foreground: 230 9% 50%;
   --border: 240 1% 88%;
   --destructive: 0 72% 51%;
+  --success: 152 55% 36%;
+  --warning: 38 92% 48%;
   --font-sans: 'Inter', system-ui, sans-serif;
 }
 
 .dark {
-  --background: 233 27% 12%;
-  --surface: 232 18% 17%;
+  /* Superficie/fondo más separados que antes (12%/17% de luminosidad
+     quedaba casi plano) — ver docs/superpowers/specs si se agrega uno para
+     este rediseño; el objetivo es que las tarjetas se despeguen del fondo
+     sin depender de sombras (que casi no se notan sobre fondos oscuros). */
+  --background: 233 30% 9%;
+  --surface: 231 22% 15%;
   --foreground: 240 2% 92%;
-  --primary: 249 53% 68%;
-  --muted: 227 10% 27%;
-  --muted-foreground: 230 13% 62%;
-  --border: 236 11% 25%;
-  --destructive: 0 63% 60%;
+  --primary: 249 62% 74%;
+  --muted: 227 13% 21%;
+  --muted-foreground: 230 13% 66%;
+  --border: 236 15% 24%;
+  --destructive: 0 70% 64%;
+  --success: 152 50% 50%;
+  --warning: 38 92% 60%;
 }
 
 body {

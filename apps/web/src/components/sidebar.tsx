@@ -44,17 +44,19 @@ export function Sidebar({ branding, roles }: { branding: TenantBranding; roles: 
           collapsed ? 'justify-center' : 'justify-between',
         )}
       >
-        {!collapsed &&
-          (branding.logoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={branding.logoUrl}
-              alt={branding.name}
-              className="h-6 max-w-[7rem] object-contain"
-            />
-          ) : (
+        {!collapsed && (
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            {branding.logoUrl && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={branding.logoUrl}
+                alt={branding.name}
+                className="h-6 w-auto max-w-[4rem] shrink-0 object-contain"
+              />
+            )}
             <span className="truncate text-sm font-medium">{branding.name}</span>
-          ))}
+          </div>
+        )}
         <Button
           type="button"
           variant="secondary"

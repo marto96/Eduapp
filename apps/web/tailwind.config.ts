@@ -18,6 +18,8 @@ const config: Config = {
         'muted-foreground': 'hsl(var(--muted-foreground))',
         border: 'hsl(var(--border))',
         destructive: 'hsl(var(--destructive))',
+        success: 'hsl(var(--success))',
+        warning: 'hsl(var(--warning))',
       },
       fontFamily: {
         sans: ['var(--font-sans)', 'sans-serif'],

@@ -11,6 +11,7 @@ import { TodayScheduleWidget } from '@/features/dashboard/components/today-sched
 import { MyLoansWidget } from '@/features/dashboard/components/my-loans-widget';
 import { StudentGradesChartWidget } from '@/features/dashboard/components/student-grades-chart-widget';
 import { StudentAttendanceChartWidget } from '@/features/dashboard/components/student-attendance-chart-widget';
+import { DashboardGreeting } from '@/features/dashboard/components/dashboard-greeting';
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();
@@ -27,7 +28,7 @@ export default async function DashboardPage() {
   return (
     <main className="space-y-6 p-6">
       <div>
-
+        <DashboardGreeting fullName={user.fullName} />
         <p className="mt-1 text-sm text-muted-foreground">Resumen de tu actividad en la plataforma.</p>
       </div>
 
