@@ -12,6 +12,7 @@ import { MyLoansWidget } from '@/features/dashboard/components/my-loans-widget';
 import { StudentGradesChartWidget } from '@/features/dashboard/components/student-grades-chart-widget';
 import { StudentAttendanceChartWidget } from '@/features/dashboard/components/student-attendance-chart-widget';
 import { DashboardGreeting } from '@/features/dashboard/components/dashboard-greeting';
+import { DocumentRequestsWidget } from '@/features/dashboard/components/document-requests-widget';
 
 export default async function DashboardPage() {
   const user = await getCurrentUser();
@@ -35,6 +36,7 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <UnreadMessagesWidget />
         {isAdmin && <QuickStatsWidget />}
+        {(isAdmin || isSecretaria) && <DocumentRequestsWidget />}
         {showPendingCharges && <PendingChargesWidget />}
       </div>
 

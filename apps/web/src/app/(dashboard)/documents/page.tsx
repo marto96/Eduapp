@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { IssueDocumentForm } from '@/features/documents/components/issue-document-form';
 import { DocumentsList } from '@/features/documents/components/documents-list';
 import { DocumentRequestsQueue } from '@/features/documents/components/document-requests-queue';
@@ -12,7 +13,11 @@ import { cn } from '@/lib/utils';
 export default function DocumentsPage() {
   const { data: user } = useMyProfile();
   const canManage = canManageDocuments(user?.roles ?? []);
-  const [tab, setTab] = useState<'documentos' | 'solicitudes' | 'precios'>('documentos');
+  const searchParams = useSearchParams();
+  const initialTab = searchParams.get('tab');
+  const [tab, setTab] = useState<'documentos' | 'solicitudes' | 'precios'>(
+    initialTab === 'solicitudes' || initialTab === 'precios' ? initialTab : 'documentos',
+  );
 
   const tabs = canManage
     ? ([
