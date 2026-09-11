@@ -55,6 +55,7 @@ export function useRequestDocument() {
     mutationFn: requestDocument,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['document-requests'] });
+      queryClient.invalidateQueries({ queryKey: ['documents'] });
       toast.success('Solicitud enviada.');
     },
   });

@@ -27,6 +27,7 @@ export class CompleteDocumentPaymentUseCase {
   async execute(chargeId: string): Promise<void> {
     const request = await this.documentRequests.findByChargeId(chargeId);
     if (!request) return;
+    if (request.status !== 'pendiente_pago') return;
 
     const issuedDocument = await this.issueDocument.execute({
       enrollmentId: request.enrollmentId,

@@ -42,6 +42,20 @@ describe('CompleteDocumentPaymentUseCase', () => {
     expect(issueDocument.execute).not.toHaveBeenCalled();
   });
 
+  it('no hace nada si la solicitud ya no está pendiente_pago (idempotencia ante doble pago aprobado)', async () => {
+    const request = new DocumentRequest(
+      'req-1', 'enrollment-1', 'certificado_notas', 'digital', null, 'padre-1',
+      '2026-09-11T00:00:00.000Z', 'lista', 'charge-1', 'doc-1',
+    );
+    documentRequests.findByChargeId.mockResolvedValue(request);
+
+    await useCase.execute('charge-1');
+
+    expect(issueDocument.execute).not.toHaveBeenCalled();
+    expect(documentRequests.save).not.toHaveBeenCalled();
+    expect(createNotification.execute).not.toHaveBeenCalled();
+  });
+
   it('genera el documento y marca la solicitud lista (digital) sin notificar a nadie', async () => {
     const request = new DocumentRequest(
       'req-1', 'enrollment-1', 'certificado_notas', 'digital', null, 'padre-1',

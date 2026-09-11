@@ -9,15 +9,25 @@ import { DocumentTypePricesForm } from '@/features/documents/components/document
 import { useMyProfile } from '@/features/profile/use-profile';
 import { canManageDocuments } from '@/lib/permissions';
 import { cn } from '@/lib/utils';
+import { LoadingState } from '@/components/ui/loading-state';
 
 export default function DocumentsPage() {
-  const { data: user } = useMyProfile();
+  const { data: user, isLoading } = useMyProfile();
   const canManage = canManageDocuments(user?.roles ?? []);
   const searchParams = useSearchParams();
   const initialTab = searchParams.get('tab');
   const [tab, setTab] = useState<'documentos' | 'solicitudes' | 'precios'>(
     initialTab === 'solicitudes' || initialTab === 'precios' ? initialTab : 'documentos',
   );
+  const effectiveTab = canManage ? tab : 'documentos';
+
+  if (isLoading) {
+    return (
+      <main className="space-y-6 p-6">
+        <LoadingState label="Cargando..." className="justify-center py-8" />
+      </main>
+    );
+  }
 
   const tabs = canManage
     ? ([
@@ -54,14 +64,14 @@ export default function DocumentsPage() {
         </div>
       )}
 
-      {tab === 'documentos' && (
+      {effectiveTab === 'documentos' && (
         <>
           {canManage && <IssueDocumentForm />}
           <DocumentsList canManage={canManage} />
         </>
       )}
-      {tab === 'solicitudes' && canManage && <DocumentRequestsQueue />}
-      {tab === 'precios' && canManage && <DocumentTypePricesForm />}
+      {effectiveTab === 'solicitudes' && canManage && <DocumentRequestsQueue />}
+      {effectiveTab === 'precios' && canManage && <DocumentTypePricesForm />}
     </main>
   );
 }

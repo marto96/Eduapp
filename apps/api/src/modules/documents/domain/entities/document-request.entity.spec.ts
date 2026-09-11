@@ -27,6 +27,13 @@ describe('DocumentRequest', () => {
     expect(req.status).toBe('lista_para_imprimir');
   });
 
+  it('markReady lanza error si la solicitud no está pendiente_pago', () => {
+    const req = build({ deliveryMethod: 'digital', status: 'lista' });
+    expect(() => req.markReady('doc-1')).toThrow(
+      'Solo se puede marcar lista una solicitud pendiente de pago',
+    );
+  });
+
   it('markDelivered marca entregada una solicitud lista_para_imprimir', () => {
     const req = build({ deliveryMethod: 'fisico', status: 'lista_para_imprimir' });
     req.markDelivered('staff-1');

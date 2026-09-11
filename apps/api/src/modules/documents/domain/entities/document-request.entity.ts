@@ -27,6 +27,9 @@ export class DocumentRequest {
   ) {}
 
   markReady(issuedDocumentId: string): void {
+    if (this.status !== 'pendiente_pago') {
+      throw new Error('Solo se puede marcar lista una solicitud pendiente de pago');
+    }
     this.issuedDocumentId = issuedDocumentId;
     this.status = this.deliveryMethod === 'digital' ? 'lista' : 'lista_para_imprimir';
   }

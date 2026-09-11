@@ -73,7 +73,14 @@ export class HandlePaymentWebhookUseCase {
       );
       attempt.approve();
       await this.recordApprovedPayment.execute(payment, attempt);
-      await this.checkDocumentChargeCompleted(attempt.chargeId);
+      try {
+        await this.checkDocumentChargeCompleted(attempt.chargeId);
+      } catch (err) {
+        this.logger.error(
+          `Pago ${attempt.chargeId} registrado, pero falló la emisión del documento: ${(err as Error).message}`,
+          (err as Error).stack,
+        );
+      }
     } else if (info.status === 'rejected') {
       attempt.reject();
       await this.attempts.save(attempt);
@@ -86,7 +93,7 @@ export class HandlePaymentWebhookUseCase {
 
     const payments = await this.payments.findAll({ chargeId });
     const paidAmount = payments.filter((p) => !p.voidedAt).reduce((sum, p) => sum + p.amount, 0);
-    const balance = charge.amount - charge.discountAmount - paidAmount;
+    const balance = charge.computeBalance(paidAmount);
     if (balance <= 0) {
       await this.completeDocumentPayment.execute(chargeId);
     }

@@ -155,6 +155,29 @@ describe('HandlePaymentWebhookUseCase', () => {
     expect(completeDocumentPayment.execute).toHaveBeenCalledWith('charge-1');
   });
 
+  it('registra el pago aunque falle la emisión del documento, y solo loguea el error', async () => {
+    gateway.getPaymentInfo.mockResolvedValue({
+      status: 'approved',
+      paymentMethodId: 'CARD',
+      externalReference: 'att-1',
+    });
+    attempts.findById.mockResolvedValue(pendingAttempt());
+    charges.findById.mockResolvedValue(
+      new Charge('charge-1', 'enrollment-1', 'documento', 'Certificado de notas', 100, '2026-09-11'),
+    );
+    payments.findAll.mockResolvedValue([
+      new Payment('pay-1', 'charge-1', 100, 'tarjeta', '2026-09-11', 'wompi:txn-1'),
+    ]);
+    completeDocumentPayment.execute.mockRejectedValue(new Error('DB caída'));
+
+    await expect(
+      useCase.execute({ event: 'transaction.updated', data: { transaction: { id: 'txn-1' } } }),
+    ).resolves.toBeUndefined();
+
+    expect(recordApprovedPayment.execute).toHaveBeenCalledTimes(1);
+    expect(completeDocumentPayment.execute).toHaveBeenCalledWith('charge-1');
+  });
+
   it('NO dispara CompleteDocumentPaymentUseCase si el cargo de documento queda con saldo pendiente', async () => {
     gateway.getPaymentInfo.mockResolvedValue({
       status: 'approved',
