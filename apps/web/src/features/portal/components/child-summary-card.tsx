@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { StudentGradesList } from '@/features/grading/components/student-grades-list';
 import { usePaymentCheckout } from '@/features/finance/use-payment-checkout';
 import { chargeDisplayStatus, CHARGE_DISPLAY_STATUS_CLASSES } from '@/features/finance/charge-display-status';
+import { useDocumentRequests } from '@/features/documents/use-document-requests';
+import { RequestDocumentForm } from '@/features/documents/components/request-document-form';
 import { PortalGradesChart } from './portal-grades-chart';
 import { PortalAttendanceChart } from './portal-attendance-chart';
 import { PortalPaymentsChart } from './portal-payments-chart';
@@ -78,6 +80,9 @@ export function ChildSummaryCard({
   const [activeSection, setActiveSection] = useState<
     'asistencia' | 'notas' | 'finanzas' | 'documentos' | 'prestamos'
   >('asistencia');
+  const [showRequestForm, setShowRequestForm] = useState(false);
+  const { data: documentRequests } = useDocumentRequests();
+  const myRequests = (documentRequests ?? []).filter((r) => r.enrollmentId === enrollment.id);
 
   const sections = [
     { key: 'asistencia' as const, label: 'Asistencia' },
@@ -176,18 +181,50 @@ export function ChildSummaryCard({
           </ul>
         ))}
 
-      {activeSection === 'documentos' &&
-        (documents.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Sin documentos emitidos.</p>
-        ) : (
-          <ul className="space-y-1 text-sm text-muted-foreground">
-            {documents.map((doc) => (
-              <li key={doc.id}>
-                {DOCUMENT_TYPE_LABELS[doc.type] ?? doc.type} — {doc.issuedAt}
-              </li>
-            ))}
-          </ul>
-        ))}
+      {activeSection === 'documentos' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium">Documentos emitidos</p>
+            <Button variant="secondary" onClick={() => setShowRequestForm((v) => !v)}>
+              {showRequestForm ? 'Cancelar' : 'Solicitar documento'}
+            </Button>
+          </div>
+
+          {showRequestForm && <RequestDocumentForm enrollmentId={enrollment.id} />}
+
+          {myRequests.length > 0 && (
+            <div className="space-y-1">
+              <p className="text-xs uppercase text-muted-foreground">Mis solicitudes</p>
+              <ul className="space-y-1 text-sm text-muted-foreground">
+                {myRequests.map((r) => (
+                  <li key={r.id} className="flex items-center justify-between gap-2">
+                    <span>{DOCUMENT_TYPE_LABELS[r.type] ?? r.type}</span>
+                    <span>
+                      {r.status === 'pendiente_pago' && 'Pendiente de pago'}
+                      {r.status === 'lista_para_imprimir' && 'Lista para retirar en secretaría'}
+                      {r.status === 'lista' && 'Lista para descargar'}
+                      {r.status === 'entregada' && 'Entregada'}
+                      {r.status === 'rechazada' && `Rechazada${r.rejectionReason ? `: ${r.rejectionReason}` : ''}`}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {documents.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Sin documentos emitidos.</p>
+          ) : (
+            <ul className="space-y-1 text-sm text-muted-foreground">
+              {documents.map((doc) => (
+                <li key={doc.id}>
+                  {DOCUMENT_TYPE_LABELS[doc.type] ?? doc.type} — {doc.issuedAt}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
 
       {activeSection === 'prestamos' &&
         (loans.length === 0 ? (
