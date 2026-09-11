@@ -2,8 +2,12 @@ import { HandlePaymentWebhookUseCase } from './handle-payment-webhook.use-case';
 import { PaymentAttemptRepositoryPort } from '../ports/payment-attempt.repository.port';
 import { RecordApprovedPaymentPort } from '../ports/record-approved-payment.port';
 import { PaymentGatewayPort } from '../ports/payment-gateway.port';
+import { ChargeRepositoryPort } from '../ports/charge.repository.port';
+import { PaymentRepositoryPort } from '../ports/payment.repository.port';
 import { PaymentAttempt } from '../../domain/entities/payment-attempt.entity';
 import { Payment } from '../../domain/entities/payment.entity';
+import { Charge } from '../../domain/entities/charge.entity';
+import { CompleteDocumentPaymentUseCase } from '../../../documents/application/use-cases/complete-document-payment.use-case';
 
 describe('HandlePaymentWebhookUseCase', () => {
   const attempts: jest.Mocked<PaymentAttemptRepositoryPort> = {
@@ -17,13 +21,35 @@ describe('HandlePaymentWebhookUseCase', () => {
     createCheckoutPreference: jest.fn(),
     getPaymentInfo: jest.fn(),
   };
+  const charges: jest.Mocked<ChargeRepositoryPort> = {
+    findAll: jest.fn(),
+    findById: jest.fn(),
+    save: jest.fn(),
+  };
+  const payments: jest.Mocked<PaymentRepositoryPort> = {
+    findAll: jest.fn(),
+    findById: jest.fn(),
+    save: jest.fn(),
+  };
+  const completeDocumentPayment = { execute: jest.fn() } as unknown as jest.Mocked<CompleteDocumentPaymentUseCase>;
 
-  const useCase = new HandlePaymentWebhookUseCase(attempts, recordApprovedPayment, gateway);
+  const useCase = new HandlePaymentWebhookUseCase(
+    attempts,
+    recordApprovedPayment,
+    gateway,
+    charges,
+    payments,
+    completeDocumentPayment,
+  );
 
   const pendingAttempt = () =>
     new PaymentAttempt('att-1', 'charge-1', 'guardian-1', 'pref-1', 100, 'pending', '2026-01-01T00:00:00.000Z');
 
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    charges.findById.mockResolvedValue(null);
+    payments.findAll.mockResolvedValue([]);
+  });
 
   it('ignora notificaciones que no son de tipo transaction.updated', async () => {
     await useCase.execute({ event: 'transaction.created', data: { transaction: { id: '1' } } });
@@ -94,5 +120,57 @@ describe('HandlePaymentWebhookUseCase', () => {
     expect(attempts.save).toHaveBeenCalledTimes(1);
     const [savedAttempt] = attempts.save.mock.calls[0] as [PaymentAttempt];
     expect(savedAttempt.status).toBe('rejected');
+  });
+
+  it('no dispara CompleteDocumentPaymentUseCase si el cargo pagado no es de concepto documento', async () => {
+    gateway.getPaymentInfo.mockResolvedValue({
+      status: 'approved',
+      paymentMethodId: 'CARD',
+      externalReference: 'att-1',
+    });
+    attempts.findById.mockResolvedValue(pendingAttempt());
+    charges.findById.mockResolvedValue(new Charge('charge-1', 'enrollment-1', 'pension', 'Pensión', 100, '2026-09-11'));
+
+    await useCase.execute({ event: 'transaction.updated', data: { transaction: { id: 'txn-1' } } });
+
+    expect(completeDocumentPayment.execute).not.toHaveBeenCalled();
+  });
+
+  it('dispara CompleteDocumentPaymentUseCase cuando un cargo de concepto documento queda saldado', async () => {
+    gateway.getPaymentInfo.mockResolvedValue({
+      status: 'approved',
+      paymentMethodId: 'CARD',
+      externalReference: 'att-1',
+    });
+    attempts.findById.mockResolvedValue(pendingAttempt());
+    charges.findById.mockResolvedValue(
+      new Charge('charge-1', 'enrollment-1', 'documento', 'Certificado de notas', 100, '2026-09-11'),
+    );
+    payments.findAll.mockResolvedValue([
+      new Payment('pay-1', 'charge-1', 100, 'tarjeta', '2026-09-11', 'wompi:txn-1'),
+    ]);
+
+    await useCase.execute({ event: 'transaction.updated', data: { transaction: { id: 'txn-1' } } });
+
+    expect(completeDocumentPayment.execute).toHaveBeenCalledWith('charge-1');
+  });
+
+  it('NO dispara CompleteDocumentPaymentUseCase si el cargo de documento queda con saldo pendiente', async () => {
+    gateway.getPaymentInfo.mockResolvedValue({
+      status: 'approved',
+      paymentMethodId: 'CARD',
+      externalReference: 'att-1',
+    });
+    attempts.findById.mockResolvedValue(pendingAttempt());
+    charges.findById.mockResolvedValue(
+      new Charge('charge-1', 'enrollment-1', 'documento', 'Certificado de notas', 200, '2026-09-11'),
+    );
+    payments.findAll.mockResolvedValue([
+      new Payment('pay-1', 'charge-1', 100, 'tarjeta', '2026-09-11', 'wompi:txn-1'),
+    ]);
+
+    await useCase.execute({ event: 'transaction.updated', data: { transaction: { id: 'txn-1' } } });
+
+    expect(completeDocumentPayment.execute).not.toHaveBeenCalled();
   });
 });

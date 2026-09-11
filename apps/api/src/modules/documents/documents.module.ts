@@ -17,9 +17,11 @@ import { TypeOrmDocumentTypePriceRepository } from './infrastructure/repositorie
 import { RequestDocumentUseCase } from './application/use-cases/request-document.use-case';
 import { DocumentRequestRepositoryPort } from './application/ports/document-request.repository.port';
 import { TypeOrmDocumentRequestRepository } from './infrastructure/repositories/typeorm-document-request.repository';
+import { NotificationsModule } from '../notifications/notifications.module';
+import { CompleteDocumentPaymentUseCase } from './application/use-cases/complete-document-payment.use-case';
 
 @Module({
-  imports: [EnrollmentModule, IdentityModule, forwardRef(() => FinanceModule)],
+  imports: [EnrollmentModule, IdentityModule, forwardRef(() => FinanceModule), NotificationsModule],
   controllers: [DocumentsController],
   providers: [
     IssueDocumentUseCase,
@@ -33,6 +35,8 @@ import { TypeOrmDocumentRequestRepository } from './infrastructure/repositories/
     { provide: DocumentTypePriceRepositoryPort, useClass: TypeOrmDocumentTypePriceRepository },
     RequestDocumentUseCase,
     { provide: DocumentRequestRepositoryPort, useClass: TypeOrmDocumentRequestRepository },
+    CompleteDocumentPaymentUseCase,
   ],
+  exports: [CompleteDocumentPaymentUseCase],
 })
 export class DocumentsModule {}
