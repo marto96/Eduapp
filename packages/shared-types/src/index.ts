@@ -244,7 +244,7 @@ export interface VirtualRoom {
   roomUrl: string;
 }
 
-export type ChargeConcept = 'matricula' | 'pension' | 'solicitud_admision' | 'otro';
+export type ChargeConcept = 'matricula' | 'pension' | 'solicitud_admision' | 'documento' | 'otro';
 export type ChargeStatus = 'pendiente' | 'parcial' | 'pagado' | 'anulado';
 export type PaymentMethod = 'efectivo' | 'transferencia' | 'tarjeta' | 'otro';
 
