@@ -12,7 +12,7 @@ import { ListDocumentsQueryDto } from '../dtos/list-documents-query.dto';
 import { ListDocumentTypePricesUseCase } from '../../application/use-cases/list-document-type-prices.use-case';
 import { SetDocumentTypePriceUseCase } from '../../application/use-cases/set-document-type-price.use-case';
 import { SetDocumentTypePriceDto } from '../dtos/set-document-type-price.dto';
-import type { DocumentType } from '../../domain/entities/issued-document.entity';
+import { SetDocumentTypePriceParamDto } from '../dtos/set-document-type-price-param.dto';
 
 @Controller('documents')
 export class DocumentsController {
@@ -58,7 +58,7 @@ export class DocumentsController {
 
   @Put('types/prices/:type')
   @CheckPolicies((ability) => ability.can('manage', 'Document'))
-  async setTypePrice(@Param('type') type: DocumentType, @Body() dto: SetDocumentTypePriceDto) {
-    return this.setDocumentTypePrice.execute(type, dto.amount);
+  async setTypePrice(@Param() params: SetDocumentTypePriceParamDto, @Body() dto: SetDocumentTypePriceDto) {
+    return this.setDocumentTypePrice.execute(params.type, dto.amount);
   }
 }
