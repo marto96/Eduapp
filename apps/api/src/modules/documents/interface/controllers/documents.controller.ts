@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query, Res } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Put, Query, Res } from '@nestjs/common';
 import type { Response } from 'express';
 import { CheckPolicies } from '../../../../core/auth/casl/policies.decorator';
 import { CurrentUser } from '../../../../core/auth/current-user.decorator';
@@ -9,6 +9,10 @@ import { VoidDocumentUseCase } from '../../application/use-cases/void-document.u
 import { GetDocumentPdfUseCase } from '../../application/use-cases/get-document-pdf.use-case';
 import { IssueDocumentDto } from '../dtos/issue-document.dto';
 import { ListDocumentsQueryDto } from '../dtos/list-documents-query.dto';
+import { ListDocumentTypePricesUseCase } from '../../application/use-cases/list-document-type-prices.use-case';
+import { SetDocumentTypePriceUseCase } from '../../application/use-cases/set-document-type-price.use-case';
+import { SetDocumentTypePriceDto } from '../dtos/set-document-type-price.dto';
+import type { DocumentType } from '../../domain/entities/issued-document.entity';
 
 @Controller('documents')
 export class DocumentsController {
@@ -17,6 +21,8 @@ export class DocumentsController {
     private readonly listDocuments: ListDocumentsUseCase,
     private readonly voidDocument: VoidDocumentUseCase,
     private readonly getDocumentPdf: GetDocumentPdfUseCase,
+    private readonly listDocumentTypePrices: ListDocumentTypePricesUseCase,
+    private readonly setDocumentTypePrice: SetDocumentTypePriceUseCase,
   ) {}
 
   @Post()
@@ -43,5 +49,16 @@ export class DocumentsController {
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `inline; filename="${id}.pdf"`);
     res.send(buffer);
+  }
+
+  @Get('types/prices')
+  async listTypePrices() {
+    return this.listDocumentTypePrices.execute();
+  }
+
+  @Put('types/prices/:type')
+  @CheckPolicies((ability) => ability.can('manage', 'Document'))
+  async setTypePrice(@Param('type') type: DocumentType, @Body() dto: SetDocumentTypePriceDto) {
+    return this.setDocumentTypePrice.execute(type, dto.amount);
   }
 }

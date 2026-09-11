@@ -9,6 +9,10 @@ import { TypeOrmIssuedDocumentRepository } from './infrastructure/repositories/t
 import { DocumentPdfGenerator } from './infrastructure/pdf/document-pdf-generator';
 import { EnrollmentModule } from '../enrollment/enrollment.module';
 import { IdentityModule } from '../identity/identity.module';
+import { ListDocumentTypePricesUseCase } from './application/use-cases/list-document-type-prices.use-case';
+import { SetDocumentTypePriceUseCase } from './application/use-cases/set-document-type-price.use-case';
+import { DocumentTypePriceRepositoryPort } from './application/ports/document-type-price.repository.port';
+import { TypeOrmDocumentTypePriceRepository } from './infrastructure/repositories/typeorm-document-type-price.repository';
 
 @Module({
   imports: [EnrollmentModule, IdentityModule],
@@ -20,6 +24,9 @@ import { IdentityModule } from '../identity/identity.module';
     GetDocumentPdfUseCase,
     DocumentPdfGenerator,
     { provide: IssuedDocumentRepositoryPort, useClass: TypeOrmIssuedDocumentRepository },
+    ListDocumentTypePricesUseCase,
+    SetDocumentTypePriceUseCase,
+    { provide: DocumentTypePriceRepositoryPort, useClass: TypeOrmDocumentTypePriceRepository },
   ],
 })
 export class DocumentsModule {}
