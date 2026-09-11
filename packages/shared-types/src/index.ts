@@ -322,6 +322,47 @@ export interface IssuedDocument {
   pdfGeneratedAt: string | null;
 }
 
+export interface DocumentTypePrice {
+  type: DocumentType;
+  amount: number;
+}
+
+export type DocumentRequestStatus =
+  | 'pendiente_pago'
+  | 'lista_para_imprimir'
+  | 'lista'
+  | 'entregada'
+  | 'rechazada';
+
+export type DeliveryMethod = 'digital' | 'fisico';
+
+export interface DocumentRequest {
+  id: string;
+  enrollmentId: string;
+  type: DocumentType;
+  deliveryMethod: DeliveryMethod;
+  note: string | null;
+  requestedBy: string;
+  requestedAt: string;
+  status: DocumentRequestStatus;
+  chargeId: string | null;
+  issuedDocumentId: string | null;
+  resolvedBy: string | null;
+  resolvedAt: string | null;
+  rejectionReason: string | null;
+}
+
+export interface Notification {
+  id: string;
+  recipientUserId: string;
+  type: string;
+  title: string;
+  body: string;
+  link: string;
+  createdAt: string;
+  readAt: string | null;
+}
+
 export type GuardianLinkStatus = 'pending' | 'approved';
 
 export interface GuardianLink {
