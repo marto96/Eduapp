@@ -91,3 +91,24 @@ export function useDeliverDocumentRequest() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['document-requests'] }),
   });
 }
+
+async function setDocumentTypePrice({ type, amount }: { type: DocumentType; amount: number }): Promise<DocumentTypePrice> {
+  const res = await fetch(`/api/documents/types/prices/${type}`, {
+    method: 'PUT',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ amount }),
+  });
+  if (!res.ok) throw new Error('No se pudo actualizar el precio');
+  return res.json();
+}
+
+export function useSetDocumentTypePrice() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: setDocumentTypePrice,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['document-type-prices'] });
+      toast.success('Precio actualizado.');
+    },
+  });
+}
