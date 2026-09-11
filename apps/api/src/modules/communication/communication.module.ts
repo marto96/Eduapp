@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { AnnouncementsController } from './interface/controllers/announcements.controller';
 import { EventsController } from './interface/controllers/events.controller';
 import { IcsController } from './interface/controllers/ics.controller';
@@ -36,7 +36,7 @@ import { ScheduleModule } from '../schedule/schedule.module';
 import { EnrollmentModule } from '../enrollment/enrollment.module';
 
 @Module({
-  imports: [IdentityModule, ScheduleModule, EnrollmentModule],
+  imports: [IdentityModule, forwardRef(() => ScheduleModule), forwardRef(() => EnrollmentModule)],
   controllers: [AnnouncementsController, EventsController, IcsController, MessagesController],
   providers: [
     PublishAnnouncementUseCase,
@@ -64,6 +64,6 @@ import { EnrollmentModule } from '../enrollment/enrollment.module';
     AudienceAccessService,
     { provide: MessageRepositoryPort, useClass: TypeOrmMessageRepository },
   ],
-  exports: [SendMessageUseCase],
+  exports: [SendMessageUseCase, PublishAnnouncementUseCase],
 })
 export class CommunicationModule {}

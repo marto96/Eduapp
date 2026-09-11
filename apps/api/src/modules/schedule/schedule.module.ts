@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { SchedulesController } from './interface/controllers/schedules.controller';
 import { CreateScheduleUseCase } from './application/use-cases/create-schedule.use-case';
 import { ListSchedulesUseCase } from './application/use-cases/list-schedules.use-case';
@@ -13,9 +13,10 @@ import { ClassCancellationRepositoryPort } from './application/ports/class-cance
 import { TypeOrmScheduleRepository } from './infrastructure/repositories/typeorm-schedule.repository';
 import { TypeOrmClassCancellationRepository } from './infrastructure/repositories/typeorm-class-cancellation.repository';
 import { IdentityModule } from '../identity/identity.module';
+import { CommunicationModule } from '../communication/communication.module';
 
 @Module({
-  imports: [IdentityModule],
+  imports: [IdentityModule, forwardRef(() => CommunicationModule)],
   controllers: [SchedulesController],
   providers: [
     CreateScheduleUseCase,
