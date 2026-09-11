@@ -55,6 +55,13 @@ export class RequestDocumentUseCase {
       'pendiente_pago',
     );
 
+    // Se guarda ANTES de disparar el efecto secundario (cargo o generación del
+    // PDF): si ese efecto secundario tiene éxito pero el segundo save() de
+    // abajo falla, esta fila ya existe para poder reconciliar manualmente —
+    // en vez de quedar un cargo pagable o un documento generado sin ninguna
+    // solicitud que los referencie.
+    await this.documentRequests.save(request);
+
     if (amount > 0) {
       const charge = await this.createCharge.execute({
         enrollmentId: input.enrollmentId,
