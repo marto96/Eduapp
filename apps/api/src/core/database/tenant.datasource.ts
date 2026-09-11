@@ -26,6 +26,7 @@ const TENANT_MODULES = [
   'communication',
   'survey',
   'library',
+  'notifications',
   'audit',
   'email',
 ];
