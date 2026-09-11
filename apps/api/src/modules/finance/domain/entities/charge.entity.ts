@@ -1,4 +1,4 @@
-export type ChargeConcept = 'matricula' | 'pension' | 'solicitud_admision' | 'otro';
+export type ChargeConcept = 'matricula' | 'pension' | 'solicitud_admision' | 'documento' | 'otro';
 
 export class Charge {
   constructor(
