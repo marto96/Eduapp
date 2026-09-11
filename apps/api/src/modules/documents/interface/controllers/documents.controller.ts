@@ -15,6 +15,11 @@ import { SetDocumentTypePriceDto } from '../dtos/set-document-type-price.dto';
 import { SetDocumentTypePriceParamDto } from '../dtos/set-document-type-price-param.dto';
 import { RequestDocumentUseCase } from '../../application/use-cases/request-document.use-case';
 import { RequestDocumentDto } from '../dtos/request-document.dto';
+import { ListDocumentRequestsUseCase } from '../../application/use-cases/list-document-requests.use-case';
+import { RejectDocumentRequestUseCase } from '../../application/use-cases/reject-document-request.use-case';
+import { MarkDocumentRequestDeliveredUseCase } from '../../application/use-cases/mark-document-request-delivered.use-case';
+import { RejectDocumentRequestDto } from '../dtos/reject-document-request.dto';
+import { ListDocumentRequestsQueryDto } from '../dtos/list-document-requests-query.dto';
 
 @Controller('documents')
 export class DocumentsController {
@@ -26,6 +31,9 @@ export class DocumentsController {
     private readonly listDocumentTypePrices: ListDocumentTypePricesUseCase,
     private readonly setDocumentTypePrice: SetDocumentTypePriceUseCase,
     private readonly requestDocument: RequestDocumentUseCase,
+    private readonly listDocumentRequests: ListDocumentRequestsUseCase,
+    private readonly rejectDocumentRequest: RejectDocumentRequestUseCase,
+    private readonly markDocumentRequestDelivered: MarkDocumentRequestDeliveredUseCase,
   ) {}
 
   @Post()
@@ -38,6 +46,23 @@ export class DocumentsController {
   @CheckPolicies((ability) => ability.can('create', 'DocumentRequest'))
   async request(@Body() dto: RequestDocumentDto, @CurrentUser() user: JwtPayload) {
     return this.requestDocument.execute(dto, user);
+  }
+
+  @Get('requests')
+  async listRequests(@Query() query: ListDocumentRequestsQueryDto, @CurrentUser() user: JwtPayload) {
+    return this.listDocumentRequests.execute(user, query.status);
+  }
+
+  @Patch('requests/:id/reject')
+  @CheckPolicies((ability) => ability.can('manage', 'DocumentRequest'))
+  async rejectRequest(@Param('id') id: string, @Body() dto: RejectDocumentRequestDto, @CurrentUser() user: JwtPayload) {
+    return this.rejectDocumentRequest.execute(id, dto.reason, user.sub);
+  }
+
+  @Patch('requests/:id/deliver')
+  @CheckPolicies((ability) => ability.can('manage', 'DocumentRequest'))
+  async deliverRequest(@Param('id') id: string, @CurrentUser() user: JwtPayload) {
+    return this.markDocumentRequestDelivered.execute(id, user.sub);
   }
 
   @Get()

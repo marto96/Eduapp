@@ -142,4 +142,18 @@ describe('AbilityFactory', () => {
     expect(factory.createForUser(payload(['directivo'])).can('manage', 'EmailTemplate')).toBe(false);
     expect(factory.createForUser(payload(['docente'])).can('manage', 'EmailTemplate')).toBe(false);
   });
+
+  it('estudiante y padre_tutor pueden create DocumentRequest, docente no', () => {
+    expect(factory.createForUser(payload(['estudiante'])).can('create', 'DocumentRequest')).toBe(true);
+    expect(factory.createForUser(payload(['padre_tutor'])).can('create', 'DocumentRequest')).toBe(true);
+    expect(factory.createForUser(payload(['docente'])).can('create', 'DocumentRequest')).toBe(false);
+  });
+
+  it('secretaria/directivo pueden manage DocumentRequest, docente/estudiante solo read', () => {
+    expect(factory.createForUser(payload(['secretaria'])).can('manage', 'DocumentRequest')).toBe(true);
+    expect(factory.createForUser(payload(['directivo'])).can('manage', 'DocumentRequest')).toBe(true);
+    expect(factory.createForUser(payload(['docente'])).can('manage', 'DocumentRequest')).toBe(false);
+    expect(factory.createForUser(payload(['docente'])).can('read', 'DocumentRequest')).toBe(true);
+    expect(factory.createForUser(payload(['estudiante'])).can('read', 'DocumentRequest')).toBe(true);
+  });
 });

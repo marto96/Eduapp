@@ -42,6 +42,7 @@ export class AbilityFactory {
         'Finance',
         'Hr',
         'Document',
+        'DocumentRequest',
         'Announcement',
         'Event',
         'Message',
@@ -86,7 +87,7 @@ export class AbilityFactory {
       // compartido de abajo — legajos de personal no son visibles para
       // docente/estudiante/padre_tutor, ni siquiera en modo lectura (ver
       // EmployeesController/LeavesController).
-      can('manage', ['Finance', 'Hr', 'Document', 'Announcement', 'Event', 'Survey', 'Book', 'Loan', 'Admission']);
+      can('manage', ['Finance', 'Hr', 'Document', 'DocumentRequest', 'Announcement', 'Event', 'Survey', 'Book', 'Loan', 'Admission']);
     }
 
     if (roles.some((role) => ['docente', 'secretaria', 'estudiante', 'padre_tutor'].includes(role))) {
@@ -106,6 +107,7 @@ export class AbilityFactory {
         'VirtualClass',
         'Finance',
         'Document',
+        'DocumentRequest',
         'Announcement',
         'Event',
         'Survey',
@@ -129,6 +131,13 @@ export class AbilityFactory {
       // sigue siendo exclusivo de admin/directivo (can('manage','User')),
       // ver RequestGuardianLinkUseCase/ApproveGuardianLinkUseCase.
       can('create', 'GuardianLink');
+    }
+
+    if (roles.some((role) => ['estudiante', 'padre_tutor'].includes(role))) {
+      // A diferencia de GuardianLink (solo padre_tutor), acá ambos roles
+      // pueden pedir un documento — un estudiante puede pedir el suyo
+      // propio sin depender de que lo haga su acudiente.
+      can('create', 'DocumentRequest');
     }
 
     return build();

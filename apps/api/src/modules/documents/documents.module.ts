@@ -19,6 +19,9 @@ import { DocumentRequestRepositoryPort } from './application/ports/document-requ
 import { TypeOrmDocumentRequestRepository } from './infrastructure/repositories/typeorm-document-request.repository';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { CompleteDocumentPaymentUseCase } from './application/use-cases/complete-document-payment.use-case';
+import { ListDocumentRequestsUseCase } from './application/use-cases/list-document-requests.use-case';
+import { RejectDocumentRequestUseCase } from './application/use-cases/reject-document-request.use-case';
+import { MarkDocumentRequestDeliveredUseCase } from './application/use-cases/mark-document-request-delivered.use-case';
 
 @Module({
   imports: [EnrollmentModule, IdentityModule, forwardRef(() => FinanceModule), NotificationsModule],
@@ -36,6 +39,9 @@ import { CompleteDocumentPaymentUseCase } from './application/use-cases/complete
     RequestDocumentUseCase,
     { provide: DocumentRequestRepositoryPort, useClass: TypeOrmDocumentRequestRepository },
     CompleteDocumentPaymentUseCase,
+    ListDocumentRequestsUseCase,
+    RejectDocumentRequestUseCase,
+    MarkDocumentRequestDeliveredUseCase,
   ],
   exports: [CompleteDocumentPaymentUseCase],
 })
