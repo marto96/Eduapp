@@ -12,7 +12,7 @@ import { PostgresConnectionOptions } from 'typeorm/driver/postgres/PostgresConne
  * propio datasource (ver `platform.datasource.ts`). Se agrega una línea acá
  * por cada módulo de negocio nuevo que se implemente.
  */
-const TENANT_MODULES = [
+export const TENANT_MODULES = [
   'identity',
   'academic',
   'enrollment',
