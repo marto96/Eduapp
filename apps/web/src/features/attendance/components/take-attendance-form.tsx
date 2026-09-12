@@ -7,6 +7,7 @@ import { useUsers } from '@/features/users/use-users';
 import { useAcademicYears } from '@/features/academic/use-academic-years';
 import { useSubjects } from '@/features/academic/use-subjects';
 import { useSections } from '@/features/academic/use-sections';
+import { useGrades } from '@/features/academic/use-grades';
 import { useSchedules } from '@/features/schedule/use-schedules';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -35,6 +36,7 @@ export function TakeAttendanceForm({
   const { data: students } = useUsers('estudiante');
   const { data: subjects } = useSubjects();
   const { data: sections } = useSections();
+  const { data: grades } = useGrades();
 
   const [academicYearId, setAcademicYearId] = useState('');
   const [scheduleId, setScheduleId] = useState('');
@@ -64,7 +66,19 @@ export function TakeAttendanceForm({
   );
 
   const subjectNameById = useMemo(() => new Map(subjects?.map((s) => [s.id, s.name])), [subjects]);
-  const sectionNameById = useMemo(() => new Map(sections?.map((s) => [s.id, s.name])), [sections]);
+  const gradeNameById = useMemo(() => new Map(grades?.map((g) => [g.id, g.name])), [grades]);
+  // El nombre de sección ("A", "B") no es único entre grados — sin el grado
+  // en la etiqueta, dos "Sección A" de grados distintos son indistinguibles.
+  const sectionNameById = useMemo(
+    () =>
+      new Map(
+        sections?.map((s) => {
+          const gradeName = gradeNameById.get(s.gradeId);
+          return [s.id, gradeName ? `${gradeName} — ${s.name}` : s.name];
+        }),
+      ),
+    [sections, gradeNameById],
+  );
 
   const activeEnrollments = useMemo(
     () => (enrollments ?? []).filter((e) => e.status === 'active'),

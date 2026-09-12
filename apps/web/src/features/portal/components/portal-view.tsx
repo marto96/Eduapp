@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { useEnrollments } from '@/features/enrollment/use-enrollments';
 import { useUsers } from '@/features/users/use-users';
 import { useSections } from '@/features/academic/use-sections';
+import { useGrades } from '@/features/academic/use-grades';
 import { useAcademicYears } from '@/features/academic/use-academic-years';
 import { useSubjects } from '@/features/academic/use-subjects';
 import { usePeriods } from '@/features/academic/use-periods';
@@ -23,6 +24,7 @@ export function PortalView({ isGuardian }: { isGuardian: boolean }) {
   const { data: enrollments, isLoading: loadingEnrollments, error } = useEnrollments();
   const { data: users, isLoading: loadingUsers } = useUsers();
   const { data: sections, isLoading: loadingSections } = useSections();
+  const { data: grades } = useGrades();
   const { data: years, isLoading: loadingYears } = useAcademicYears();
   const { data: subjects, isLoading: loadingSubjects } = useSubjects();
   const { data: periods, isLoading: loadingPeriods } = usePeriods();
@@ -66,7 +68,13 @@ export function PortalView({ isGuardian }: { isGuardian: boolean }) {
   }
 
   const userNameById = new Map(users?.map((u) => [u.id, u.fullName]));
-  const sectionNameById = new Map(sections?.map((s) => [s.id, s.name]));
+  const gradeNameById = new Map(grades?.map((g) => [g.id, g.name]));
+  const sectionNameById = new Map(
+    sections?.map((s) => {
+      const gradeName = gradeNameById.get(s.gradeId);
+      return [s.id, gradeName ? `${gradeName} — ${s.name}` : s.name];
+    }),
+  );
   const yearNameById = new Map(years?.map((y) => [y.id, y.name]));
   const subjectNameById = new Map(subjects?.map((s) => [s.id, s.name]));
   const periodNameById = new Map(periods?.map((p) => [p.id, p.name]));

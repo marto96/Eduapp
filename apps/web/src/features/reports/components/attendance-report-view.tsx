@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from 'react';
 import { useSections } from '@/features/academic/use-sections';
+import { useGrades } from '@/features/academic/use-grades';
 import { useAttendanceReport, AttendanceReportParams } from '../use-reports';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,6 +12,8 @@ import { LoadingState } from '@/components/ui/loading-state';
 
 export function AttendanceReportView() {
   const { data: sections } = useSections();
+  const { data: grades } = useGrades();
+  const gradeNameById = new Map(grades?.map((g) => [g.id, g.name]));
   const [sectionId, setSectionId] = useState('');
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
@@ -38,7 +41,7 @@ export function AttendanceReportView() {
             <option value="">Elegir...</option>
             {sections?.map((s) => (
               <option key={s.id} value={s.id}>
-                {s.name}
+                {gradeNameById.get(s.gradeId) ? `${gradeNameById.get(s.gradeId)} — ${s.name}` : s.name}
               </option>
             ))}
           </select>

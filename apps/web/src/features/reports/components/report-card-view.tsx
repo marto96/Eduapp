@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useSections } from '@/features/academic/use-sections';
+import { useGrades } from '@/features/academic/use-grades';
 import { useAcademicYears } from '@/features/academic/use-academic-years';
 import { useEnrollments } from '@/features/enrollment/use-enrollments';
 import { useUsers } from '@/features/users/use-users';
@@ -10,7 +11,9 @@ import { Label } from '@/components/ui/label';
 
 export function ReportCardView() {
   const { data: sections } = useSections();
+  const { data: grades } = useGrades();
   const { data: years } = useAcademicYears();
+  const gradeNameById = new Map(grades?.map((g) => [g.id, g.name]));
   const [sectionId, setSectionId] = useState('');
   const [academicYearId, setAcademicYearId] = useState('');
 
@@ -37,7 +40,7 @@ export function ReportCardView() {
             <option value="">Elegir...</option>
             {sections?.map((s) => (
               <option key={s.id} value={s.id}>
-                {s.name}
+                {gradeNameById.get(s.gradeId) ? `${gradeNameById.get(s.gradeId)} — ${s.name}` : s.name}
               </option>
             ))}
           </select>

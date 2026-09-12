@@ -3,6 +3,7 @@
 import { useSchedules } from '../use-schedules';
 import { useClassCancellations } from '../use-class-cancellations';
 import { useSections } from '@/features/academic/use-sections';
+import { useGrades } from '@/features/academic/use-grades';
 import { useSubjects } from '@/features/academic/use-subjects';
 import { useUsers } from '@/features/users/use-users';
 import { Card } from '@/components/ui/card';
@@ -28,6 +29,7 @@ export function SchedulesList({
 }) {
   const { data: schedules, isLoading, error } = useSchedules();
   const { data: sections } = useSections();
+  const { data: grades } = useGrades();
   const { data: subjects } = useSubjects();
   const { data: teachers } = useUsers('docente');
   const today = todayLocalDate();
@@ -39,7 +41,13 @@ export function SchedulesList({
     return <p className="text-sm text-muted-foreground">Todavía no hay horarios.</p>;
   }
 
-  const sectionNameById = new Map(sections?.map((s) => [s.id, s.name]));
+  const gradeNameById = new Map(grades?.map((g) => [g.id, g.name]));
+  const sectionNameById = new Map(
+    sections?.map((s) => {
+      const gradeName = gradeNameById.get(s.gradeId);
+      return [s.id, gradeName ? `${gradeName} — ${s.name}` : s.name];
+    }),
+  );
   const subjectNameById = new Map(subjects?.map((s) => [s.id, s.name]));
   const teacherNameById = new Map(teachers?.map((t) => [t.id, t.fullName]));
   const cancellationByScheduleId = new Map(cancellations?.map((c) => [c.scheduleId, c]));
@@ -51,7 +59,7 @@ export function SchedulesList({
         <Card key={schedule.id} className="flex items-center justify-between py-3">
           <div>
             <p className="font-medium">
-              {subjectNameById.get(schedule.subjectId) ?? schedule.subjectId} — Sección{' '}
+              {subjectNameById.get(schedule.subjectId) ?? schedule.subjectId} —{' '}
               {sectionNameById.get(schedule.sectionId) ?? schedule.sectionId}
             </p>
             <p className="text-sm text-muted-foreground">

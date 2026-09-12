@@ -5,6 +5,7 @@ import { useDocuments, useVoidDocument } from '../use-documents';
 import { useEnrollments } from '@/features/enrollment/use-enrollments';
 import { useUsers } from '@/features/users/use-users';
 import { useSections } from '@/features/academic/use-sections';
+import { useGrades } from '@/features/academic/use-grades';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,6 +42,7 @@ export function DocumentsList({ canManage }: { canManage: boolean }) {
   const { data: enrollments } = useEnrollments();
   const { data: users } = useUsers();
   const { data: sections } = useSections();
+  const { data: grades } = useGrades();
   const voidDocument = useVoidDocument();
 
   const filters = (
@@ -74,7 +76,13 @@ export function DocumentsList({ canManage }: { canManage: boolean }) {
 
   const enrollmentById = new Map(enrollments?.map((e) => [e.id, e]));
   const userNameById = new Map(users?.map((u) => [u.id, u.fullName]));
-  const sectionNameById = new Map(sections?.map((s) => [s.id, s.name]));
+  const gradeNameById = new Map(grades?.map((g) => [g.id, g.name]));
+  const sectionNameById = new Map(
+    sections?.map((s) => {
+      const gradeName = gradeNameById.get(s.gradeId);
+      return [s.id, gradeName ? `${gradeName} — ${s.name}` : s.name];
+    }),
+  );
 
   return (
     <div className="space-y-3">
@@ -92,7 +100,7 @@ export function DocumentsList({ canManage }: { canManage: boolean }) {
               <div>
                 <p className="font-medium">
                   {TYPE_LABELS[document.type] ?? document.type} — {studentName}
-                  {sectionName ? ` (Sección ${sectionName})` : ''}
+                  {sectionName ? ` (${sectionName})` : ''}
                   {document.voidedAt && (
                     <span className="ml-2 text-xs uppercase text-destructive">Anulado</span>
                   )}

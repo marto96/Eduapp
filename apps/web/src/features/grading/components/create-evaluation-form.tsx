@@ -4,6 +4,7 @@ import { FormEvent, useState } from 'react';
 import { useCreateEvaluation } from '../use-evaluations';
 import { useAcademicYears } from '@/features/academic/use-academic-years';
 import { useSections } from '@/features/academic/use-sections';
+import { useGrades } from '@/features/academic/use-grades';
 import { useSubjects } from '@/features/academic/use-subjects';
 import { usePeriods } from '@/features/academic/use-periods';
 import { Button } from '@/components/ui/button';
@@ -20,8 +21,10 @@ const CATEGORIES: { value: GradeCategory; label: string }[] = [
 export function CreateEvaluationForm() {
   const { data: years } = useAcademicYears();
   const { data: sections } = useSections();
+  const { data: grades } = useGrades();
   const { data: subjects } = useSubjects();
   const createEvaluation = useCreateEvaluation();
+  const gradeNameById = new Map(grades?.map((g) => [g.id, g.name]));
 
   const [academicYearId, setAcademicYearId] = useState('');
   const [sectionId, setSectionId] = useState('');
@@ -88,7 +91,7 @@ export function CreateEvaluationForm() {
           </option>
           {sections?.map((section) => (
             <option key={section.id} value={section.id}>
-              {section.name}
+              {gradeNameById.get(section.gradeId) ? `${gradeNameById.get(section.gradeId)} — ${section.name}` : section.name}
             </option>
           ))}
         </select>

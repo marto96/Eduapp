@@ -10,6 +10,7 @@ import {
 } from '../use-announcements';
 import { useUsers } from '@/features/users/use-users';
 import { useSections } from '@/features/academic/use-sections';
+import { useGrades } from '@/features/academic/use-grades';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -49,6 +50,7 @@ export function AnnouncementsList({ canManage = false }: { canManage?: boolean }
   const { data: announcements, isLoading, error } = useAnnouncements();
   const { data: users } = useUsers();
   const { data: sections } = useSections();
+  const { data: grades } = useGrades();
   const editAnnouncement = useEditAnnouncement();
   const voidAnnouncement = useVoidAnnouncement();
   const markRead = useMarkAnnouncementRead();
@@ -69,7 +71,13 @@ export function AnnouncementsList({ canManage = false }: { canManage?: boolean }
   }
 
   const userNameById = new Map(users?.map((u) => [u.id, u.fullName]));
-  const sectionNameById = new Map(sections?.map((s) => [s.id, s.name]));
+  const gradeNameById = new Map(grades?.map((g) => [g.id, g.name]));
+  const sectionNameById = new Map(
+    sections?.map((s) => {
+      const gradeName = gradeNameById.get(s.gradeId);
+      return [s.id, gradeName ? `${gradeName} — ${s.name}` : s.name];
+    }),
+  );
 
   function startEditing(announcement: Announcement) {
     setEditingId(announcement.id);
@@ -109,7 +117,7 @@ export function AnnouncementsList({ canManage = false }: { canManage?: boolean }
                   <option value="">Institucional (todos)</option>
                   {sections?.map((s) => (
                     <option key={s.id} value={s.id}>
-                      {s.name}
+                      {sectionNameById.get(s.id) ?? s.name}
                     </option>
                   ))}
                 </select>

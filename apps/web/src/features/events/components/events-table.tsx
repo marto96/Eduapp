@@ -2,6 +2,7 @@
 
 import { useEvents } from '../use-events';
 import { useSections } from '@/features/academic/use-sections';
+import { useGrades } from '@/features/academic/use-grades';
 import { LoadingState } from '@/components/ui/loading-state';
 
 function formatDateTime(value: string): string {
@@ -14,6 +15,7 @@ function formatDateTime(value: string): string {
 export function EventsTable() {
   const { data: events, isLoading, error } = useEvents();
   const { data: sections } = useSections();
+  const { data: grades } = useGrades();
 
   if (isLoading) return <LoadingState />;
   if (error) return <p className="text-sm text-destructive">No se pudieron cargar los eventos.</p>;
@@ -21,7 +23,13 @@ export function EventsTable() {
     return <p className="text-sm text-muted-foreground">Todavía no hay eventos programados.</p>;
   }
 
-  const sectionNameById = new Map(sections?.map((s) => [s.id, s.name]));
+  const gradeNameById = new Map(grades?.map((g) => [g.id, g.name]));
+  const sectionNameById = new Map(
+    sections?.map((s) => {
+      const gradeName = gradeNameById.get(s.gradeId);
+      return [s.id, gradeName ? `${gradeName} — ${s.name}` : s.name];
+    }),
+  );
 
   const sorted = [...events].sort(
     (a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime(),

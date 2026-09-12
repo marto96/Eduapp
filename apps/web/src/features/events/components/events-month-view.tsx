@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useEvents } from '../use-events';
 import { useSections } from '@/features/academic/use-sections';
+import { useGrades } from '@/features/academic/use-grades';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -55,10 +56,17 @@ function buildMonthGrid(monthDate: Date): Date[] {
 export function EventsMonthView() {
   const { data: events, isLoading, error } = useEvents();
   const { data: sections } = useSections();
+  const { data: grades } = useGrades();
   const [monthDate, setMonthDate] = useState(() => startOfMonth(new Date()));
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
 
-  const sectionNameById = new Map(sections?.map((s) => [s.id, s.name]));
+  const gradeNameById = new Map(grades?.map((g) => [g.id, g.name]));
+  const sectionNameById = new Map(
+    sections?.map((s) => {
+      const gradeName = gradeNameById.get(s.gradeId);
+      return [s.id, gradeName ? `${gradeName} — ${s.name}` : s.name];
+    }),
+  );
 
   const eventsByDay = useMemo(() => {
     const map = new Map<string, Event[]>();

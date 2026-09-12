@@ -3,6 +3,7 @@
 import { FormEvent, useState } from 'react';
 import { useCreateEvent } from '../use-events';
 import { useSections } from '@/features/academic/use-sections';
+import { useGrades } from '@/features/academic/use-grades';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,6 +12,8 @@ import { cn } from '@/lib/utils';
 export function CreateEventForm() {
   const createEvent = useCreateEvent();
   const { data: sections } = useSections();
+  const { data: grades } = useGrades();
+  const gradeNameById = new Map(grades?.map((g) => [g.id, g.name]));
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -86,7 +89,7 @@ export function CreateEventForm() {
             <option value="">Institucional (todos)</option>
             {sections?.map((s) => (
               <option key={s.id} value={s.id}>
-                {s.name}
+                {gradeNameById.get(s.gradeId) ? `${gradeNameById.get(s.gradeId)} — ${s.name}` : s.name}
               </option>
             ))}
           </select>

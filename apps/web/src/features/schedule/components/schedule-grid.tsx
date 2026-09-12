@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useSchedules } from '../use-schedules';
 import { useClassCancellations } from '../use-class-cancellations';
 import { useSections } from '@/features/academic/use-sections';
+import { useGrades } from '@/features/academic/use-grades';
 import { useSubjects } from '@/features/academic/use-subjects';
 import { useUsers } from '@/features/users/use-users';
 import { Label } from '@/components/ui/label';
@@ -28,6 +29,7 @@ export function ScheduleGrid({
 }) {
   const { data: schedules } = useSchedules();
   const { data: sections } = useSections();
+  const { data: grades } = useGrades();
   const { data: subjects } = useSubjects();
   const { data: teachers } = useUsers('docente');
   const [sectionId, setSectionId] = useState('');
@@ -35,6 +37,7 @@ export function ScheduleGrid({
   const { data: cancellations } = useClassCancellations({ from: today, to: today });
   const todaysDay = todayDayOfWeek();
 
+  const gradeNameById = new Map(grades?.map((g) => [g.id, g.name]));
   const subjectNameById = new Map(subjects?.map((s) => [s.id, s.name]));
   const teacherNameById = new Map(teachers?.map((t) => [t.id, t.fullName]));
   const cancellationByScheduleId = new Map(cancellations?.map((c) => [c.scheduleId, c]));
@@ -57,7 +60,7 @@ export function ScheduleGrid({
           <option value="">Elegir sección...</option>
           {sections?.map((s) => (
             <option key={s.id} value={s.id}>
-              {s.name}
+              {gradeNameById.get(s.gradeId) ? `${gradeNameById.get(s.gradeId)} — ${s.name}` : s.name}
             </option>
           ))}
         </select>

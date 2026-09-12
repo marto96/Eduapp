@@ -7,6 +7,7 @@ import { ChargePayments } from './charge-payments';
 import { useEnrollments } from '@/features/enrollment/use-enrollments';
 import { useUsers } from '@/features/users/use-users';
 import { useSections } from '@/features/academic/use-sections';
+import { useGrades } from '@/features/academic/use-grades';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -58,6 +59,7 @@ export function ChargesList({ canManage }: { canManage: boolean }) {
   const { data: enrollments } = useEnrollments();
   const { data: students } = useUsers('estudiante');
   const { data: sections } = useSections();
+  const { data: grades } = useGrades();
   const editCharge = useEditCharge();
   const voidCharge = useVoidCharge();
   const [payingChargeId, setPayingChargeId] = useState<string | null>(null);
@@ -98,7 +100,13 @@ export function ChargesList({ canManage }: { canManage: boolean }) {
 
   const enrollmentById = new Map(enrollments?.map((e) => [e.id, e]));
   const studentNameById = new Map(students?.map((s) => [s.id, s.fullName]));
-  const sectionNameById = new Map(sections?.map((s) => [s.id, s.name]));
+  const gradeNameById = new Map(grades?.map((g) => [g.id, g.name]));
+  const sectionNameById = new Map(
+    sections?.map((s) => {
+      const gradeName = gradeNameById.get(s.gradeId);
+      return [s.id, gradeName ? `${gradeName} — ${s.name}` : s.name];
+    }),
+  );
 
   function startEditing(charge: Charge) {
     setEditingId(charge.id);
@@ -173,7 +181,7 @@ export function ChargesList({ canManage }: { canManage: boolean }) {
                   <div>
                     <p className="font-medium">
                       {CONCEPT_LABELS[charge.concept] ?? charge.concept} — {studentName}
-                      {sectionName ? ` (Sección ${sectionName})` : ''}
+                      {sectionName ? ` (${sectionName})` : ''}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       {charge.description} — vence {charge.dueDate}

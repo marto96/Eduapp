@@ -3,6 +3,7 @@
 import { FormEvent, useState } from 'react';
 import { usePublishAnnouncement } from '../use-announcements';
 import { useSections } from '@/features/academic/use-sections';
+import { useGrades } from '@/features/academic/use-grades';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -19,6 +20,8 @@ const CATEGORIES: { value: AnnouncementCategory; label: string }[] = [
 export function PublishAnnouncementForm() {
   const publishAnnouncement = usePublishAnnouncement();
   const { data: sections } = useSections();
+  const { data: grades } = useGrades();
+  const gradeNameById = new Map(grades?.map((g) => [g.id, g.name]));
 
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState<AnnouncementCategory>('comunicado');
@@ -90,7 +93,7 @@ export function PublishAnnouncementForm() {
             <option value="">Institucional (todos)</option>
             {sections?.map((s) => (
               <option key={s.id} value={s.id}>
-                {s.name}
+                {gradeNameById.get(s.gradeId) ? `${gradeNameById.get(s.gradeId)} — ${s.name}` : s.name}
               </option>
             ))}
           </select>

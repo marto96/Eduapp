@@ -1,6 +1,7 @@
 'use client';
 
 import { useSections } from '@/features/academic/use-sections';
+import { useGrades } from '@/features/academic/use-grades';
 import { useAcademicYears } from '@/features/academic/use-academic-years';
 import { useEnrollmentReport } from '../use-reports';
 import { Card } from '@/components/ui/card';
@@ -8,10 +9,17 @@ import { LoadingState } from '@/components/ui/loading-state';
 
 export function EnrollmentReportView() {
   const { data: sections } = useSections();
+  const { data: grades } = useGrades();
   const { data: years } = useAcademicYears();
   const { data: rows, isLoading, error } = useEnrollmentReport();
 
-  const sectionNameById = new Map(sections?.map((s) => [s.id, s.name]));
+  const gradeNameById = new Map(grades?.map((g) => [g.id, g.name]));
+  const sectionNameById = new Map(
+    sections?.map((s) => {
+      const gradeName = gradeNameById.get(s.gradeId);
+      return [s.id, gradeName ? `${gradeName} — ${s.name}` : s.name];
+    }),
+  );
 
   if (isLoading) return <LoadingState />;
   if (error) return <p className="text-sm text-destructive">No se pudo cargar el reporte.</p>;
@@ -25,7 +33,7 @@ export function EnrollmentReportView() {
       <ul className="space-y-2">
         {rows.map((row) => (
           <Card key={row.sectionId} className="flex items-center justify-between py-3">
-            <p className="font-medium">Sección {sectionNameById.get(row.sectionId) ?? row.sectionId}</p>
+            <p className="font-medium">{sectionNameById.get(row.sectionId) ?? row.sectionId}</p>
             <p className="text-sm text-muted-foreground">
               Activos: {row.active} · Retirados: {row.withdrawn} · Completados: {row.completed} · Total:{' '}
               {row.total}

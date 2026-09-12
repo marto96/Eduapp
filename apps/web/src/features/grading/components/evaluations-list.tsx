@@ -3,6 +3,7 @@
 import { useEvaluations } from '../use-evaluations';
 import { useAcademicYears } from '@/features/academic/use-academic-years';
 import { useSections } from '@/features/academic/use-sections';
+import { useGrades } from '@/features/academic/use-grades';
 import { useSubjects } from '@/features/academic/use-subjects';
 import { usePeriods } from '@/features/academic/use-periods';
 import { Card } from '@/components/ui/card';
@@ -19,6 +20,7 @@ export function EvaluationsList() {
   const { data: evaluations, isLoading, error } = useEvaluations();
   const { data: years } = useAcademicYears();
   const { data: sections } = useSections();
+  const { data: grades } = useGrades();
   const { data: subjects } = useSubjects();
   const { data: periods } = usePeriods();
 
@@ -29,7 +31,13 @@ export function EvaluationsList() {
   }
 
   const yearNameById = new Map(years?.map((y) => [y.id, y.name]));
-  const sectionNameById = new Map(sections?.map((s) => [s.id, s.name]));
+  const gradeNameById = new Map(grades?.map((g) => [g.id, g.name]));
+  const sectionNameById = new Map(
+    sections?.map((s) => {
+      const gradeName = gradeNameById.get(s.gradeId);
+      return [s.id, gradeName ? `${gradeName} — ${s.name}` : s.name];
+    }),
+  );
   const subjectNameById = new Map(subjects?.map((s) => [s.id, s.name]));
   const periodNameById = new Map(periods?.map((p) => [p.id, p.name]));
 
@@ -44,7 +52,7 @@ export function EvaluationsList() {
               {evaluation.label ? ` — ${evaluation.label}` : ''}
             </p>
             <p className="text-sm text-muted-foreground">
-              {yearNameById.get(evaluation.academicYearId) ?? evaluation.academicYearId} — Sección{' '}
+              {yearNameById.get(evaluation.academicYearId) ?? evaluation.academicYearId} —{' '}
               {sectionNameById.get(evaluation.sectionId) ?? evaluation.sectionId} — máx.{' '}
               {evaluation.maxScore}
             </p>

@@ -98,7 +98,7 @@ export function ChildSummaryCard({
         <div>
           <p className="font-medium">{studentName ?? 'Mi matrícula'}</p>
           <p className="text-sm text-muted-foreground">
-            {yearName ?? enrollment.academicYearId} — Sección{' '}
+            {yearName ?? enrollment.academicYearId} —{' '}
             {sectionName ?? enrollment.sectionId}
           </p>
         </div>

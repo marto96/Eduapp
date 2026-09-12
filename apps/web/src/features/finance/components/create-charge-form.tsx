@@ -6,6 +6,7 @@ import { useFeeSchedules } from '../use-fee-schedules';
 import { useEnrollments } from '@/features/enrollment/use-enrollments';
 import { useUsers } from '@/features/users/use-users';
 import { useSections } from '@/features/academic/use-sections';
+import { useGrades } from '@/features/academic/use-grades';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,6 +22,7 @@ export function CreateChargeForm() {
   const { data: enrollments } = useEnrollments();
   const { data: students } = useUsers('estudiante');
   const { data: sections } = useSections();
+  const { data: grades } = useGrades();
   const { data: feeSchedules } = useFeeSchedules();
   const createCharge = useCreateCharge();
 
@@ -32,7 +34,17 @@ export function CreateChargeForm() {
   const [discountAmount, setDiscountAmount] = useState('');
 
   const studentNameById = useMemo(() => new Map(students?.map((s) => [s.id, s.fullName])), [students]);
-  const sectionNameById = useMemo(() => new Map(sections?.map((s) => [s.id, s.name])), [sections]);
+  const gradeNameById = useMemo(() => new Map(grades?.map((g) => [g.id, g.name])), [grades]);
+  const sectionNameById = useMemo(
+    () =>
+      new Map(
+        sections?.map((s) => {
+          const gradeName = gradeNameById.get(s.gradeId);
+          return [s.id, gradeName ? `${gradeName} — ${s.name}` : s.name];
+        }),
+      ),
+    [sections, gradeNameById],
+  );
   const activeEnrollments = useMemo(
     () => (enrollments ?? []).filter((e) => e.status === 'active'),
     [enrollments],
@@ -91,7 +103,7 @@ export function CreateChargeForm() {
           </option>
           {activeEnrollments.map((enrollment) => (
             <option key={enrollment.id} value={enrollment.id}>
-              {studentNameById.get(enrollment.studentId) ?? enrollment.studentId} — Sección{' '}
+              {studentNameById.get(enrollment.studentId) ?? enrollment.studentId} —{' '}
               {sectionNameById.get(enrollment.sectionId) ?? enrollment.sectionId}
             </option>
           ))}

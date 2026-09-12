@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useEvents, useEditEvent, useVoidEvent } from '../use-events';
 import { useSections } from '@/features/academic/use-sections';
+import { useGrades } from '@/features/academic/use-grades';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,6 +26,7 @@ function toDatetimeLocal(value: string): string {
 export function EventsList({ canManage = false }: { canManage?: boolean }) {
   const { data: events, isLoading, error } = useEvents();
   const { data: sections } = useSections();
+  const { data: grades } = useGrades();
   const editEvent = useEditEvent();
   const voidEvent = useVoidEvent();
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -40,7 +42,13 @@ export function EventsList({ canManage = false }: { canManage?: boolean }) {
     return <p className="text-sm text-muted-foreground">Todavía no hay eventos programados.</p>;
   }
 
-  const sectionNameById = new Map(sections?.map((s) => [s.id, s.name]));
+  const gradeNameById = new Map(grades?.map((g) => [g.id, g.name]));
+  const sectionNameById = new Map(
+    sections?.map((s) => {
+      const gradeName = gradeNameById.get(s.gradeId);
+      return [s.id, gradeName ? `${gradeName} — ${s.name}` : s.name];
+    }),
+  );
 
   function startEditing(event: Event) {
     setEditingId(event.id);
@@ -97,7 +105,7 @@ export function EventsList({ canManage = false }: { canManage?: boolean }) {
                   <option value="">Institucional (todos)</option>
                   {sections?.map((s) => (
                     <option key={s.id} value={s.id}>
-                      {s.name}
+                      {sectionNameById.get(s.id) ?? s.name}
                     </option>
                   ))}
                 </select>
