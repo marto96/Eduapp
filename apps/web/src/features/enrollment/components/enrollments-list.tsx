@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ArrowRightLeft } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { ArrowRightLeft, RotateCcw } from 'lucide-react';
 import {
   useCompleteEnrollment,
   useEnrollments,
@@ -29,6 +30,7 @@ const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 const SEARCH_DEBOUNCE_MS = 350;
 
 export function EnrollmentsList({ canManage }: { canManage: boolean }) {
+  const router = useRouter();
   const [searchInput, setSearchInput] = useState('');
   const [committedSearch, setCommittedSearch] = useState('');
   const [page, setPage] = useState(1);
@@ -165,6 +167,17 @@ export function EnrollmentsList({ canManage }: { canManage: boolean }) {
                         Dar de baja
                       </Button>
                     </>
+                  )}
+                  {canManage && enrollment.status === 'completed' && (
+                    <button
+                      type="button"
+                      title="Renovar matrícula para el año lectivo activo"
+                      className="flex items-center gap-1.5 rounded p-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+                      onClick={() => router.push(`/enrollment?renewStudentId=${enrollment.studentId}`)}
+                    >
+                      <RotateCcw className="h-4 w-4" />
+                      Renovar
+                    </button>
                   )}
                 </div>
               </div>

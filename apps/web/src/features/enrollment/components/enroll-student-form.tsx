@@ -62,9 +62,11 @@ function readAdmissionPrefill(admissionId?: string): AdmissionPrefill | undefine
 export function EnrollStudentForm({
   admissionId,
   matchedUserId,
+  renewStudentId,
 }: {
   admissionId?: string;
   matchedUserId?: string;
+  renewStudentId?: string;
 }) {
   const { data: students } = useUsers('estudiante');
   const { data: years } = useAcademicYears();
@@ -112,6 +114,18 @@ export function EnrollStudentForm({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [admissionId, matchedUserId]);
+
+  // Renovación de matrícula: el año lectivo activo se toma de `years`, que
+  // carga async — este efecto separado espera a que esté disponible en vez
+  // de correr una sola vez al montar como los de arriba.
+  useEffect(() => {
+    if (!renewStudentId || !years?.length) return;
+    setMode('existing');
+    setStudentId(renewStudentId);
+    const activeYear = years.find((y) => y.status === 'active');
+    if (activeYear) setAcademicYearId(activeYear.id);
+    setDialogOpen(true);
+  }, [renewStudentId, years]);
 
   const missingPrereqs = !years?.length || !sections?.length;
   const isPending = enrollStudent.isPending || createUser.isPending;

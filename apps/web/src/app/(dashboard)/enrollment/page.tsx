@@ -10,6 +10,7 @@ export default async function EnrollmentPage({
   searchParams: {
     admissionId?: string;
     matchedUserId?: string;
+    renewStudentId?: string;
   };
 }) {
   const user = await getCurrentUser();
@@ -28,6 +29,7 @@ export default async function EnrollmentPage({
           <EnrollStudentForm
             admissionId={searchParams.admissionId}
             matchedUserId={searchParams.matchedUserId || undefined}
+            renewStudentId={searchParams.renewStudentId || undefined}
           />
           <DistributeSectionsButton />
         </div>
