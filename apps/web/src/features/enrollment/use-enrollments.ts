@@ -80,8 +80,17 @@ async function withdrawEnrollment(id: string): Promise<Enrollment> {
   return res.json();
 }
 
-async function completeEnrollment(id: string): Promise<Enrollment> {
-  const res = await fetch(`/api/enrollments/${id}/complete`, { method: 'PATCH' });
+export interface CompleteEnrollmentInput {
+  id: string;
+  passed: boolean;
+}
+
+async function completeEnrollment({ id, passed }: CompleteEnrollmentInput): Promise<Enrollment> {
+  const res = await fetch(`/api/enrollments/${id}/complete`, {
+    method: 'PATCH',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ passed }),
+  });
   if (!res.ok) throw new Error('No se pudo completar la matrícula');
   return res.json();
 }

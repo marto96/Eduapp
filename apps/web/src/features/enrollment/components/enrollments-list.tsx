@@ -12,12 +12,14 @@ import {
 import { useUsers } from '@/features/users/use-users';
 import { useAcademicYears } from '@/features/academic/use-academic-years';
 import { useSections } from '@/features/academic/use-sections';
+import { useGrades } from '@/features/academic/use-grades';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { LoadingState } from '@/components/ui/loading-state';
 import { Pagination } from '@/components/ui/pagination';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { Dialog } from '@/components/ui/dialog';
 import type { Enrollment, EnrollmentStatus } from '@eduapp/shared-types';
 
 const STATUS_LABELS: Record<EnrollmentStatus, string> = {
@@ -50,12 +52,14 @@ export function EnrollmentsList({ canManage }: { canManage: boolean }) {
   const { data: students } = useUsers('estudiante');
   const { data: years } = useAcademicYears();
   const { data: sections } = useSections();
+  const { data: grades } = useGrades();
   const withdrawEnrollment = useWithdrawEnrollment();
   const completeEnrollment = useCompleteEnrollment();
   const reassignSection = useReassignEnrollmentSection();
   const [reassigningId, setReassigningId] = useState<string | null>(null);
   const [newSectionId, setNewSectionId] = useState('');
   const [withdrawingEnrollment, setWithdrawingEnrollment] = useState<Enrollment | null>(null);
+  const [completingEnrollment, setCompletingEnrollment] = useState<Enrollment | null>(null);
 
   const filters = (
     <Input
@@ -90,6 +94,30 @@ export function EnrollmentsList({ canManage }: { canManage: boolean }) {
   const yearNameById = new Map(years?.map((y) => [y.id, y.name]));
   const sectionNameById = new Map(sections?.map((s) => [s.id, s.name]));
   const sectionById = new Map(sections?.map((s) => [s.id, s]));
+  const gradeById = new Map(grades?.map((g) => [g.id, g]));
+
+  /**
+   * Repite el mismo grado si reprobó; si aprobó (o es una matrícula vieja
+   * sin este dato, `passed === null`) avanza al siguiente grado por orden.
+   * Si no hay grado siguiente (es el último) o falta algún dato, se queda
+   * en el grado actual — el admin igual puede cambiarlo a mano en el modal.
+   */
+  function resolveRenewGradeId(enrollment: Enrollment): string | undefined {
+    const section = sectionById.get(enrollment.sectionId);
+    if (!section) return undefined;
+    if (enrollment.passed === false) return section.gradeId;
+    const currentGrade = gradeById.get(section.gradeId);
+    const nextGrade = currentGrade && grades?.find((g) => g.order === currentGrade.order + 1);
+    return nextGrade?.id ?? section.gradeId;
+  }
+
+  function confirmComplete(passed: boolean) {
+    if (!completingEnrollment) return;
+    completeEnrollment.mutate(
+      { id: completingEnrollment.id, passed },
+      { onSuccess: () => setCompletingEnrollment(null) },
+    );
+  }
 
   function startReassign(enrollment: Enrollment) {
     setReassigningId(enrollment.id);
@@ -138,6 +166,17 @@ export function EnrollmentsList({ canManage }: { canManage: boolean }) {
                   <span className="text-xs uppercase text-muted-foreground">
                     {STATUS_LABELS[enrollment.status]}
                   </span>
+                  {enrollment.status === 'completed' && enrollment.passed !== null && (
+                    <span
+                      className={
+                        enrollment.passed
+                          ? 'rounded bg-success/15 px-1.5 py-0.5 text-xs font-medium text-success'
+                          : 'rounded bg-warning/15 px-1.5 py-0.5 text-xs font-medium text-warning'
+                      }
+                    >
+                      {enrollment.passed ? 'Aprobó' : 'Repite'}
+                    </span>
+                  )}
                   {canManage && enrollment.status === 'active' && (
                     <>
                       <button
@@ -152,7 +191,10 @@ export function EnrollmentsList({ canManage }: { canManage: boolean }) {
                       <Button
                         variant="ghost"
                         disabled={completeEnrollment.isPending}
-                        onClick={() => completeEnrollment.mutate(enrollment.id)}
+                        onClick={() => {
+                          completeEnrollment.reset();
+                          setCompletingEnrollment(enrollment);
+                        }}
                       >
                         Completar
                       </Button>
@@ -171,9 +213,18 @@ export function EnrollmentsList({ canManage }: { canManage: boolean }) {
                   {canManage && enrollment.status === 'completed' && (
                     <button
                       type="button"
-                      title="Renovar matrícula para el año lectivo activo"
+                      title={
+                        enrollment.passed === false
+                          ? 'Renovar repitiendo el mismo grado'
+                          : 'Renovar matrícula para el año lectivo activo'
+                      }
                       className="flex items-center gap-1.5 rounded p-1.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
-                      onClick={() => router.push(`/enrollment?renewStudentId=${enrollment.studentId}`)}
+                      onClick={() => {
+                        const params = new URLSearchParams({ renewStudentId: enrollment.studentId });
+                        const gradeId = resolveRenewGradeId(enrollment);
+                        if (gradeId) params.set('renewGradeId', gradeId);
+                        router.push(`/enrollment?${params.toString()}`);
+                      }}
                     >
                       <RotateCcw className="h-4 w-4" />
                       Renovar
@@ -246,6 +297,37 @@ export function EnrollmentsList({ canManage }: { canManage: boolean }) {
         isConfirming={withdrawEnrollment.isPending}
         errorMessage={withdrawEnrollment.isError ? withdrawEnrollment.error.message : undefined}
       />
+      <Dialog
+        open={completingEnrollment !== null}
+        onClose={() => setCompletingEnrollment(null)}
+        title="Completar matrícula"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            ¿{completingEnrollment ? studentNameById.get(completingEnrollment.studentId) ?? completingEnrollment.studentId : ''}{' '}
+            aprobó el año lectivo? Esto define si "Renovar" sugiere el siguiente grado o repetir el mismo.
+          </p>
+          <div className="flex items-center gap-3">
+            <Button type="button" disabled={completeEnrollment.isPending} onClick={() => confirmComplete(true)}>
+              {completeEnrollment.isPending ? 'Guardando...' : 'Sí, aprobó'}
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={completeEnrollment.isPending}
+              onClick={() => confirmComplete(false)}
+            >
+              No, repite el grado
+            </Button>
+            <Button variant="ghost" type="button" onClick={() => setCompletingEnrollment(null)}>
+              Cancelar
+            </Button>
+          </div>
+          {completeEnrollment.isError && (
+            <p className="text-sm text-destructive">{completeEnrollment.error.message}</p>
+          )}
+        </div>
+      </Dialog>
     </div>
   );
 }

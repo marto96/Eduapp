@@ -10,6 +10,7 @@ import { ReassignEnrollmentSectionUseCase } from '../../application/use-cases/re
 import { EnrollStudentDto } from '../dtos/enroll-student.dto';
 import { ListEnrollmentsQueryDto } from '../dtos/list-enrollments-query.dto';
 import { ReassignEnrollmentSectionDto } from '../dtos/reassign-enrollment-section.dto';
+import { CompleteEnrollmentDto } from '../dtos/complete-enrollment.dto';
 
 @Controller('enrollments')
 export class EnrollmentsController {
@@ -40,8 +41,8 @@ export class EnrollmentsController {
 
   @Patch(':id/complete')
   @CheckPolicies((ability) => ability.can('update', 'Enrollment'))
-  async complete(@Param('id') id: string) {
-    return this.completeEnrollment.execute(id);
+  async complete(@Param('id') id: string, @Body() dto: CompleteEnrollmentDto) {
+    return this.completeEnrollment.execute(id, dto.passed);
   }
 
   @Patch(':id/reassign-section')

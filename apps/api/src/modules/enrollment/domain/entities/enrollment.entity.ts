@@ -7,14 +7,17 @@ export class Enrollment {
     public sectionId: string,
     public readonly academicYearId: string,
     public status: EnrollmentStatus,
+    /** `null` = todavía no se completó, o se completó antes de que este campo existiera. */
+    public passed: boolean | null = null,
   ) {}
 
   withdraw(): void {
     this.status = 'withdrawn';
   }
 
-  complete(): void {
+  complete(passed: boolean): void {
     this.status = 'completed';
+    this.passed = passed;
   }
 
   reassignSection(sectionId: string): void {

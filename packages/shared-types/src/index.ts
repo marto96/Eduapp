@@ -113,6 +113,7 @@ export interface Enrollment {
   sectionId: string;
   academicYearId: string;
   status: EnrollmentStatus;
+  passed: boolean | null;
 }
 
 export type AuditLogKind = 'write' | 'sensitive_read';

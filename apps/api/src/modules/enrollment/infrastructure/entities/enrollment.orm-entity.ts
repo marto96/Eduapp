@@ -18,6 +18,9 @@ export class EnrollmentOrmEntity {
   @Column({ default: 'active' })
   status: EnrollmentStatus;
 
+  @Column({ type: 'boolean', nullable: true })
+  passed: boolean | null;
+
   @Column({ name: 'created_at', type: 'timestamptz', default: () => 'now()' })
   createdAt: Date;
 

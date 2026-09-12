@@ -6,13 +6,13 @@ import { Enrollment } from '../../domain/entities/enrollment.entity';
 export class CompleteEnrollmentUseCase {
   constructor(@Inject(EnrollmentRepositoryPort) private readonly enrollments: EnrollmentRepositoryPort) {}
 
-  async execute(id: string): Promise<Enrollment> {
+  async execute(id: string, passed: boolean): Promise<Enrollment> {
     const enrollment = await this.enrollments.findById(id);
     if (!enrollment) {
       throw new NotFoundException(`No existe la matrícula "${id}"`);
     }
 
-    enrollment.complete();
+    enrollment.complete(passed);
     await this.enrollments.save(enrollment);
     return enrollment;
   }

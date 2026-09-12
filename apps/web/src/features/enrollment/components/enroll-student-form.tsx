@@ -63,10 +63,12 @@ export function EnrollStudentForm({
   admissionId,
   matchedUserId,
   renewStudentId,
+  renewGradeId,
 }: {
   admissionId?: string;
   matchedUserId?: string;
   renewStudentId?: string;
+  renewGradeId?: string;
 }) {
   const { data: students } = useUsers('estudiante');
   const { data: years } = useAcademicYears();
@@ -122,12 +124,21 @@ export function EnrollStudentForm({
     if (!renewStudentId || !years?.length) return;
     setMode('existing');
     setStudentId(renewStudentId);
+    setSectionId(''); // nunca heredar la sección de una renovación anterior en esta misma sesión
     const activeYear = years.find((y) => y.status === 'active');
     if (activeYear) setAcademicYearId(activeYear.id);
     setDialogOpen(true);
   }, [renewStudentId, years]);
 
   const missingPrereqs = !years?.length || !sections?.length;
+  // Al renovar, se acota el picker a las secciones del grado sugerido (mismo
+  // grado si repite, el siguiente si aprobó) — ver `resolveRenewGradeId` en
+  // `EnrollmentsList`. Si ese grado no tiene ninguna sección creada todavía,
+  // se cae de vuelta a mostrar todas — un select vacío sería peor que uno
+  // sin filtrar.
+  const sectionsForRenewGrade = renewStudentId && renewGradeId ? sections?.filter((s) => s.gradeId === renewGradeId) : undefined;
+  const existingSectionOptions = sectionsForRenewGrade?.length ? sectionsForRenewGrade : sections;
+  const renewGradeHasNoSections = renewStudentId && renewGradeId && sectionsForRenewGrade?.length === 0;
   const isPending = enrollStudent.isPending || createUser.isPending;
 
   function resetNewStudentFields() {
@@ -270,12 +281,17 @@ export function EnrollStudentForm({
                     <option value="" disabled>
                       Selecciona una sección
                     </option>
-                    {sections?.map((section) => (
+                    {existingSectionOptions?.map((section) => (
                       <option key={section.id} value={section.id}>
                         {section.name}
                       </option>
                     ))}
                   </select>
+                  {renewGradeHasNoSections && (
+                    <p className="text-xs text-muted-foreground">
+                      El grado sugerido no tiene secciones creadas — elegí cualquiera.
+                    </p>
+                  )}
                 </div>
               </div>
               {error && <p className="text-sm text-destructive">{error}</p>}

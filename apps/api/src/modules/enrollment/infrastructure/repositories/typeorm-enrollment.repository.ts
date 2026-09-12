@@ -88,10 +88,11 @@ export class TypeOrmEnrollmentRepository extends EnrollmentRepositoryPort {
       sectionId: enrollment.sectionId,
       academicYearId: enrollment.academicYearId,
       status: enrollment.status,
+      passed: enrollment.passed,
     });
   }
 
   private toDomain(row: EnrollmentOrmEntity): Enrollment {
-    return new Enrollment(row.id, row.studentId, row.sectionId, row.academicYearId, row.status);
+    return new Enrollment(row.id, row.studentId, row.sectionId, row.academicYearId, row.status, row.passed);
   }
 }
