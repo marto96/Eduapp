@@ -1,9 +1,24 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import type { DocumentType, IssuedDocument, PaginatedResult } from '@eduapp/shared-types';
+import type { DocumentType, DocumentVerification, IssuedDocument, PaginatedResult } from '@eduapp/shared-types';
 import { toQueryString } from '@/lib/utils';
+
+async function fetchDocumentVerification(id: string): Promise<DocumentVerification> {
+  const res = await fetch(`/api/public/documents/verify/${id}`);
+  if (!res.ok) throw new Error('Documento no encontrado');
+  return res.json();
+}
+
+/** Usado desde la página pública `(public)/documentos/verificar/[id]` — sin sesión. */
+export function useDocumentVerification(id: string) {
+  return useQuery({
+    queryKey: ['document-verification', id],
+    queryFn: () => fetchDocumentVerification(id),
+    retry: false,
+  });
+}
 
 export interface DocumentFilter {
   enrollmentId?: string;

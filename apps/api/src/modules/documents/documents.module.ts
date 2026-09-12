@@ -1,5 +1,6 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { DocumentsController } from './interface/controllers/documents.controller';
+import { DocumentVerificationPublicController } from './interface/controllers/document-verification-public.controller';
 import { IssueDocumentUseCase } from './application/use-cases/issue-document.use-case';
 import { ListDocumentsUseCase } from './application/use-cases/list-documents.use-case';
 import { VoidDocumentUseCase } from './application/use-cases/void-document.use-case';
@@ -22,15 +23,17 @@ import { CompleteDocumentPaymentUseCase } from './application/use-cases/complete
 import { ListDocumentRequestsUseCase } from './application/use-cases/list-document-requests.use-case';
 import { RejectDocumentRequestUseCase } from './application/use-cases/reject-document-request.use-case';
 import { MarkDocumentRequestDeliveredUseCase } from './application/use-cases/mark-document-request-delivered.use-case';
+import { VerifyIssuedDocumentUseCase } from './application/use-cases/verify-issued-document.use-case';
 
 @Module({
   imports: [EnrollmentModule, IdentityModule, forwardRef(() => FinanceModule), NotificationsModule],
-  controllers: [DocumentsController],
+  controllers: [DocumentsController, DocumentVerificationPublicController],
   providers: [
     IssueDocumentUseCase,
     ListDocumentsUseCase,
     VoidDocumentUseCase,
     GetDocumentPdfUseCase,
+    VerifyIssuedDocumentUseCase,
     DocumentPdfGenerator,
     { provide: IssuedDocumentRepositoryPort, useClass: TypeOrmIssuedDocumentRepository },
     ListDocumentTypePricesUseCase,

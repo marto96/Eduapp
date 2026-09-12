@@ -53,6 +53,7 @@ export class IssueDocumentUseCase {
       const tenant = await this.tenantRegistry.resolveByHost(subdomain);
 
       const pdfBuffer = await this.pdfGenerator.generate({
+        id: document.id,
         type: input.type,
         description: input.description,
         issuedAt: input.issuedAt,

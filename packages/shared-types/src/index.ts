@@ -327,6 +327,14 @@ export interface DocumentTypePrice {
   amount: number;
 }
 
+export interface DocumentVerification {
+  type: DocumentType;
+  studentName: string;
+  institutionName: string;
+  issuedAt: string;
+  voided: boolean;
+}
+
 export type DocumentRequestStatus =
   | 'pendiente_pago'
   | 'lista_para_imprimir'
