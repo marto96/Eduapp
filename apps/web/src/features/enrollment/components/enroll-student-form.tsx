@@ -6,6 +6,7 @@ import { useEnrollStudent } from '../use-enrollments';
 import { useCreateUser, useUsers } from '@/features/users/use-users';
 import { useAcademicYears } from '@/features/academic/use-academic-years';
 import { useSections } from '@/features/academic/use-sections';
+import { useGrades } from '@/features/academic/use-grades';
 import { useLinkAdmissionEnrollment } from '@/features/admissions/use-admissions';
 import type { IdentityDocumentType } from '@eduapp/shared-types';
 import { Button } from '@/components/ui/button';
@@ -73,6 +74,7 @@ export function EnrollStudentForm({
   const { data: students } = useUsers('estudiante');
   const { data: years } = useAcademicYears();
   const { data: sections } = useSections();
+  const { data: grades } = useGrades();
   const enrollStudent = useEnrollStudent();
   const createUser = useCreateUser();
   const linkEnrollment = useLinkAdmissionEnrollment();
@@ -139,6 +141,15 @@ export function EnrollStudentForm({
   const sectionsForRenewGrade = renewStudentId && renewGradeId ? sections?.filter((s) => s.gradeId === renewGradeId) : undefined;
   const existingSectionOptions = sectionsForRenewGrade?.length ? sectionsForRenewGrade : sections;
   const renewGradeHasNoSections = renewStudentId && renewGradeId && sectionsForRenewGrade?.length === 0;
+
+  // El nombre de una sección ("A", "B") no es único entre grados — sin el
+  // grado en la etiqueta, dos secciones "A" de grados distintos son
+  // indistinguibles en el selector.
+  const gradeNameById = new Map(grades?.map((g) => [g.id, g.name]));
+  function sectionLabel(section: { gradeId: string; name: string }): string {
+    const gradeName = gradeNameById.get(section.gradeId);
+    return gradeName ? `${gradeName} — ${section.name}` : section.name;
+  }
   const isPending = enrollStudent.isPending || createUser.isPending;
 
   function resetNewStudentFields() {
@@ -283,7 +294,7 @@ export function EnrollStudentForm({
                     </option>
                     {existingSectionOptions?.map((section) => (
                       <option key={section.id} value={section.id}>
-                        {section.name}
+                        {sectionLabel(section)}
                       </option>
                     ))}
                   </select>
@@ -429,7 +440,7 @@ export function EnrollStudentForm({
                     </option>
                     {sections?.map((section) => (
                       <option key={section.id} value={section.id}>
-                        {section.name}
+                        {sectionLabel(section)}
                       </option>
                     ))}
                   </select>
