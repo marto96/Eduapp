@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from 'react';
 import { useAdmissionStatus } from '@/features/admissions/use-admissions';
+import { AdmissionDocumentUpload } from './admission-document-upload';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -57,6 +58,7 @@ export function AdmissionStatusLookup({ initialCode }: { initialCode?: string })
             <span className="text-muted-foreground">Estado:</span>{' '}
             {STATUS_LABELS[data.status] ?? data.status}
           </p>
+          <AdmissionDocumentUpload trackingCode={submittedCode} />
         </div>
       )}
     </div>

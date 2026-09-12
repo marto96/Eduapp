@@ -175,6 +175,21 @@ export interface AdmissionStatusResponse {
   createdAt: string;
 }
 
+export type AdmissionDocumentType =
+  | 'partida_nacimiento'
+  | 'documento_identidad_estudiante'
+  | 'documento_identidad_acudiente'
+  | 'foto';
+
+export interface AdmissionDocument {
+  id: string;
+  admissionApplicationId: string;
+  type: AdmissionDocumentType;
+  storageKey: string;
+  originalFilename: string;
+  uploadedAt: string;
+}
+
 export interface AdmissionAcceptResponse {
   application: AdmissionApplication;
   matchedUserId: string | null;

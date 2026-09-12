@@ -9,6 +9,7 @@ import {
   useAcceptAdmissionApplication,
   useRejectAdmissionApplication,
 } from '../use-admissions';
+import { AdmissionDocumentsSection } from './admission-documents-section';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -238,6 +239,8 @@ export function AdmissionApplicationsList() {
           {application.status === 'rechazada' && application.rejectionReason && (
             <p className="text-sm text-muted-foreground">Motivo: {application.rejectionReason}</p>
           )}
+
+          <AdmissionDocumentsSection applicationId={application.id} />
         </Card>
       ))}
       </ul>

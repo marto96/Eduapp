@@ -13,12 +13,18 @@ import { LinkAdmissionEnrollmentUseCase } from './application/use-cases/link-adm
 import { ListOpenAdmissionYearsUseCase } from './application/use-cases/list-open-admission-years.use-case';
 import { ListGradeAdmissionAvailabilityUseCase } from './application/use-cases/list-grade-admission-availability.use-case';
 import { SetAdmissionGradeClosedUseCase } from './application/use-cases/set-admission-grade-closed.use-case';
+import { UploadAdmissionDocumentUseCase } from './application/use-cases/upload-admission-document.use-case';
+import { ListAdmissionDocumentsUseCase } from './application/use-cases/list-admission-documents.use-case';
+import { GetAdmissionDocumentsForReviewUseCase } from './application/use-cases/get-admission-documents-for-review.use-case';
+import { DownloadAdmissionDocumentUseCase } from './application/use-cases/download-admission-document.use-case';
 import { AdmissionApplicationRepositoryPort } from './application/ports/admission-application.repository.port';
 import { AdmissionPaymentAttemptRepositoryPort } from './application/ports/admission-payment-attempt.repository.port';
 import { AdmissionGradeClosureRepositoryPort } from './application/ports/admission-grade-closure.repository.port';
+import { AdmissionDocumentRepositoryPort } from './application/ports/admission-document.repository.port';
 import { TypeOrmAdmissionApplicationRepository } from './infrastructure/repositories/typeorm-admission-application.repository';
 import { TypeOrmAdmissionPaymentAttemptRepository } from './infrastructure/repositories/typeorm-admission-payment-attempt.repository';
 import { TypeOrmAdmissionGradeClosureRepository } from './infrastructure/repositories/typeorm-admission-grade-closure.repository';
+import { TypeOrmAdmissionDocumentRepository } from './infrastructure/repositories/typeorm-admission-document.repository';
 import { AcademicModule } from '../academic/academic.module';
 import { FinanceModule } from '../finance/finance.module';
 import { IdentityModule } from '../identity/identity.module';
@@ -39,9 +45,14 @@ import { EmailModule } from '../email/email.module';
     ListOpenAdmissionYearsUseCase,
     ListGradeAdmissionAvailabilityUseCase,
     SetAdmissionGradeClosedUseCase,
+    UploadAdmissionDocumentUseCase,
+    ListAdmissionDocumentsUseCase,
+    GetAdmissionDocumentsForReviewUseCase,
+    DownloadAdmissionDocumentUseCase,
     { provide: AdmissionApplicationRepositoryPort, useClass: TypeOrmAdmissionApplicationRepository },
     { provide: AdmissionPaymentAttemptRepositoryPort, useClass: TypeOrmAdmissionPaymentAttemptRepository },
     { provide: AdmissionGradeClosureRepositoryPort, useClass: TypeOrmAdmissionGradeClosureRepository },
+    { provide: AdmissionDocumentRepositoryPort, useClass: TypeOrmAdmissionDocumentRepository },
   ],
 })
 export class AdmissionsModule {}

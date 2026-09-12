@@ -4,6 +4,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
   AdmissionAcceptResponse,
   AdmissionApplication,
+  AdmissionDocument,
+  AdmissionDocumentType,
   AdmissionStatus,
   AdmissionStatusResponse,
   GradeAdmissionAvailability,
@@ -61,6 +63,69 @@ export function useAdmissionStatus(trackingCode: string) {
     queryFn: () => fetchAdmissionStatus(trackingCode),
     enabled: trackingCode.trim().length > 0,
     retry: false,
+  });
+}
+
+async function fetchAdmissionDocuments(trackingCode: string): Promise<AdmissionDocument[]> {
+  const res = await fetch(`/api/admissions/applications/status/${encodeURIComponent(trackingCode)}/documents`);
+  if (!res.ok) throw new Error('No se pudieron cargar los documentos');
+  return res.json();
+}
+
+/** Público, por tracking code — la misma credencial que usa la consulta de estado. */
+export function useAdmissionDocuments(trackingCode: string) {
+  return useQuery({
+    queryKey: ['admission-documents', trackingCode],
+    queryFn: () => fetchAdmissionDocuments(trackingCode),
+    enabled: trackingCode.trim().length > 0,
+    retry: false,
+  });
+}
+
+async function uploadAdmissionDocument({
+  trackingCode,
+  type,
+  file,
+}: {
+  trackingCode: string;
+  type: AdmissionDocumentType;
+  file: File;
+}): Promise<AdmissionDocument> {
+  const formData = new FormData();
+  formData.set('type', type);
+  formData.set('file', file);
+  const res = await fetch(`/api/admissions/applications/status/${encodeURIComponent(trackingCode)}/documents`, {
+    method: 'POST',
+    body: formData,
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.message ?? 'No se pudo subir el archivo');
+  }
+  return res.json();
+}
+
+export function useUploadAdmissionDocument() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: uploadAdmissionDocument,
+    onSuccess: (_data, variables) =>
+      queryClient.invalidateQueries({ queryKey: ['admission-documents', variables.trackingCode] }),
+  });
+}
+
+async function fetchAdmissionDocumentsForReview(applicationId: string): Promise<AdmissionDocument[]> {
+  const res = await fetch(`/api/admissions/management/${applicationId}/documents`);
+  if (!res.ok) throw new Error('No se pudieron cargar los documentos');
+  return res.json();
+}
+
+/** Staff, por id de solicitud directo (viene de la lista de gestión). */
+export function useAdmissionDocumentsForReview(applicationId: string) {
+  return useQuery({
+    queryKey: ['admission-documents-review', applicationId],
+    queryFn: () => fetchAdmissionDocumentsForReview(applicationId),
+    enabled: applicationId.trim().length > 0,
   });
 }
 
