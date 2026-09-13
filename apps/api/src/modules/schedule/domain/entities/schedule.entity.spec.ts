@@ -35,4 +35,24 @@ describe('Schedule', () => {
       'La hora de inicio debe ser anterior a la hora de fin',
     );
   });
+
+  it('classroomId es null por defecto', () => {
+    expect(build().classroomId).toBeNull();
+  });
+
+  it('acepta un classroomId explícito', () => {
+    const schedule = new Schedule(
+      'sched-1',
+      'section-1',
+      'subject-1',
+      'teacher-1',
+      'year-1',
+      'lunes',
+      '08:00',
+      '09:00',
+      false,
+      'classroom-1',
+    );
+    expect(schedule.classroomId).toBe('classroom-1');
+  });
 });

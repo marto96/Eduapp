@@ -5,6 +5,7 @@ export interface ScheduleFilter {
   teacherId?: string;
   academicYearId?: string;
   dayOfWeek?: DayOfWeek;
+  classroomId?: string;
 }
 
 export abstract class ScheduleRepositoryPort {

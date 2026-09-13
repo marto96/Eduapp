@@ -30,6 +30,9 @@ export class ScheduleOrmEntity {
   @Column({ name: 'is_virtual', default: false })
   isVirtual: boolean;
 
+  @Column({ name: 'classroom_id', nullable: true })
+  classroomId: string | null;
+
   @Column({ name: 'created_at', type: 'timestamptz', default: () => 'now()' })
   createdAt: Date;
 

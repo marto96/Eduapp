@@ -11,6 +11,7 @@ export class Schedule {
     public readonly startTime: string,
     public readonly endTime: string,
     public isVirtual: boolean = false,
+    public readonly classroomId: string | null = null,
   ) {
     if (startTime >= endTime) {
       throw new Error('La hora de inicio debe ser anterior a la hora de fin');

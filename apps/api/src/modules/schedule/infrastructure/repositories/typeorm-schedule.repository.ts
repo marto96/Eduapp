@@ -21,6 +21,7 @@ export class TypeOrmScheduleRepository extends ScheduleRepositoryPort {
         ...(filter?.teacherId && { teacherId: filter.teacherId }),
         ...(filter?.academicYearId && { academicYearId: filter.academicYearId }),
         ...(filter?.dayOfWeek && { dayOfWeek: filter.dayOfWeek }),
+        ...(filter?.classroomId && { classroomId: filter.classroomId }),
       },
       order: { dayOfWeek: 'ASC', startTime: 'ASC' },
     });
@@ -43,6 +44,7 @@ export class TypeOrmScheduleRepository extends ScheduleRepositoryPort {
       startTime: schedule.startTime,
       endTime: schedule.endTime,
       isVirtual: schedule.isVirtual,
+      classroomId: schedule.classroomId,
     });
   }
 
@@ -57,6 +59,7 @@ export class TypeOrmScheduleRepository extends ScheduleRepositoryPort {
       row.startTime,
       row.endTime,
       row.isVirtual,
+      row.classroomId,
     );
   }
 }
