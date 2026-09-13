@@ -251,6 +251,7 @@ export interface Schedule {
   startTime: string;
   endTime: string;
   isVirtual: boolean;
+  classroomId: string | null;
 }
 
 export interface ClassCancellation {

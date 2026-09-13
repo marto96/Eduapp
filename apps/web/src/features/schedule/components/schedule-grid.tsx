@@ -7,6 +7,7 @@ import { useSections } from '@/features/academic/use-sections';
 import { useGrades } from '@/features/academic/use-grades';
 import { useSubjects } from '@/features/academic/use-subjects';
 import { useUsers } from '@/features/users/use-users';
+import { useClassrooms } from '@/features/academic/use-classrooms';
 import { Label } from '@/components/ui/label';
 import { VirtualClassControls } from './virtual-class-controls';
 import { todayDayOfWeek, todayLocalDate } from '@/lib/date';
@@ -32,6 +33,7 @@ export function ScheduleGrid({
   const { data: grades } = useGrades();
   const { data: subjects } = useSubjects();
   const { data: teachers } = useUsers('docente');
+  const { data: classrooms } = useClassrooms();
   const [sectionId, setSectionId] = useState('');
   const today = todayLocalDate();
   const { data: cancellations } = useClassCancellations({ from: today, to: today });
@@ -40,6 +42,7 @@ export function ScheduleGrid({
   const gradeNameById = new Map(grades?.map((g) => [g.id, g.name]));
   const subjectNameById = new Map(subjects?.map((s) => [s.id, s.name]));
   const teacherNameById = new Map(teachers?.map((t) => [t.id, t.fullName]));
+  const classroomNameById = new Map(classrooms?.map((c) => [c.id, c.name]));
   const cancellationByScheduleId = new Map(cancellations?.map((c) => [c.scheduleId, c]));
 
   const sectionSchedules = (schedules ?? []).filter((s) => !sectionId || s.sectionId === sectionId);
@@ -103,6 +106,11 @@ export function ScheduleGrid({
                             <p className="text-xs text-muted-foreground">
                               {teacherNameById.get(match.teacherId) ?? match.teacherId}
                             </p>
+                            {match.classroomId && (
+                              <p className="text-xs text-muted-foreground">
+                                {classroomNameById.get(match.classroomId) ?? match.classroomId}
+                              </p>
+                            )}
                             {match.isVirtual && match.dayOfWeek === todaysDay && (
                               <VirtualClassControls
                                 schedule={match}

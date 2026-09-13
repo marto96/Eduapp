@@ -27,6 +27,7 @@ export interface CreateScheduleInput {
   dayOfWeek: DayOfWeek;
   startTime: string;
   endTime: string;
+  classroomId?: string;
 }
 
 async function createSchedule(input: CreateScheduleInput): Promise<Schedule> {

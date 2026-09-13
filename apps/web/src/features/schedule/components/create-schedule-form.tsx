@@ -7,6 +7,7 @@ import { useSections } from '@/features/academic/use-sections';
 import { useGrades } from '@/features/academic/use-grades';
 import { useSubjects } from '@/features/academic/use-subjects';
 import { useUsers } from '@/features/users/use-users';
+import { useClassrooms } from '@/features/academic/use-classrooms';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -28,6 +29,7 @@ export function CreateScheduleForm() {
   const { data: subjects } = useSubjects();
   const gradeNameById = new Map(grades?.map((g) => [g.id, g.name]));
   const { data: teachers } = useUsers('docente');
+  const { data: classrooms } = useClassrooms();
   const createSchedule = useCreateSchedule();
   const setScheduleVirtual = useSetScheduleVirtual();
 
@@ -39,6 +41,7 @@ export function CreateScheduleForm() {
   const [startTime, setStartTime] = useState('08:00');
   const [endTime, setEndTime] = useState('09:00');
   const [isVirtual, setIsVirtual] = useState(false);
+  const [classroomId, setClassroomId] = useState('');
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -52,6 +55,7 @@ export function CreateScheduleForm() {
         dayOfWeek,
         startTime,
         endTime,
+        ...(classroomId && { classroomId }),
       });
       if (isVirtual) {
         setScheduleVirtual.mutate({ id: schedule.id, isVirtual: true });
@@ -140,6 +144,22 @@ export function CreateScheduleForm() {
         </select>
       </div>
       <div className="space-y-1.5">
+        <Label htmlFor="classroomId">Aula</Label>
+        <select
+          id="classroomId"
+          value={classroomId}
+          onChange={(e) => setClassroomId(e.target.value)}
+          className="flex h-10 w-36 rounded border border-border bg-background px-3 text-sm outline-none focus:border-primary"
+        >
+          <option value="">Sin aula asignada</option>
+          {classrooms?.map((classroom) => (
+            <option key={classroom.id} value={classroom.id}>
+              {classroom.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="space-y-1.5">
         <Label htmlFor="dayOfWeek">Día</Label>
         <select
           id="dayOfWeek"
@@ -189,7 +209,7 @@ export function CreateScheduleForm() {
       </Button>
       {createSchedule.isError && (
         <p className="w-full text-sm text-destructive">
-          No se pudo crear el horario (¿superpone con otro del docente o la sección?).
+          No se pudo crear el horario (¿superpone con otro del docente, la sección o el aula?).
         </p>
       )}
       {setScheduleVirtual.isError && (
