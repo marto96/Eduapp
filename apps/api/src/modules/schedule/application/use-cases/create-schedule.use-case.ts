@@ -13,6 +13,7 @@ export interface CreateScheduleInput {
   dayOfWeek: DayOfWeek;
   startTime: string;
   endTime: string;
+  classroomId?: string;
 }
 
 @Injectable()
@@ -42,6 +43,8 @@ export class CreateScheduleUseCase {
         input.dayOfWeek,
         input.startTime,
         input.endTime,
+        false,
+        input.classroomId ?? null,
       );
     } catch (err) {
       throw new BadRequestException((err as Error).message);
@@ -62,6 +65,17 @@ export class CreateScheduleUseCase {
     });
     if (sectionSameDay.some((existing) => existing.overlaps(schedule))) {
       throw new ConflictException('La sección ya tiene otra asignatura asignada en ese rango');
+    }
+
+    if (input.classroomId) {
+      const classroomSameDay = await this.schedules.findAll({
+        classroomId: input.classroomId,
+        academicYearId: input.academicYearId,
+        dayOfWeek: input.dayOfWeek,
+      });
+      if (classroomSameDay.some((existing) => existing.overlaps(schedule))) {
+        throw new ConflictException('El aula ya tiene otro horario asignado en ese rango');
+      }
     }
 
     try {

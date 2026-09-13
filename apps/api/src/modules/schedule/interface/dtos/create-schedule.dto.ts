@@ -1,4 +1,4 @@
-import { IsIn, IsUUID, Matches } from 'class-validator';
+import { IsIn, IsOptional, IsUUID, Matches } from 'class-validator';
 import { DayOfWeek } from '../../domain/entities/schedule.entity';
 
 const KNOWN_DAYS: DayOfWeek[] = ['lunes', 'martes', 'miercoles', 'jueves', 'viernes', 'sabado'];
@@ -25,4 +25,8 @@ export class CreateScheduleDto {
 
   @Matches(TIME_PATTERN, { message: 'endTime debe tener formato HH:mm' })
   endTime: string;
+
+  @IsOptional()
+  @IsUUID()
+  classroomId?: string;
 }
