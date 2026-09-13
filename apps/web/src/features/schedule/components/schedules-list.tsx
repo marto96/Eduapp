@@ -5,6 +5,7 @@ import { useClassCancellations } from '../use-class-cancellations';
 import { useSections } from '@/features/academic/use-sections';
 import { useGrades } from '@/features/academic/use-grades';
 import { useSubjects } from '@/features/academic/use-subjects';
+import { useClassrooms } from '@/features/academic/use-classrooms';
 import { useUsers } from '@/features/users/use-users';
 import { Card } from '@/components/ui/card';
 import { VirtualClassControls } from './virtual-class-controls';
@@ -32,6 +33,7 @@ export function SchedulesList({
   const { data: grades } = useGrades();
   const { data: subjects } = useSubjects();
   const { data: teachers } = useUsers('docente');
+  const { data: classrooms } = useClassrooms();
   const today = todayLocalDate();
   const { data: cancellations } = useClassCancellations({ from: today, to: today });
 
@@ -50,6 +52,7 @@ export function SchedulesList({
   );
   const subjectNameById = new Map(subjects?.map((s) => [s.id, s.name]));
   const teacherNameById = new Map(teachers?.map((t) => [t.id, t.fullName]));
+  const classroomNameById = new Map(classrooms?.map((c) => [c.id, c.name]));
   const cancellationByScheduleId = new Map(cancellations?.map((c) => [c.scheduleId, c]));
   const todaysDay = todayDayOfWeek();
 
@@ -65,6 +68,11 @@ export function SchedulesList({
             <p className="text-sm text-muted-foreground">
               {teacherNameById.get(schedule.teacherId) ?? schedule.teacherId}
             </p>
+            {schedule.classroomId && (
+              <p className="text-xs text-muted-foreground">
+                {classroomNameById.get(schedule.classroomId) ?? schedule.classroomId}
+              </p>
+            )}
           </div>
           <div className="flex items-center gap-3">
             <span className="text-xs text-muted-foreground">
