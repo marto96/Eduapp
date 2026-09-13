@@ -81,6 +81,12 @@ export interface Subject {
   area: string;
 }
 
+export interface Classroom {
+  id: string;
+  name: string;
+  capacity: number;
+}
+
 export interface Period {
   id: string;
   academicYearId: string;
