@@ -60,7 +60,9 @@ describe('CreateScheduleUseCase', () => {
       'classroom-1',
     );
     schedules.findAll.mockImplementation(async (filter) => {
-      if (filter?.classroomId === 'classroom-1') return [existing];
+      if (filter?.classroomId === 'classroom-1' && filter?.academicYearId === existing.academicYearId) {
+        return [existing];
+      }
       return [];
     });
 
@@ -68,6 +70,34 @@ describe('CreateScheduleUseCase', () => {
       'El aula ya tiene otro horario asignado en ese rango',
     );
     expect(schedules.save).not.toHaveBeenCalled();
+    expect(schedules.findAll).toHaveBeenCalledWith(
+      expect.objectContaining({ classroomId: 'classroom-1', academicYearId: 'year-1', dayOfWeek: 'lunes' }),
+    );
+  });
+
+  it('no lanza si el aula tiene un horario solapado pero en otro año académico', async () => {
+    const existing = new Schedule(
+      'sched-existing',
+      'other-section',
+      'other-subject',
+      'other-teacher',
+      'year-2',
+      'lunes',
+      '08:30',
+      '09:30',
+      false,
+      'classroom-1',
+    );
+    schedules.findAll.mockImplementation(async (filter) => {
+      if (filter?.classroomId === 'classroom-1' && filter?.academicYearId === existing.academicYearId) {
+        return [existing];
+      }
+      return [];
+    });
+
+    const result = await useCase.execute({ ...baseInput, classroomId: 'classroom-1' });
+    expect(result.classroomId).toBe('classroom-1');
+    expect(schedules.save).toHaveBeenCalled();
   });
 
   it('no lanza si el aula tiene horarios en otro rango sin solape', async () => {
