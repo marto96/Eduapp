@@ -4,6 +4,7 @@ import { GradesController } from './interface/controllers/grades.controller';
 import { SectionsController } from './interface/controllers/sections.controller';
 import { SubjectsController } from './interface/controllers/subjects.controller';
 import { PeriodsController } from './interface/controllers/periods.controller';
+import { ClassroomsController } from './interface/controllers/classrooms.controller';
 import { CreateAcademicYearUseCase } from './application/use-cases/create-academic-year.use-case';
 import { ListAcademicYearsUseCase } from './application/use-cases/list-academic-years.use-case';
 import { GetAcademicYearUseCase } from './application/use-cases/get-academic-year.use-case';
@@ -23,19 +24,23 @@ import { ListSubjectsUseCase } from './application/use-cases/list-subjects.use-c
 import { CreatePeriodUseCase } from './application/use-cases/create-period.use-case';
 import { ListPeriodsUseCase } from './application/use-cases/list-periods.use-case';
 import { EditPeriodUseCase } from './application/use-cases/edit-period.use-case';
+import { CreateClassroomUseCase } from './application/use-cases/create-classroom.use-case';
+import { ListClassroomsUseCase } from './application/use-cases/list-classrooms.use-case';
 import { AcademicYearRepositoryPort } from './application/ports/academic-year.repository.port';
 import { GradeRepositoryPort } from './application/ports/grade.repository.port';
 import { SectionRepositoryPort } from './application/ports/section.repository.port';
 import { SubjectRepositoryPort } from './application/ports/subject.repository.port';
 import { PeriodRepositoryPort } from './application/ports/period.repository.port';
+import { ClassroomRepositoryPort } from './application/ports/classroom.repository.port';
 import { TypeOrmAcademicYearRepository } from './infrastructure/repositories/typeorm-academic-year.repository';
 import { TypeOrmGradeRepository } from './infrastructure/repositories/typeorm-grade.repository';
 import { TypeOrmSectionRepository } from './infrastructure/repositories/typeorm-section.repository';
 import { TypeOrmSubjectRepository } from './infrastructure/repositories/typeorm-subject.repository';
 import { TypeOrmPeriodRepository } from './infrastructure/repositories/typeorm-period.repository';
+import { TypeOrmClassroomRepository } from './infrastructure/repositories/typeorm-classroom.repository';
 
 @Module({
-  controllers: [AcademicYearsController, GradesController, SectionsController, SubjectsController, PeriodsController],
+  controllers: [AcademicYearsController, GradesController, SectionsController, SubjectsController, PeriodsController, ClassroomsController],
   providers: [
     CreateAcademicYearUseCase,
     ListAcademicYearsUseCase,
@@ -56,11 +61,14 @@ import { TypeOrmPeriodRepository } from './infrastructure/repositories/typeorm-p
     CreatePeriodUseCase,
     ListPeriodsUseCase,
     EditPeriodUseCase,
+    CreateClassroomUseCase,
+    ListClassroomsUseCase,
     { provide: AcademicYearRepositoryPort, useClass: TypeOrmAcademicYearRepository },
     { provide: GradeRepositoryPort, useClass: TypeOrmGradeRepository },
     { provide: SectionRepositoryPort, useClass: TypeOrmSectionRepository },
     { provide: SubjectRepositoryPort, useClass: TypeOrmSubjectRepository },
     { provide: PeriodRepositoryPort, useClass: TypeOrmPeriodRepository },
+    { provide: ClassroomRepositoryPort, useClass: TypeOrmClassroomRepository },
   ],
   exports: [
     SubjectRepositoryPort,
@@ -68,6 +76,7 @@ import { TypeOrmPeriodRepository } from './infrastructure/repositories/typeorm-p
     AcademicYearRepositoryPort,
     GradeRepositoryPort,
     PeriodRepositoryPort,
+    ClassroomRepositoryPort,
   ],
 })
 export class AcademicModule {}

@@ -156,4 +156,15 @@ describe('AbilityFactory', () => {
     expect(factory.createForUser(payload(['docente'])).can('read', 'DocumentRequest')).toBe(true);
     expect(factory.createForUser(payload(['estudiante'])).can('read', 'DocumentRequest')).toBe(true);
   });
+
+  it('directivo puede manage Classroom', () => {
+    const ability = factory.createForUser(payload(['directivo']));
+    expect(ability.can('create', 'Classroom')).toBe(true);
+  });
+
+  it('docente puede read Classroom pero no create', () => {
+    const ability = factory.createForUser(payload(['docente']));
+    expect(ability.can('read', 'Classroom')).toBe(true);
+    expect(ability.can('create', 'Classroom')).toBe(false);
+  });
 });
