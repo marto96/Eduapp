@@ -30,4 +30,15 @@ describe('UpdateEmailTemplateUseCase', () => {
 
     expect(templates.save).toHaveBeenCalledWith(expect.objectContaining({ id: 'new-id', type: 'pago_aprobado' }));
   });
+
+  it('sanitiza el body antes de guardar (ej. modo HTML crudo del frontend)', async () => {
+    templates.findByType.mockResolvedValue(null);
+
+    await useCase.execute('pago_aprobado', {
+      subject: 'Nuevo',
+      body: '<p>Hola</p><script>alert(1)</script>',
+    });
+
+    expect(templates.save).toHaveBeenCalledWith(expect.objectContaining({ body: '<p>Hola</p>' }));
+  });
 });
