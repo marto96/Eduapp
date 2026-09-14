@@ -15,8 +15,14 @@ type EditorMode = 'visual' | 'html';
 
 const MODE_LABELS: Record<EditorMode, string> = {
   visual: 'Editor visual',
-  html: 'HTML crudo',
+  html: 'HTML',
 };
+
+// Quill no tiene modelo de tabla: si el HTML la trae, la aplana a <p> y
+// pierde toda la estructura/estilos de layout (ver template-body-editor.tsx
+// del 2026-09-14). Detectarla acá evita ofrecer una pestaña que rompe el
+// contenido apenas se monta.
+const hasAdvancedHtml = (html: string) => /<table[\s>]/i.test(html);
 
 export function TemplateBodyEditor({
   value,
@@ -27,12 +33,18 @@ export function TemplateBodyEditor({
   onChange: (html: string) => void;
   placeholders: string[];
 }) {
-  const [mode, setMode] = useState<EditorMode>('visual');
+  const [mode, setMode] = useState<EditorMode>(() => (hasAdvancedHtml(value) ? 'html' : 'visual'));
   const editorRef = useRef<QuillEditorHandle | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
+  // No solo el estado inicial: si el usuario escribe una tabla a mano en
+  // modo HTML, la pestaña visual debe quedar bloqueada de inmediato, sin
+  // esperar a que la reabra.
+  const isAdvanced = hasAdvancedHtml(value);
+  const effectiveMode: EditorMode = isAdvanced ? 'html' : mode;
+
   const insertPlaceholder = (placeholder: string) => {
-    if (mode === 'visual') {
+    if (effectiveMode === 'visual') {
       const editor = editorRef.current;
       if (!editor) return;
       const cursor = editor.getSelection(true);
@@ -68,24 +80,37 @@ export function TemplateBodyEditor({
           ))}
         </div>
         <div className="flex items-center gap-0.5 rounded-md border border-border p-0.5">
-          {(Object.keys(MODE_LABELS) as EditorMode[]).map((m) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => setMode(m)}
-              className={cn(
-                'rounded px-2 py-1 text-xs font-medium transition-colors',
-                mode === m
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground',
-              )}
-            >
-              {MODE_LABELS[m]}
-            </button>
-          ))}
+          {(Object.keys(MODE_LABELS) as EditorMode[]).map((m) => {
+            const disabled = m === 'visual' && isAdvanced;
+            return (
+              <button
+                key={m}
+                type="button"
+                disabled={disabled}
+                onClick={() => setMode(m)}
+                title={disabled ? 'Esta plantilla usa HTML avanzado (tablas): el editor visual no lo soporta' : undefined}
+                className={cn(
+                  'rounded px-2 py-1 text-xs font-medium transition-colors',
+                  disabled
+                    ? 'cursor-not-allowed text-muted-foreground/50'
+                    : effectiveMode === m
+                      ? 'bg-primary/10 text-primary'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                )}
+              >
+                {MODE_LABELS[m]}
+              </button>
+            );
+          })}
         </div>
       </div>
-      {mode === 'visual' ? (
+      {isAdvanced && (
+        <p className="text-xs text-muted-foreground">
+          Esta plantilla usa HTML avanzado (tablas) para el diseño del correo — el editor visual lo aplanaría y
+          perdería el formato, así que solo se puede editar en modo HTML.
+        </p>
+      )}
+      {effectiveMode === 'visual' ? (
         <QuillEditorLazy
           value={value}
           onChange={onChange}

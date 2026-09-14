@@ -3,6 +3,11 @@
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 
+// 'quill' es una dependencia transitiva de react-quill (no hoisteada por
+// pnpm bajo apps/web), así que no se puede importar su tipo `Sources`
+// directamente — se replica acá (son los 3 valores fijos que Quill emite).
+type QuillChangeSource = 'user' | 'api' | 'silent';
+
 export interface QuillEditorHandle {
   getSelection(focus?: boolean): { index: number; length: number } | null;
   getLength(): number;
@@ -39,7 +44,14 @@ export default function QuillEditorLazy({
       theme="snow"
       modules={modules}
       value={value}
-      onChange={onChange}
+      onChange={(content, _delta, source: QuillChangeSource) => {
+        // Al montar (o al recibir un `value` externo con markup que no
+        // puede representar, ej. tablas) Quill re-normaliza el HTML a su
+        // propio modelo y dispara este onChange con source 'api', no
+        // 'user'. Propagar ese valor pisaría el HTML original con la
+        // versión "achatada" sin que el usuario haya tocado nada.
+        if (source === 'user') onChange(content);
+      }}
     />
   );
 }
