@@ -11,7 +11,7 @@ export class Schedule {
     public readonly startTime: string,
     public readonly endTime: string,
     public isVirtual: boolean = false,
-    public readonly classroomId: string | null = null,
+    public classroomId: string | null = null,
   ) {
     if (startTime >= endTime) {
       throw new Error('La hora de inicio debe ser anterior a la hora de fin');
@@ -22,7 +22,11 @@ export class Schedule {
     return this.startTime < other.endTime && other.startTime < this.endTime;
   }
 
+  /** Una clase virtual no ocupa un aula física — activarla libera la que tuviera asignada. */
   setVirtual(isVirtual: boolean): void {
     this.isVirtual = isVirtual;
+    if (isVirtual) {
+      this.classroomId = null;
+    }
   }
 }

@@ -45,6 +45,15 @@ describe('SetScheduleVirtualUseCase', () => {
     expect(schedules.save).toHaveBeenCalledWith(expect.objectContaining({ isVirtual: true }));
   });
 
+  it('activar la clase virtual libera el aula asignada', async () => {
+    const existing = schedule();
+    existing.classroomId = 'classroom-1';
+    schedules.findById.mockResolvedValue(existing);
+    const result = await useCase.execute('sched-1', true, user());
+    expect(result.classroomId).toBeNull();
+    expect(schedules.save).toHaveBeenCalledWith(expect.objectContaining({ classroomId: null }));
+  });
+
   it('un directivo puede activar la clase virtual de cualquier docente', async () => {
     schedules.findById.mockResolvedValue(schedule());
     const result = await useCase.execute('sched-1', true, user({ sub: 'director-1', roles: ['directivo'] }));

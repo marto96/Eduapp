@@ -55,4 +55,27 @@ describe('Schedule', () => {
     );
     expect(schedule.classroomId).toBe('classroom-1');
   });
+
+  it('setVirtual(true) libera el aula asignada', () => {
+    const schedule = new Schedule(
+      'sched-1',
+      'section-1',
+      'subject-1',
+      'teacher-1',
+      'year-1',
+      'lunes',
+      '08:00',
+      '09:00',
+      false,
+      'classroom-1',
+    );
+    schedule.setVirtual(true);
+    expect(schedule.classroomId).toBeNull();
+  });
+
+  it('setVirtual(false) no afecta un classroomId ya nulo', () => {
+    const schedule = build(true);
+    schedule.setVirtual(false);
+    expect(schedule.classroomId).toBeNull();
+  });
 });
