@@ -3,22 +3,28 @@
 @tailwind utilities;
 
 /*
-  Paleta "Nocturne" (ver /Users/martingaona/.claude/plans — diseño
-  compartido vía claude.ai/design). Fondo/superficie/texto/borde son
+  Paleta "Terracota" (reemplaza "Nocturne" el 2026-09-14 — inspirada en
+  q10.com: acento cálido de alto contraste, fondo claro casi crema en vez
+  de la familia azulada anterior). Fondo/superficie/texto/borde son
   iguales para todas las instituciones, en ambos temas; el acento
   (--primary) es el único valor que cada tenant puede personalizar — se
   sobreescribe en runtime en el <html> (ver app/layout.tsx +
   lib/getTenantBranding), el valor de acá es solo el default antes de
   que cargue ese fetch / si falla.
+
+  El tema oscuro deliberadamente NO se pasó a tonos cálidos: fondo/
+  superficie/texto/borde quedan iguales a la paleta anterior (evita el
+  riesgo de que un fondo oscuro cálido se vea "sucio"/marrón apagado) —
+  solo el acento cambia, mismo criterio que el tema claro.
 */
 :root {
-  --background: 227 36% 95%;
-  --surface: 0 0% 100%;
-  --foreground: 232 19% 15%;
-  --primary: 249 53% 68%;
-  --muted: 229 8% 93%;
-  --muted-foreground: 230 9% 50%;
-  --border: 240 1% 88%;
+  --background: 30 45% 97%;
+  --surface: 30 20% 99%;
+  --foreground: 20 9% 13%;
+  --primary: 14 75% 55%;
+  --muted: 30 15% 93%;
+  --muted-foreground: 25 8% 46%;
+  --border: 30 12% 88%;
   --destructive: 0 72% 51%;
   --success: 152 55% 36%;
   --warning: 38 92% 48%;
@@ -33,7 +39,7 @@
   --background: 233 30% 9%;
   --surface: 231 22% 15%;
   --foreground: 240 2% 92%;
-  --primary: 249 62% 74%;
+  --primary: 14 75% 63%;
   --muted: 227 13% 21%;
   --muted-foreground: 230 13% 66%;
   --border: 236 15% 24%;
