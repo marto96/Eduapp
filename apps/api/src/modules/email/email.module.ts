@@ -3,6 +3,8 @@ import { EmailPort } from './application/ports/email.port';
 import { ResendEmailGateway } from './infrastructure/email/resend-email-gateway';
 import { EmailTemplateRepositoryPort } from './application/ports/email-template.repository.port';
 import { TypeOrmEmailTemplateRepository } from './infrastructure/repositories/typeorm-email-template.repository';
+import { TenantBrandingPort } from './application/ports/tenant-branding.port';
+import { TenantContextBrandingAdapter } from './infrastructure/tenant-context-branding.adapter';
 import { EmailTemplateService } from './application/services/email-template.service';
 import { SendTemplatedEmailUseCase } from './application/use-cases/send-templated-email.use-case';
 import { ListEmailTemplatesUseCase } from './application/use-cases/list-email-templates.use-case';
@@ -15,6 +17,7 @@ import { EmailTemplatesController } from './interface/controllers/email-template
   providers: [
     { provide: EmailPort, useClass: ResendEmailGateway },
     { provide: EmailTemplateRepositoryPort, useClass: TypeOrmEmailTemplateRepository },
+    { provide: TenantBrandingPort, useClass: TenantContextBrandingAdapter },
     EmailTemplateService,
     SendTemplatedEmailUseCase,
     ListEmailTemplatesUseCase,

@@ -3,9 +3,11 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { DataSource } from 'typeorm';
 import { TenantRepositoryPort } from '../../../platform/application/ports/tenant.repository.port';
+import { Tenant } from '../../../platform/domain/entities/tenant.entity';
 import { TenantConnectionProvider } from '../../../../core/database/tenant-connection.provider';
 import { EmailPort } from '../../../email/application/ports/email.port';
 import { EmailTemplateService } from '../../../email/application/services/email-template.service';
+import { TenantBranding, TenantBrandingPort } from '../../../email/application/ports/tenant-branding.port';
 import { TypeOrmEmailTemplateRepository } from '../../../email/infrastructure/repositories/typeorm-email-template.repository';
 import { TypeOrmChargeRepository } from '../../infrastructure/repositories/typeorm-charge.repository';
 import { TypeOrmPaymentRepository } from '../../infrastructure/repositories/typeorm-payment.repository';
@@ -42,7 +44,7 @@ export class SendPensionReminderTask {
 
     for (const tenant of activeTenants) {
       try {
-        await this.processTenant(tenant.schemaName);
+        await this.processTenant(tenant);
       } catch (err) {
         this.logger.warn(
           `Recordatorio de pensión falló para el tenant "${tenant.schemaName}": ${(err as Error).message}`,
@@ -51,8 +53,8 @@ export class SendPensionReminderTask {
     }
   }
 
-  private async processTenant(schemaName: string): Promise<void> {
-    const dataSource: DataSource = await this.connections.getConnectionForSchema(schemaName);
+  private async processTenant(tenant: Tenant): Promise<void> {
+    const dataSource: DataSource = await this.connections.getConnectionForSchema(tenant.schemaName);
 
     const charges = new TypeOrmChargeRepository(dataSource);
     const payments = new TypeOrmPaymentRepository(dataSource);
@@ -60,7 +62,13 @@ export class SendPensionReminderTask {
     const enrollments = new TypeOrmEnrollmentRepository(dataSource);
     const users = new TypeOrmUserRepository(dataSource);
     const guardianAccess = new GuardianAccessService(new TypeOrmGuardianLinkRepository(dataSource));
-    const templateService = new EmailTemplateService(new TypeOrmEmailTemplateRepository(dataSource));
+    // Sin contexto de request (corre por cron, no por HTTP): se arma la
+    // marca a mano igual que en los casos de uso `Platform*`, con el
+    // `tenant` que ya se tiene de `run()` — sin consulta extra.
+    const branding: TenantBrandingPort = {
+      getCurrentBranding: async (): Promise<TenantBranding> => ({ name: tenant.name, logoUrl: tenant.logoUrl }),
+    };
+    const templateService = new EmailTemplateService(new TypeOrmEmailTemplateRepository(dataSource), branding);
 
     const today = new Date().toISOString().slice(0, 10);
     const pensionCharges = (await charges.findAll({ concept: 'pension' })).filter(
