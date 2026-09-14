@@ -4,6 +4,7 @@ import { TenantsController } from './interface/controllers/tenants.controller';
 import { PlatformAuthController } from './interface/controllers/platform-auth.controller';
 import { PlatformTenantUsersController } from './interface/controllers/platform-tenant-users.controller';
 import { PlatformTenantAuditController } from './interface/controllers/platform-tenant-audit.controller';
+import { PlatformTenantEmailTemplatesController } from './interface/controllers/platform-tenant-email-templates.controller';
 import { PlatformAdminGuard } from './interface/guards/platform-admin.guard';
 import { CreateTenantUseCase } from './application/use-cases/create-tenant.use-case';
 import { ListTenantsUseCase } from './application/use-cases/list-tenants.use-case';
@@ -23,6 +24,9 @@ import { PlatformResetTenantUserPasswordUseCase } from './application/use-cases/
 import { PlatformImpersonateTenantUserUseCase } from './application/use-cases/platform-impersonate-tenant-user.use-case';
 import { PlatformListTenantAuditLogsUseCase } from './application/use-cases/platform-list-tenant-audit-logs.use-case';
 import { PlatformExportTenantAuditLogsUseCase } from './application/use-cases/platform-export-tenant-audit-logs.use-case';
+import { PlatformListTenantEmailTemplatesUseCase } from './application/use-cases/platform-list-tenant-email-templates.use-case';
+import { PlatformUpdateTenantEmailTemplateUseCase } from './application/use-cases/platform-update-tenant-email-template.use-case';
+import { PlatformSendTenantTestEmailUseCase } from './application/use-cases/platform-send-tenant-test-email.use-case';
 import { TotpService } from './infrastructure/totp.service';
 import { TenantRepositoryPort } from './application/ports/tenant.repository.port';
 import { SchemaProvisionerPort } from './application/ports/schema-provisioner.port';
@@ -34,10 +38,17 @@ import { TenantOrmEntity } from './infrastructure/entities/tenant.orm-entity';
 import { PlatformAdminOrmEntity } from './infrastructure/entities/platform-admin.orm-entity';
 import { PasswordHasherPort } from '../../core/security/password-hasher.port';
 import { BcryptPasswordHasher } from '../../core/security/bcrypt-password-hasher';
+import { EmailModule } from '../email/email.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([TenantOrmEntity, PlatformAdminOrmEntity], 'platform')],
-  controllers: [TenantsController, PlatformAuthController, PlatformTenantUsersController, PlatformTenantAuditController],
+  imports: [TypeOrmModule.forFeature([TenantOrmEntity, PlatformAdminOrmEntity], 'platform'), EmailModule],
+  controllers: [
+    TenantsController,
+    PlatformAuthController,
+    PlatformTenantUsersController,
+    PlatformTenantAuditController,
+    PlatformTenantEmailTemplatesController,
+  ],
   providers: [
     PlatformAdminGuard,
     CreateTenantUseCase,
@@ -58,6 +69,9 @@ import { BcryptPasswordHasher } from '../../core/security/bcrypt-password-hasher
     PlatformImpersonateTenantUserUseCase,
     PlatformListTenantAuditLogsUseCase,
     PlatformExportTenantAuditLogsUseCase,
+    PlatformListTenantEmailTemplatesUseCase,
+    PlatformUpdateTenantEmailTemplateUseCase,
+    PlatformSendTenantTestEmailUseCase,
     TotpService,
     { provide: TenantRepositoryPort, useClass: TypeOrmTenantRepository },
     { provide: SchemaProvisionerPort, useClass: SchemaProvisionerAdapter },

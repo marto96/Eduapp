@@ -1,0 +1,112 @@
+'use client';
+
+import { useState } from 'react';
+import {
+  usePlatformTenantEmailTemplates,
+  usePlatformUpdateTenantEmailTemplate,
+} from '../use-platform-tenant-email-templates';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { LoadingState } from '@/components/ui/loading-state';
+import { TemplateBodyEditor } from '@/features/email-templates/template-body-editor';
+import { PlatformTestEmailDialog } from './platform-test-email-dialog';
+import type { EmailTemplateType } from '@eduapp/shared-types';
+
+const LABELS: Record<EmailTemplateType, string> = {
+  solicitud_recibida: 'Solicitud de admisión recibida',
+  pago_aprobado: 'Pago de admisión aprobado',
+  pago_rechazado: 'Pago de admisión rechazado',
+  solicitud_aceptada: 'Solicitud de admisión aceptada',
+  solicitud_rechazada: 'Solicitud de admisión rechazada',
+  recordatorio_pension: 'Recordatorio de pensión vencida',
+};
+
+const PLACEHOLDERS: Record<EmailTemplateType, string[]> = {
+  solicitud_recibida: ['{{guardianName}}', '{{estudiante}}', '{{grado}}', '{{trackingCode}}', '{{checkoutUrl}}'],
+  pago_aprobado: ['{{trackingCode}}'],
+  pago_rechazado: ['{{trackingCode}}'],
+  solicitud_aceptada: ['{{trackingCode}}', '{{estudiante}}'],
+  solicitud_rechazada: ['{{trackingCode}}', '{{estudiante}}'],
+  recordatorio_pension: ['{{estudiante}}', '{{fechaVencimiento}}', '{{monto}}'],
+};
+
+export function PlatformTenantEmailTemplatesView({ tenantId }: { tenantId: string }) {
+  const { data: templates, isLoading } = usePlatformTenantEmailTemplates(tenantId);
+  const updateTemplate = usePlatformUpdateTenantEmailTemplate(tenantId);
+  const [editing, setEditing] = useState<{ type: EmailTemplateType; subject: string; body: string } | null>(null);
+  const [testing, setTesting] = useState<EmailTemplateType | null>(null);
+
+  if (isLoading) return <LoadingState label="Cargando plantillas..." />;
+
+  return (
+    <div className="space-y-4">
+      {templates?.map((template) => (
+        <Card key={template.type}>
+          <div className="flex items-center justify-between">
+            <h3 className="font-medium">{LABELS[template.type]}</h3>
+            {!template.isCustom && (
+              <span className="text-xs text-muted-foreground">Usando texto por defecto</span>
+            )}
+          </div>
+          {editing?.type === template.type ? (
+            <div className="mt-3 space-y-3">
+              <div className="space-y-1">
+                <Label htmlFor={`${template.type}-subject`}>Asunto</Label>
+                <Input
+                  id={`${template.type}-subject`}
+                  value={editing.subject}
+                  onChange={(e) => setEditing({ ...editing, subject: e.target.value })}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label>Cuerpo</Label>
+                <TemplateBodyEditor
+                  value={editing.body}
+                  onChange={(html) => setEditing({ ...editing, body: html })}
+                  placeholders={PLACEHOLDERS[template.type]}
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  disabled={updateTemplate.isPending}
+                  onClick={() => {
+                    updateTemplate.mutate(
+                      { type: editing.type, subject: editing.subject, body: editing.body },
+                      { onSuccess: () => setEditing(null) },
+                    );
+                  }}
+                >
+                  Guardar
+                </Button>
+                <Button variant="secondary" onClick={() => setEditing(null)}>
+                  Cancelar
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="mt-2">
+              <p className="text-sm text-muted-foreground">{template.subject}</p>
+              <div className="mt-2 flex gap-3">
+                <Button
+                  variant="ghost"
+                  className="h-auto px-0"
+                  onClick={() => setEditing({ type: template.type, subject: template.subject, body: template.body })}
+                >
+                  Editar
+                </Button>
+                <Button variant="ghost" className="h-auto px-0" onClick={() => setTesting(template.type)}>
+                  Probar
+                </Button>
+              </div>
+            </div>
+          )}
+        </Card>
+      ))}
+      {testing && (
+        <PlatformTestEmailDialog tenantId={tenantId} type={testing} onClose={() => setTesting(null)} />
+      )}
+    </div>
+  );
+}

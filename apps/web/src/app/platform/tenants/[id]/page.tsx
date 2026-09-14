@@ -6,7 +6,10 @@ import { Button } from '@/components/ui/button';
 export default function EditPlatformTenantPage({ params }: { params: { id: string } }) {
   return (
     <main className="space-y-8 p-6">
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
+        <Link href={`/platform/tenants/${params.id}/email-templates`}>
+          <Button variant="secondary">Ver plantillas de email</Button>
+        </Link>
         <Link href={`/platform/tenants/${params.id}/audit`}>
           <Button variant="secondary">Ver auditoría</Button>
         </Link>
