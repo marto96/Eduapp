@@ -1,10 +1,14 @@
 'use client';
 
 import { ChangeEvent, FormEvent, useEffect, useState } from 'react';
+import { Mail, Shield, CreditCard, Phone } from 'lucide-react';
 import { useMyProfile, useEditMyProfile, useUploadMyProfilePhoto } from '../use-profile';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { LoadingState } from '@/components/ui/loading-state';
+import { Avatar } from '@/components/ui/avatar';
+import { IdentityCard } from '@/components/ui/identity-card';
+import { getInitials, formatRoles } from '@/lib/roles';
 
 const DOCUMENT_TYPES = [
   { value: '', label: 'Sin especificar' },
@@ -67,6 +71,21 @@ export function ProfileForm() {
 
   return (
     <div className="space-y-6">
+      <Card>
+        <IdentityCard
+          avatar={<Avatar photoUrl={profile.photoUrl} initials={getInitials(profile.fullName)} alt={profile.fullName} />}
+          name={profile.fullName}
+          rows={[
+            { icon: Mail, text: profile.email },
+            { icon: Shield, text: formatRoles(profile.roles) },
+            ...(profile.phone ? [{ icon: Phone, text: profile.phone }] : []),
+            ...(profile.documentNumber
+              ? [{ icon: CreditCard, text: `${profile.documentType ?? ''} ${profile.documentNumber}`.trim() }]
+              : []),
+          ]}
+        />
+      </Card>
+
       <Card>
         <p className="text-[10px] uppercase tracking-wide text-primary">Foto de perfil</p>
         <div className="mt-2 flex items-center gap-4">

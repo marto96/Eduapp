@@ -1,11 +1,16 @@
 'use client';
 
 import { FormEvent, useEffect, useState } from 'react';
+import { Mail, Shield, CreditCard } from 'lucide-react';
 import { useEditUser } from '../use-users';
 import { Dialog } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Avatar } from '@/components/ui/avatar';
+import { IdentityCard } from '@/components/ui/identity-card';
+import { getInitials, formatRoles } from '@/lib/roles';
+import { STATUS_LABELS, STATUS_DOT_CLASSES } from '@/lib/user-status';
 import type { TenantUser } from '@eduapp/shared-types';
 
 const ROLES = [
@@ -43,7 +48,22 @@ export function EditUserModal({ user, onClose }: { user: TenantUser | null; onCl
 
   return (
     <Dialog open={user !== null} onClose={onClose} title="Editar usuario">
-      <form onSubmit={handleSubmit} className="space-y-3">
+      {user && (
+        <IdentityCard
+          className="border-b border-border pb-4"
+          avatar={<Avatar initials={getInitials(user.fullName)} alt={user.fullName} />}
+          name={user.fullName}
+          status={{ label: STATUS_LABELS[user.status], dotClassName: STATUS_DOT_CLASSES[user.status] }}
+          rows={[
+            { icon: Mail, text: user.email },
+            { icon: Shield, text: formatRoles(user.roles) },
+            ...(user.documentNumber
+              ? [{ icon: CreditCard, text: `${user.documentType ?? ''} ${user.documentNumber}`.trim() }]
+              : []),
+          ]}
+        />
+      )}
+      <form onSubmit={handleSubmit} className="mt-4 space-y-3">
         <div className="flex gap-3">
           <div className="flex-1 space-y-1.5">
             <Label htmlFor="editFirstName">Nombre</Label>

@@ -11,22 +11,11 @@ import { Input } from '@/components/ui/input';
 import { LoadingState } from '@/components/ui/loading-state';
 import { Pagination } from '@/components/ui/pagination';
 import { ConfirmDialog } from '@/components/ui/confirm-dialog';
+import { STATUS_LABELS, STATUS_BADGE_CLASSES } from '@/lib/user-status';
 import type { TenantUser } from '@eduapp/shared-types';
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
 const SEARCH_DEBOUNCE_MS = 350;
-
-const STATUS_LABELS: Record<TenantUser['status'], string> = {
-  active: 'Activo',
-  invited: 'Invitado',
-  suspended: 'Inactivo',
-};
-
-const STATUS_CLASSES: Record<TenantUser['status'], string> = {
-  active: 'bg-primary/10 text-primary',
-  invited: 'bg-muted text-muted-foreground',
-  suspended: 'bg-destructive/10 text-destructive',
-};
 
 export function UsersList({ canManage = false, canEdit = false }: { canManage?: boolean; canEdit?: boolean }) {
   const [searchInput, setSearchInput] = useState('');
@@ -109,7 +98,7 @@ export function UsersList({ canManage = false, canEdit = false }: { canManage?: 
                 <p className="text-sm text-muted-foreground">{user.email}</p>
               </div>
               <div className="flex items-center gap-3">
-                <span className={`rounded px-1.5 py-0.5 text-xs font-medium ${STATUS_CLASSES[user.status]}`}>
+                <span className={`rounded px-1.5 py-0.5 text-xs font-medium ${STATUS_BADGE_CLASSES[user.status]}`}>
                   {STATUS_LABELS[user.status]}
                 </span>
                 <span className="text-xs uppercase text-muted-foreground">
