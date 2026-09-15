@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { BookOpen } from 'lucide-react';
 import { useSchedules } from '../use-schedules';
 import { useClassCancellations } from '../use-class-cancellations';
 import { useSections } from '@/features/academic/use-sections';
@@ -75,14 +76,14 @@ export function ScheduleGrid({
         <p className="text-sm text-muted-foreground">Sin horarios cargados para esta sección.</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-sm">
+          <table className="w-full text-sm">
             <thead>
               <tr>
-                <th className="border border-border p-2 text-left text-xs text-muted-foreground">
+                <th className="border-b border-border p-2 text-left text-xs text-muted-foreground">
                   Horario
                 </th>
                 {DAYS.map((day) => (
-                  <th key={day.value} className="border border-border p-2 text-xs text-muted-foreground">
+                  <th key={day.value} className="border-b border-border p-2 text-xs text-muted-foreground">
                     {day.label}
                   </th>
                 ))}
@@ -91,23 +92,28 @@ export function ScheduleGrid({
             <tbody>
               {timeSlots.map((slot) => (
                 <tr key={slot}>
-                  <td className="border border-border p-2 text-xs text-muted-foreground">{slot}</td>
+                  <td className="border-t border-border p-2 align-top text-xs text-muted-foreground">
+                    {slot}
+                  </td>
                   {DAYS.map((day) => {
                     const match = sectionSchedules.find(
                       (s) => `${s.startTime}-${s.endTime}` === slot && s.dayOfWeek === day.value,
                     );
                     return (
-                      <td key={day.value} className="border border-border p-2 align-top">
+                      <td key={day.value} className="border-t border-border p-1.5 align-top">
                         {match ? (
-                          <div className="space-y-1">
-                            <p className="font-medium">
-                              {subjectNameById.get(match.subjectId) ?? match.subjectId}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
+                          <div className="space-y-1 rounded-lg border border-primary/20 bg-primary/10 p-2.5">
+                            <div className="flex items-center gap-1.5">
+                              <BookOpen className="h-3.5 w-3.5 shrink-0 text-primary" />
+                              <p className="truncate font-medium">
+                                {subjectNameById.get(match.subjectId) ?? match.subjectId}
+                              </p>
+                            </div>
+                            <p className="truncate text-xs text-muted-foreground">
                               {teacherNameById.get(match.teacherId) ?? match.teacherId}
                             </p>
                             {match.classroomId && (
-                              <p className="text-xs text-muted-foreground">
+                              <p className="truncate text-xs text-muted-foreground">
                                 {classroomNameById.get(match.classroomId) ?? match.classroomId}
                               </p>
                             )}
@@ -120,7 +126,7 @@ export function ScheduleGrid({
                             )}
                           </div>
                         ) : (
-                          <span className="text-muted-foreground">—</span>
+                          <div className="flex justify-center p-2.5 text-muted-foreground">—</div>
                         )}
                       </td>
                     );
